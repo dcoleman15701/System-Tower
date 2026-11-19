@@ -889,40 +889,86 @@ const JOB_XP = [0, 30, 90, 200, 400];
    ========================================================= */
 const QUESTIONS = [
   { q: "A monster blocks your path. What do you do?", a: [
-    { t: "Charge straight at it", r: { dwarf: 2, beastkin: 2, dragon: 2, wolf: 1 }, c: { warrior: 3 } },
-    { t: "Slip into the shadows and strike first", r: { goblin: 2, demon: 1, undead: 1, wolf: 1 }, c: { rogue: 3, ranger: 1 } },
-    { t: "Study it, then hit it with magic", r: { elf: 2, spirit: 2, slime: 1 }, c: { mage: 3 } },
-    { t: "Shield the people behind you", r: { human: 2, lizard: 1, dwarf: 1 }, c: { tank: 3, cleric: 2 } },
-    { t: "Try to tame it", r: { beastkin: 2, wolf: 1, lizard: 1 }, c: { tamer: 3 } } ] },
+    { t: "Charge straight at it", r: { dwarf: 2, beastkin: 2, dragon: 1 }, c: { warrior: 3 } },
+    { t: "Slip into the shadows and strike first", r: { goblin: 2, wolf: 1 }, c: { rogue: 3, ranger: 1 } },
+    { t: "Study it, then blast it with magic", r: { elf: 2, spirit: 2 }, c: { mage: 3 } },
+    { t: "Try to tame it", r: { beastkin: 2, wolf: 1, lizard: 1 }, c: { tamer: 3 } },
+    { t: "Stand in front of the villagers and shield them", al: 1, r: { human: 2, dwarf: 1 }, c: { tank: 3, cleric: 1 } },
+    { t: "Let it maul the villagers while you loot their homes", al: -1, r: { demon: 2, goblin: 2 }, c: { rogue: 2 }, j: { merchant: 1 } } ] },
   { q: "Where do you feel most at home?", a: [
-    { t: "Deep forests", r: { elf: 3, wolf: 2, beastkin: 1 }, c: { ranger: 2, tamer: 1 } },
-    { t: "Mountain halls and forges", r: { dwarf: 3, dragon: 1 }, j: { smith: 2 } },
-    { t: "A busy city", r: { human: 3, goblin: 1 }, j: { merchant: 2 } },
-    { t: "Dark ruins and graveyards", r: { undead: 3, demon: 2 }, c: { mage: 2 } },
-    { t: "Swamps and hidden caves", r: { slime: 3, lizard: 2, goblin: 1 }, j: { alchemist: 2 } },
-    { t: "High in the clouds and storms", r: { spirit: 3, dragon: 2 }, c: { mage: 1 } } ] },
+    { t: "Deep forests", r: { elf: 3, wolf: 2 }, c: { ranger: 2, tamer: 1 } },
+    { t: "Mountain halls and forges", r: { dwarf: 3, dragon: 1 }, j: { smith: 3 } },
+    { t: "Swamps and hidden caves", r: { slime: 3, lizard: 2 }, j: { alchemist: 2 } },
+    { t: "High in the clouds and storms", r: { spirit: 3, dragon: 2 }, c: { mage: 1 } },
+    { t: "A temple filled with light", al: 1, r: { human: 2, spirit: 1 }, c: { cleric: 3 } },
+    { t: "Ruins where the dead whisper to you", al: -1, r: { undead: 3, demon: 2 }, c: { mage: 2 } } ] },
   { q: "How do you want your power to grow?", a: [
     { t: "Start strong and stay steady", r: { human: 2, elf: 2, dwarf: 2, beastkin: 2 } },
     { t: "Start weak, then evolve into something terrifying", r: { slime: 3, goblin: 3, wolf: 2, lizard: 2 } },
-    { t: "Be born with ancient power", r: { dragon: 3, demon: 3, spirit: 2, undead: 2 } } ] },
+    { t: "Be born with ancient power", r: { dragon: 3, spirit: 2 } },
+    { t: "Through endless training", r: { beastkin: 1, human: 1 }, c: { warrior: 2, tank: 1 } },
+    { t: "By protecting others and growing stronger for them", al: 1, r: { human: 2, dwarf: 1 }, c: { tank: 2, cleric: 2 } },
+    { t: "By devouring the strength of everyone I defeat", al: -1, r: { demon: 3, undead: 2, slime: 1 }, c: { mage: 1 } } ] },
   { q: "Between adventures, how do you earn your coin?", a: [
     { t: "Forging weapons and armor", j: { smith: 4 } },
     { t: "Brewing potions", j: { alchemist: 4 } },
     { t: "Writing magic scrolls", j: { scribe: 4 } },
     { t: "Cooking hearty meals", j: { cook: 4 } },
-    { t: "Buying and selling", j: { merchant: 4 } } ] },
+    { t: "Trading at fair prices and helping struggling towns", al: 1, r: { human: 1 }, j: { merchant: 3 } },
+    { t: "Selling cursed goods to people who don't know better", al: -1, r: { demon: 1, goblin: 1 }, j: { merchant: 2, alchemist: 2 } } ] },
   { q: "What do you value most?", a: [
-    { t: "Raw strength", r: { dwarf: 1, dragon: 1, beastkin: 1 }, c: { warrior: 2 }, j: { smith: 1 } },
-    { t: "Speed", r: { elf: 1, wolf: 2, goblin: 1 }, c: { rogue: 2, ranger: 1 } },
-    { t: "Knowledge", r: { elf: 1, spirit: 1, undead: 1 }, c: { mage: 2 }, j: { scribe: 2 } },
-    { t: "Luck and fortune", r: { human: 2, goblin: 1 }, c: { tamer: 1 }, j: { merchant: 2 } },
-    { t: "Endurance", r: { dwarf: 1, lizard: 2, slime: 1 }, c: { tank: 2, cleric: 1, warrior: 1 }, j: { cook: 1 } } ] },
+    { t: "Raw strength", r: { dwarf: 1, dragon: 1 }, c: { warrior: 2 }, j: { smith: 1 } },
+    { t: "Speed", r: { elf: 1, wolf: 2 }, c: { rogue: 2, ranger: 1 } },
+    { t: "Knowledge", r: { elf: 1, spirit: 1 }, c: { mage: 2 }, j: { scribe: 2 } },
+    { t: "Luck and fortune", r: { human: 1, goblin: 1 }, c: { tamer: 1 }, j: { merchant: 2 } },
+    { t: "Loyalty to my friends", al: 1, r: { human: 1, beastkin: 1 }, c: { tank: 2, cleric: 1 } },
+    { t: "Power over others, at any cost", al: -1, r: { demon: 2, dragon: 1 }, c: { warrior: 1, mage: 1 } } ] },
   { q: "Who do you travel with?", a: [
     { t: "No one. I go alone.", r: { undead: 1, slime: 1, wolf: 1 }, c: { rogue: 2 } },
-    { t: "A party of trusted friends", r: { human: 2, elf: 1 }, c: { cleric: 2, tank: 1, warrior: 1 }, j: { cook: 1 } },
+    { t: "A party of trusted friends", r: { human: 2, elf: 1 }, c: { cleric: 1, warrior: 1, tank: 1 } },
     { t: "Loyal beasts", r: { beastkin: 2, wolf: 1 }, c: { tamer: 3 } },
-    { t: "An army of the fallen who obey me", r: { demon: 2, undead: 2, dragon: 1 }, c: { mage: 3 } } ] },
+    { t: "A traveling caravan", r: { human: 1, goblin: 1 }, j: { merchant: 2, cook: 2 } },
+    { t: "Anyone who needs protecting", al: 1, r: { dwarf: 1, human: 1 }, c: { tank: 2, cleric: 2 } },
+    { t: "An army of the fallen who obey my every command", al: -1, r: { undead: 2, demon: 2 }, c: { mage: 3 } } ] },
+  { q: "A stranger drops a heavy bag of gold. What do you do?", a: [
+    { t: "Pocket it quietly", r: { goblin: 2 }, c: { rogue: 2 } },
+    { t: "Count it before deciding", r: { dwarf: 1 }, j: { merchant: 2 } },
+    { t: "Spend it on better gear", r: { beastkin: 1 }, c: { warrior: 1 }, j: { smith: 1 } },
+    { t: "Ignore it. Gold doesn't interest me.", r: { spirit: 2, elf: 1 }, c: { mage: 1 } },
+    { t: "Chase them down and return every coin", al: 1, r: { human: 2 }, c: { cleric: 1, tank: 1 } },
+    { t: "Keep it and frame someone else for stealing it", al: -1, r: { demon: 2, goblin: 1 }, c: { rogue: 1 } } ] },
+  { q: "Pick your role on the battlefield.", a: [
+    { t: "The front line", c: { tank: 2, warrior: 2 }, r: { dwarf: 1 } },
+    { t: "The flanker who hits from the side", c: { rogue: 2, ranger: 1 }, r: { wolf: 1 } },
+    { t: "Long range, far from the chaos", c: { ranger: 2, mage: 1 }, r: { elf: 1 } },
+    { t: "Support, keeping the team going", c: { cleric: 2, tamer: 1 }, j: { cook: 1 } },
+    { t: "The medic who saves the wounded on both sides", al: 1, r: { human: 1, spirit: 1 }, c: { cleric: 3 }, j: { alchemist: 1 } },
+    { t: "The one who finishes off the wounded", al: -1, r: { undead: 1, wolf: 1, demon: 1 }, c: { rogue: 1, warrior: 1 } } ] },
+  { q: "What do you fear most?", a: [
+    { t: "Being forgotten", r: { human: 1, spirit: 1 }, j: { scribe: 2 } },
+    { t: "Being weak", r: { slime: 2, goblin: 1 }, c: { warrior: 2 } },
+    { t: "Losing my freedom", r: { wolf: 2, beastkin: 1 }, c: { ranger: 1, rogue: 1 } },
+    { t: "Running out of gold", r: { goblin: 1, dwarf: 1 }, j: { merchant: 2 } },
+    { t: "Failing to protect someone I care about", al: 1, r: { human: 1, dwarf: 1 }, c: { tank: 3 } },
+    { t: "Nothing. Everyone else should fear me.", al: -1, r: { dragon: 2, demon: 2, undead: 1 }, c: { mage: 1 } } ] },
+  { q: "At the top of the tower waits one reward. Which do you claim?", a: [
+    { t: "Ultimate strength", r: { dragon: 2 }, c: { warrior: 2 } },
+    { t: "Forbidden knowledge", r: { elf: 1, spirit: 1 }, c: { mage: 2 }, j: { scribe: 1 } },
+    { t: "Endless riches", r: { goblin: 1 }, j: { merchant: 3 } },
+    { t: "A legendary companion", r: { beastkin: 1, wolf: 1 }, c: { tamer: 3 } },
+    { t: "Peace for every world", al: 1, r: { human: 2, spirit: 1 }, c: { cleric: 2, tank: 1 } },
+    { t: "A throne to rule over everyone who failed", al: -1, r: { demon: 2, undead: 1, dragon: 1 }, c: { warrior: 1 } } ] },
 ];
+
+/* Alignment: each good answer is +1, each evil answer is -1 (range -10 to +10). */
+function alignmentOf(score) {
+  const s = score || 0;
+  if (s >= 7) return { name: "Paragon", icon: "🌟", desc: "A shining hero. Others look to you for hope." };
+  if (s >= 3) return { name: "Good", icon: "😇", desc: "You protect the weak and do what's right." };
+  if (s <= -7) return { name: "Villain", icon: "💀", desc: "Feared by all. The tower itself trembles." };
+  if (s <= -3) return { name: "Evil", icon: "😈", desc: "Power first. Others are tools or obstacles." };
+  return { name: "Neutral", icon: "⚖️", desc: "You walk your own path, neither saint nor monster." };
+}
 
 const FREE_ROLLS = 100;
 const ROLL_PACKS = [{ rolls: 10, price: "$0.99" }, { rolls: 50, price: "$3.99" }, { rolls: 150, price: "$9.99" }];
@@ -1487,7 +1533,7 @@ function setRolls(kind, n) {
 }
 const topOf = (score, all) => Object.keys(all).map(id => [id, (score[id] || 0) + Math.random() * 0.5]).sort((a, b) => b[1] - a[1])[0][0];
 function openCreation() {
-  Object.assign(create, { name: "", typedName: "", suggestions: null, step: "intro", qi: 0, score: { race: {}, class: {}, job: {} }, pick: {} });
+  Object.assign(create, { name: "", typedName: "", suggestions: null, step: "intro", qi: 0, align: 0, order: [], score: { race: {}, class: {}, job: {} }, pick: {} });
   $("createOverlay").classList.add("show");
   renderCreation();
 }
@@ -1518,7 +1564,7 @@ function renderCreation() {
     el.innerHTML = `
       <div class="header">[ SYSTEM ]</div>
       <div class="sys-intro"><span class="big">Welcome, Player.</span>
-        Before you awaken, the System will ask you a few questions about yourself. Your answers will reveal the race you were born as, the class you fight with, the element you wield and the job you earn your living by. Then the System will suggest a gamer name to match.</div>
+        Before you awaken, the System will ask you 10 questions about yourself. Answer honestly: good and evil choices both shape who you become. Your answers will reveal the race you were born as, the class you fight with, the element you wield and the job you earn your living by. Then the System will suggest a gamer name to match.</div>
       <button class="btn wide" data-c="begin">Begin</button>
       ${player ? `<button class="dev-link" data-c="cancel">Cancel and keep my current character</button>` : ""}`;
   }
@@ -1529,12 +1575,14 @@ function renderCreation() {
       <div class="header">[ SYSTEM QUESTION ]</div>
       <div class="q-progress">Question ${create.qi + 1} of ${QUESTIONS.length}</div>
       <div class="q-text">${Q.q}</div>
-      ${Q.a.map((a, i) => `<button class="opt" data-ans="${i}">${a.t}</button>`).join("")}`;
+      ${(create.order[create.qi] || (create.order[create.qi] = Q.a.map((_, i) => i).sort(() => Math.random() - 0.5)))
+        .map(i => `<button class="opt" data-ans="${i}">${Q.a[i].t}</button>`).join("")}`;
   }
   if (create.step === "result") {
     el.innerHTML = `
       <div class="header">[ ASSESSMENT COMPLETE ]</div>
-      <div class="sys-intro">The System has read your soul.<br><span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
+      <div class="sys-intro">The System has read your soul.<br>
+        ${(() => { const a = alignmentOf(create.align); return `<span class="big" style="font-size:1.1em;margin:6px 0 2px">${a.icon} Alignment: ${a.name} (${create.align > 0 ? "+" : ""}${create.align})</span><span class="small muted">${a.desc}</span><br>`; })()}<span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
       ${pickCard("race")}${pickCard("class")}${pickCard("element")}${pickCard("job")}
       <button class="btn wide" data-c="toName">Accept and choose my name ▶</button>`;
   }
@@ -1564,6 +1612,7 @@ function startGame() {
   player = newPlayer(create.name, create.pick.race, create.pick.class, create.pick.job);
   player.elem = create.pick.element;
   player.elems = [player.elem];
+  player.alignment = create.align || 0;
   quests = QUEST_DEFS.map(q => ({ ...q, progress: 0 })); questClaimed = false;
   ALLIES.forEach(a => { a.inParty = false; a.level = 1; });
   recalc(); player.hp = player.maxHp; player.mp = player.maxMp;
@@ -1575,6 +1624,7 @@ $("createBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.ans !== undefined) {
     const a = QUESTIONS[create.qi].a[+b.dataset.ans];
+    create.align += a.al || 0;
     [["r", "race"], ["c", "class"], ["j", "job"]].forEach(([key, kind]) =>
       Object.entries(a[key] || {}).forEach(([k, v]) => create.score[kind][k] = (create.score[kind][k] || 0) + v));
     Sound.play("click");
@@ -1617,6 +1667,7 @@ function render() {
     ["Job", `${job.icon} ${JOB_RANKS[jobRank()]} ${job.name}`],
     ["Rank", `${rk.text} <span class="muted small">(Lv. ${player.level})</span>`],
     ["Title", player.title],
+    ["Alignment", (() => { const a = alignmentOf(player.alignment); return `${a.icon} ${a.name} <span class="muted small">(${(player.alignment || 0) > 0 ? "+" : ""}${player.alignment || 0})</span>`; })()],
     ["Location", `📍 ${player.location || "Starting Town"}`],
     ["Ability", `${cls.ability} <span class="grade ${gL}">${gL}</span>`],
     ["Body Refinement", `${race.body} (${LAYERS[player.layer]})`],
