@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>System Tower</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Orbitron:wght@600;800&family=Press+Start+2P&family=Cinzel:wght@500;700&family=EB+Garamond:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* =========================================================
@@ -1787,12 +1788,12 @@ function setDot(tab, on) {
 /* ============ SAVE / LOAD (this browser only) ============ */
 function save() {
   if (!player) return;
-  try {
-    localStorage.setItem(slotKey(currentSlot), JSON.stringify({
-      player, quests: quests.map(q => q.progress), questClaimed,
-      allies: ALLIES.map(a => ({ inParty: a.inParty, level: a.level })),
-    }));
-  } catch (e) {}
+  const obj = {
+    player, quests: quests.map(q => q.progress), questClaimed,
+    allies: ALLIES.map(a => ({ inParty: a.inParty, level: a.level })),
+  };
+  try { localStorage.setItem(slotKey(currentSlot), JSON.stringify(obj)); } catch (e) {}
+  Cloud.queue(currentSlot, JSON.parse(JSON.stringify(obj)));   // also back up online when signed in
 }
 function load() {
   try {
@@ -3088,7 +3089,8 @@ $("panel").addEventListener("click", e => {
    SAVE FILES: 3 slots, each its own character.
    ========================================================= */
 const SAVE_SLOTS = 3;
-const slotKey = n => n === 1 ? "sysGame_v2" : `sysGame_v2_s${n}`;   // slot 1 keeps the old key, so existing saves carry over
+// Signed-in players get their own cache per account; guests keep the original keys (slot 1 = the old key, so old saves carry over)
+const slotKey = n => Cloud.user ? `sysCloud_${Cloud.user.id}_s${n}` : n === 1 ? "sysGame_v2" : `sysGame_v2_s${n}`;
 let currentSlot = 1;
 try { currentSlot = +localStorage.getItem("sysGame_slot") || 1; } catch (e) {}
 function setSlot(n) { currentSlot = n; try { localStorage.setItem("sysGame_slot", n); } catch (e) {} }
@@ -3112,8 +3114,10 @@ function openSlots() {
         ${n === currentSlot && player ? `<button class="btn" style="flex:1" data-slotclose>Continue</button>` : `<button class="btn" style="flex:1" data-slotload="${n}">Load</button>`}
         <button class="btn" data-slotdel="${n}">${deleteArm === n ? "Tap again to delete" : "Delete"}</button></div></div>`;
   }).join("");
+  const anyCloud = Array.from({ length: SAVE_SLOTS }, (_, i) => slotData(i + 1)).some(Boolean);
   $("evoBody").innerHTML = `<div class="header">[ SAVE FILES ]</div>
-    <div class="sys-intro">Each slot is a separate character, saved in this browser.</div>${cards}
+    <div class="sys-intro">${Cloud.user ? `☁️ Signed in as <b>${Cloud.username}</b>. Your saves sync online, so you can load them from any device.` : "Each slot is a separate character, saved in this browser."}</div>
+    ${Cloud.user && guestSaveCount() ? `<button class="btn wide" data-importguest style="margin:0 0 10px">⬆️ Bring this device's guest saves into my account</button>` : ""}${cards}
     ${player ? `<button class="dev-link" data-slotclose>Close</button>` : ""}`;
   $("evoOverlay").classList.add("show");
 }
@@ -3123,6 +3127,7 @@ function resetWorld() {
 }
 $("evoBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
+  if (b.hasAttribute("data-importguest")) { b.disabled = true; importGuestSaves(); return; }
   if (b.hasAttribute("data-slotclose")) { deleteArm = null; $("evoOverlay").classList.remove("show"); Sound.play("close"); return; }
   if (b.dataset.slotload) {
     const n = +b.dataset.slotload;
@@ -3143,6 +3148,7 @@ $("evoBody").addEventListener("click", e => {
     if (deleteArm !== n) { deleteArm = n; Sound.play("warn"); return openSlots(); }
     deleteArm = null;
     try { localStorage.removeItem(slotKey(n)); } catch (e) {}
+    Cloud.remove(n);
     notify("SAVE FILE", `Save File #0${n} deleted.`, "close");
     if (n === currentSlot) { player = null; resetWorld(); $("evoOverlay").classList.remove("show"); create.targetSlot = n; return openCreation(); }
     openSlots();
@@ -3243,7 +3249,7 @@ function renderNameStep() {
     <input class="name-input" id="nameInput" maxlength="${NAME_MAX}" placeholder="Your gamer name" value="${typed}" autocomplete="off" autocapitalize="words" spellcheck="false">
     <div class="small" id="nameCheck" style="min-height:20px;margin:4px 0">${res ? (res.ok ? `<span class="good">✔ ${res.name} is available</span>` : `<span class="warn-txt">${res.problems.join(" · ")}</span>`) : ""}</div>
     <div class="small muted" style="line-height:1.5">Rules: ${NAME_MIN} to ${NAME_MAX} letters · no numbers or symbols · no profanity · each name can only be used once.</div>
-    <div class="small muted" style="line-height:1.5;margin-top:6px">🔒 Don't use your real name or anything personal. Your answers stay on this device and are only used to suggest a name.</div>
+    <div class="small muted" style="line-height:1.5;margin-top:6px">🔒 Don't use your real name or anything personal. Your answers are only used to suggest a name.${Cloud.user ? " Names are unique across all players." : ""}</div>
     <button class="btn wide" data-c="claimName" ${res && res.ok ? "" : "disabled"}>Awaken as ${res && res.ok ? res.name : "…"}</button>
     <button class="dev-link" data-c="back">◀ Back to my race, class and job</button>`;
 }
@@ -3258,27 +3264,231 @@ function liveCheck() {
   btn.textContent = `Awaken as ${res && res.ok ? res.name : "…"}`;
 }
 $("createBody").addEventListener("input", e => { if (e.target.id === "nameInput" && create.step === "name") liveCheck(); });
-$("createBody").addEventListener("click", e => {
+$("createBody").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b || create.step !== "name") return;
   if (b.dataset.usename) { create.typedName = b.dataset.usename; Sound.play("click"); renderNameStep(); }
   if (b.dataset.c === "moreNames") { create.suggestions = suggestNames(); Sound.play("roll"); renderNameStep(); }
   if (b.dataset.c === "claimName") {
-    const res = checkName(create.typedName, create.targetSlot || currentSlot);
+    const slot = create.targetSlot || currentSlot;
+    const res = checkName(create.typedName, slot);
     if (!res.ok) return renderNameStep();
+    if (Cloud.user) {   // signed in: make sure no other player anywhere has this name
+      b.disabled = true; b.textContent = "Checking name…";
+      if (await Cloud.isNameTaken(res.name, slot)) {
+        create.suggestions = null; renderNameStep();
+        $("nameCheck").innerHTML = `<span class="warn-txt">${res.name} is already taken by another player</span>`;
+        return;
+      }
+    }
     create.name = res.name;
     startGame();
   }
 });
 
+
+/* =========================================================
+   ACCOUNTS + CLOUD SAVES (Supabase)
+   Players sign in with a username and password. No email
+   or real name is collected. Saves sync to the cloud, so a
+   player can log in from any device.
+
+   SETUP: paste your Supabase Project URL and publishable
+   key below. Until then, the game runs in guest mode.
+   ========================================================= */
+const SUPABASE_URL = "";   // e.g. "https://abcdefgh.supabase.co"
+const SUPABASE_KEY = "";   // e.g. "sb_publishable_..."  (safe to be public; data is protected by Row Level Security)
+
+const USERNAME_RE = /^[A-Za-z0-9_]{3,16}$/;
+const PASSWORD_MIN = 8;
+// Supabase needs an email-shaped login, so the username is turned into one.
+// Nothing is ever sent to this address; it only exists inside your Supabase project.
+const loginEmail = u => `${u.toLowerCase()}@players.systemtower.game`;
+
+const Cloud = {
+  client: null, user: null, username: null, guest: false,
+  ready() { return !!this.client; },
+  init() {
+    if (SUPABASE_URL && SUPABASE_KEY && window.supabase && window.supabase.createClient) {
+      try { this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { this.client = null; }
+    }
+  },
+  setUser(u) { this.user = u; this.username = u ? (u.user_metadata && u.user_metadata.username) || u.email.split("@")[0] : null; },
+  async session() {
+    if (!this.ready()) return null;
+    const { data } = await this.client.auth.getSession();
+    return data && data.session ? data.session.user : null;
+  },
+  async signUp(username, password) {
+    const { data, error } = await this.client.auth.signUp({ email: loginEmail(username), password, options: { data: { username } } });
+    if (error) throw error;
+    if (!data.session) throw new Error("Account created, but email confirmation is still turned on in Supabase. Turn off 'Confirm email' (see setup).");
+    return data.user;
+  },
+  async signIn(username, password) {
+    const { data, error } = await this.client.auth.signInWithPassword({ email: loginEmail(username), password });
+    if (error) throw error;
+    return data.user;
+  },
+  async signOut() { if (this.ready()) await this.client.auth.signOut(); this.setUser(null); },
+  async pull() {   // download this player's saves into the local cache
+    const { data, error } = await this.client.from("saves").select("slot, data");
+    if (error) throw error;
+    for (let n = 1; n <= SAVE_SLOTS; n++) { try { localStorage.removeItem(slotKey(n)); } catch (e) {} }
+    (data || []).forEach(r => { try { localStorage.setItem(slotKey(r.slot), JSON.stringify(r.data)); } catch (e) {} });
+    return (data || []).length;
+  },
+  pending: {}, timer: null,
+  queue(slot, obj) {   // saves happen often, so batch them into one upload every few seconds
+    if (!this.user) return;
+    this.pending[slot] = obj;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.flush(), 2500);
+  },
+  async flush() {
+    if (!this.user) return;
+    const rows = Object.entries(this.pending).map(([slot, obj]) => ({
+      user_id: this.user.id, slot: +slot, data: obj,
+      char_name_key: obj.player && obj.player.name ? obj.player.name.toLowerCase() : null,
+      updated_at: new Date().toISOString(),
+    }));
+    this.pending = {};
+    if (!rows.length) return;
+    const { error } = await this.client.from("saves").upsert(rows, { onConflict: "user_id,slot" });
+    setSync(error ? "error" : "ok");
+    if (error) notify("CLOUD SAVE", error.code === "23505" ? "That character name was just taken by another player. Please rename." : "Couldn't save online. Your progress is kept on this device and will retry.", "warn");
+  },
+  async remove(slot) { if (this.user) await this.client.from("saves").delete().eq("slot", slot); },
+  async isNameTaken(name, slot) {
+    if (!this.user) return false;
+    const { data, error } = await this.client.rpc("is_name_taken", { name_key: name.toLowerCase(), my_slot: slot });
+    return !error && data === true;
+  },
+};
+Cloud.init();
+
+/* ===== Sync indicator in the toolbar ===== */
+const syncBtn = document.createElement("button");
+syncBtn.id = "accountBtn";
+$("themeBar").appendChild(syncBtn);
+function setSync(state) {
+  if (Cloud.user) syncBtn.textContent = `${state === "error" ? "⚠️" : "☁️"} ${Cloud.username} · Sign out`;
+  else syncBtn.textContent = Cloud.ready() ? "👤 Sign in" : "📴 Guest";
+}
+syncBtn.addEventListener("click", async () => {
+  if (!Cloud.ready()) return notify("ACCOUNTS", "Online accounts aren't set up yet. You're playing as a guest; saves stay on this device.", "warn");
+  if (Cloud.user) {
+    save(); await Cloud.flush(); await Cloud.signOut();
+    player = null; resetWorld(); setSync();
+    notify("ACCOUNT", "Signed out.", "close");
+    return openAuth("signin");
+  }
+  if (player) save();
+  openAuth("signin");
+});
+window.addEventListener("pagehide", () => { if (Cloud.user) Cloud.flush(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && Cloud.user) Cloud.flush(); });
+
+/* ===== Sign-in screen ===== */
+const authOv = document.createElement("div");
+authOv.className = "overlay"; authOv.id = "authOverlay"; authOv.style.zIndex = 30;
+authOv.innerHTML = `<div class="panel" id="authBody"></div>`;
+document.body.appendChild(authOv);
+let authMode = "signin", authBusy = false;
+function openAuth(mode) { authMode = mode || "signin"; renderAuth(""); authOv.classList.add("show"); }
+function renderAuth(msg, good) {
+  const create = authMode === "create";
+  $("authBody").innerHTML = `
+    <div class="header">[ SYSTEM ]</div>
+    <div class="sys-intro"><span class="big">System Tower</span>${create ? "Create an account to save your characters online and play from any device." : "Sign in to load your saved profiles."}</div>
+    <div class="filters"><button class="btn ${!create ? "active" : ""}" data-auth="signin">Sign in</button><button class="btn ${create ? "active" : ""}" data-auth="create">Create account</button></div>
+    <label class="small muted">Username</label>
+    <input class="name-input" id="authUser" maxlength="16" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="3 to 16 letters, numbers or _">
+    <label class="small muted">Password</label>
+    <input class="name-input" id="authPass" type="password" autocomplete="${create ? "new-password" : "current-password"}" placeholder="At least ${PASSWORD_MIN} characters">
+    ${create ? `<label class="small muted">Confirm password</label><input class="name-input" id="authPass2" type="password" autocomplete="new-password">` : ""}
+    <div class="small" id="authMsg" style="min-height:20px;margin:6px 0">${msg ? `<span class="${good ? "good" : "warn-txt"}">${msg}</span>` : ""}</div>
+    <button class="btn wide" data-auth="go" ${authBusy ? "disabled" : ""}>${authBusy ? "Please wait…" : create ? "Create account" : "Sign in"}</button>
+    ${create ? `<div class="small muted" style="margin-top:8px;line-height:1.5">🔒 No email or real name needed. Your password is stored securely (encrypted) by Supabase, never in the game. There's no email, so write your password down. It can't be reset.</div>` : ""}
+    <button class="dev-link" data-auth="guest">Play as guest (saves on this device only)</button>`;
+}
+async function doAuth() {
+  const u = ($("authUser").value || "").trim(), p = $("authPass").value || "";
+  if (!USERNAME_RE.test(u)) return renderAuth("Username: 3 to 16 letters, numbers or underscores.");
+  if (authMode === "create" && isProfane(u)) return renderAuth("That username isn't allowed.");
+  if (p.length < PASSWORD_MIN) return renderAuth(`Password must be at least ${PASSWORD_MIN} characters.`);
+  if (authMode === "create" && p !== $("authPass2").value) return renderAuth("Passwords don't match.");
+  authBusy = true; renderAuth("");
+  try {
+    const user = authMode === "create" ? await Cloud.signUp(u, p) : await Cloud.signIn(u, p);
+    Cloud.setUser(user); Cloud.guest = false;
+    await afterSignIn(authMode === "create");
+  } catch (e) {
+    const m = String(e.message || e);
+    authBusy = false;
+    if (/already registered|already exists/i.test(m)) return renderAuth("That username is taken. Try another.");
+    if (/invalid login credentials/i.test(m)) return renderAuth("Wrong username or password.");
+    return renderAuth(m);
+  }
+  authBusy = false;
+}
+async function afterSignIn(isNew) {
+  player = null; resetWorld();
+  let count = 0;
+  try { count = await Cloud.pull(); } catch (e) { notify("CLOUD", "Couldn't load your online saves. Check your connection.", "warn"); }
+  authOv.classList.remove("show");
+  setSync("ok");
+  notify("ACCOUNT", isNew ? `Welcome, ${Cloud.username}! Your account is ready.` : `Signed in as ${Cloud.username}.`, "levelUp");
+  if (count) openSlots();
+  else if (guestSaveCount()) openSlots();          // offer to bring device saves into the account
+  else { create.targetSlot = 1; openCreation(); }
+}
+$("authBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-auth]"); if (!b || authBusy) return;
+  const a = b.dataset.auth;
+  if (a === "signin" || a === "create") { authMode = a; Sound.play("click"); renderAuth(""); }
+  if (a === "go") doAuth();
+  if (a === "guest") { Cloud.guest = true; authOv.classList.remove("show"); setSync(); startLocal(); }
+});
+$("authBody").addEventListener("keydown", e => { if (e.key === "Enter") doAuth(); });
+
+/* ===== Guest saves -> account ===== */
+const guestKey = n => n === 1 ? "sysGame_v2" : `sysGame_v2_s${n}`;
+function guestSaveCount() {
+  let c = 0;
+  for (let n = 1; n <= SAVE_SLOTS; n++) { try { if (localStorage.getItem(guestKey(n))) c++; } catch (e) {} }
+  return c;
+}
+async function importGuestSaves() {
+  let moved = 0;
+  for (let n = 1; n <= SAVE_SLOTS; n++) {
+    let s = null; try { s = JSON.parse(localStorage.getItem(guestKey(n))); } catch (e) {}
+    if (!s || !s.player || slotData(n)) continue;          // never overwrite an online save
+    if (await Cloud.isNameTaken(s.player.name, n)) { notify("IMPORT", `${s.player.name} is already taken online, so slot #0${n} was skipped. Rename it by starting fresh.`, "warn"); continue; }
+    try { localStorage.setItem(slotKey(n), JSON.stringify(s)); } catch (e) {}
+    Cloud.queue(n, s); moved++;
+  }
+  await Cloud.flush();
+  notify("IMPORT", moved ? `Moved ${moved} device save${moved > 1 ? "s" : ""} into your account.` : "Nothing to import.", moved ? "levelUp" : "warn");
+  openSlots();
+}
+
+/* ===== Starting the game ===== */
+function startLocal() {
+  if (load()) { recalc(); render(); setTimeout(() => notify("SYSTEM", `Welcome back, ${player.name}.`), 400); }
+  else openCreation();
+}
+async function bootGame() {
+  setSync();
+  if (!Cloud.ready()) return startLocal();                 // accounts not set up yet: guest mode
+  const u = await Cloud.session().catch(() => null);
+  if (u) { Cloud.setUser(u); return afterSignIn(false); }
+  openAuth("signin");
+}
+
 let savedTheme = "holo";
 try { savedTheme = localStorage.getItem("statusTheme") || "holo"; } catch (e) {}
 setTheme(savedTheme);
-if (load()) {
-  recalc(); render();
-  setTimeout(() => notify("SYSTEM", `Welcome back, ${player.name}.`), 400);
-} else {
-  openCreation();
-}
+bootGame();
 </script>
 </body>
 </html>
