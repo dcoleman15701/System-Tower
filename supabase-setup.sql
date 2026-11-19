@@ -32,10 +32,10 @@ drop policy if exists "Players add own saves"    on public.saves;
 drop policy if exists "Players update own saves" on public.saves;
 drop policy if exists "Players delete own saves" on public.saves;
 
-create policy "Players read own saves"   on public.saves for select using (auth.uid() = user_id);
-create policy "Players add own saves"    on public.saves for insert with check (auth.uid() = user_id);
-create policy "Players update own saves" on public.saves for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "Players delete own saves" on public.saves for delete using (auth.uid() = user_id);
+create policy "Players read own saves"   on public.saves for select to authenticated using ((select auth.uid()) = user_id);
+create policy "Players add own saves"    on public.saves for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy "Players update own saves" on public.saves for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "Players delete own saves" on public.saves for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- Lets the game ask "is this character name taken?" without revealing
 -- anyone else's saves. Returns only true or false.
@@ -54,4 +54,5 @@ as $$
 $$;
 
 revoke all on function public.is_name_taken(text, smallint) from public;
-grant execute on function public.is_name_taken(text, smallint) to anon, authenticated;
+-- Only signed-in players can call it (it only ever answers true or false).
+grant execute on function public.is_name_taken(text, smallint) to authenticated;
