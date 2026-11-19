@@ -389,6 +389,12 @@ body {
 .tn-body { padding: 6px 0; line-height: 1.35; }
 .tn-body .btn { padding: 6px 10px; }
 
+.lo-tag { display: inline-block; min-width: 52px; text-align: center; font-size: .7em; font-weight: 700; padding: 1px 5px; margin-right: 4px;
+  border-radius: var(--radius); border: 1px solid var(--divider); color: var(--muted); }
+.lo-tag.act { color: var(--accent); border-color: var(--accent); }
+.lo-tag.pas { color: var(--good); border-color: var(--good); }
+.lo-tag.uni { color: #ffb020; border-color: #ffb020; }
+
 /* Overlays: creation + evolution */
 .overlay { position: fixed; inset: 0; z-index: 20; display: none; overflow-y: auto; padding: 24px 12px 40px;
   background: rgba(2,6,16,.82); backdrop-filter: blur(4px); }
@@ -470,7 +476,7 @@ body {
   <button data-t="fantasy">Fantasy</button>
   <button data-t="modern">Modern</button>
   <button id="soundBtn">🔊 Sound On</button>
-  <button id="newCharBtn">🆕 New Character</button>
+  <button id="newCharBtn">💾 Save Files</button>
 </div>
 
 <div class="wrap" id="wrap">
@@ -505,7 +511,7 @@ body {
       <div class="section-title"><span>EQUIPPED</span></div>
       <ul class="list" id="equipList"></ul>
 
-      <div class="section-title"><span>SKILLS</span></div>
+      <div class="section-title"><span>SKILL LOADOUT</span></div>
       <ul class="list" id="skillList"></ul>
     </section>
 
@@ -531,6 +537,8 @@ body {
     <section class="page" data-page="skills">
       <div class="header" data-title="skills"></div>
       <div class="ap-box">Ability Points: <b id="apCount"></b></div>
+      <div class="section-title"><span>BATTLE LOADOUT</span></div>
+      <div id="loadoutBox"></div>
       <div class="section-title"><span>MAIN ABILITY</span></div>
       <div id="abilityCard"></div>
       <div class="section-title"><span>SKILL MASTERY</span></div>
@@ -592,7 +600,7 @@ body {
 </div>
 
 <button class="reopen" id="reopenBtn">Open System (S)</button>
-<div class="hint">Tap the tabs to switch windows. On a keyboard: 1 to 6 switch tabs, S opens and closes.</div>
+<div class="hint">Tap the tabs to switch windows. On a keyboard: 1 to 7 switch tabs, S opens and closes.</div>
 
 <!-- Character creation: questions, suggestion, rolls, paywall -->
 <div class="overlay" id="createOverlay"><div class="panel" id="createBody"></div></div>
@@ -702,7 +710,7 @@ const RACES = {
           ["Dark Elf", "SEN", [["Shadow Elf", "AGI"], ["Abyssal Elf", "INT"]]]] },
   dwarf:    { name: "Dwarf", icon: "🧔", group: "Classic", body: "Stoneheart Body",
     desc: "Short, stubborn and incredibly tough. Born near forges.",
-    stats: { STR: 3, VIT: 4, AGI: -2, INT: -1 },
+    stats: { STR: 3, VIT: 4, RES: 1, AGI: -2, INT: -1 },
     evo: [["Forge Dwarf", "STR", [["Runesmith", "INT"], ["Flame Forger", "STR"]]],
           ["Mountain Dwarf", "VIT", [["Stone Titan", "VIT"], ["Deep King", "LUK"]]],
           ["Iron Dwarf", "STR", [["Ironclad", "VIT"], ["War Thane", "STR"]]]] },
@@ -744,19 +752,19 @@ const RACES = {
           ["Storm Drake", "AGI", [["Thunder Dragon", "AGI"], ["Sky Tyrant", "SEN"]]]] },
   demon:    { name: "Demon", icon: "😈", group: "Mythic", body: "Hellfire Body",
     desc: "A being of the underworld with dark power and a darker reputation.",
-    stats: { STR: 2, INT: 2, SEN: 1, LUK: -1 },
+    stats: { STR: 2, INT: 2, SEN: 1, RES: 1, LUK: -1 },
     evo: [["Greater Demon", "STR", [["Demon Lord", "STR"], ["Archfiend", "VIT"]]],
           ["Night Demon", "LUK", [["Night Sovereign", "LUK"], ["Dream Eater", "INT"]]],
           ["Hellknight", "VIT", [["Abyss Knight", "VIT"], ["Doom Knight", "STR"]]]] },
   spirit:   { name: "Spirit", icon: "🌬️", group: "Mythic", body: "Ether Body",
     desc: "A living spark of nature's power. Huge magic, fragile form.",
-    stats: { INT: 3, SEN: 3, STR: -2, VIT: -2 },
+    stats: { INT: 3, SEN: 3, RES: 2, STR: -2, VIT: -2 },
     evo: [["Fire Spirit", "INT", [["Flame Lord", "INT"], ["Phoenix Spirit", "VIT"]]],
           ["Wind Spirit", "AGI", [["Storm Sylph", "AGI"], ["Gale Sovereign", "SEN"]]],
           ["Light Spirit", "SEN", [["Seraph Spirit", "SEN"], ["Dawn Wisp", "LUK"]]]] },
   undead:   { name: "Undead", icon: "💀", group: "Mythic", body: "Bone Ward Body",
     desc: "Risen from the grave. Feels no pain and never truly tires.",
-    stats: { VIT: 2, INT: 2, SEN: 1, LUK: -2 },
+    stats: { VIT: 2, INT: 2, SEN: 1, RES: 2, LUK: -2 },
     evo: [["Skeleton Knight", "STR", [["Death Knight", "STR"], ["Bone Lord", "VIT"]]],
           ["Lich", "INT", [["Archlich", "INT"], ["Elder Lich", "SEN"]]],
           ["Vampire", "AGI", [["Vampire Lord", "AGI"], ["Blood Progenitor", "LUK"]]]] },
@@ -767,7 +775,7 @@ const RACES = {
    CLASSES (how you fight). Each evolves every 10 levels.
    ========================================================= */
 const CLASSES = {
-  tank:    { name: "Tank", icon: "🛡️", stats: { VIT: 4, STR: 1, AGI: -1 }, ability: "Bulwark Arts",
+  tank:    { name: "Tank", icon: "🛡️", stats: { VIT: 4, STR: 1, RES: 2, AGI: -1 }, ability: "Bulwark Arts",
     desc: "The frontline wall. Soaks up hits, protects the party and outlasts anything. Physical attacks use both STR and VIT.",
     skills: ["Shield Slam", "Bulwark", "Provoke", "Fortress Breaker"],
     evo: [["Knight Defender", "VIT", [["Bastion Knight", "VIT"], ["Shieldlord", "STR"]]],
@@ -797,7 +805,7 @@ const CLASSES = {
     evo: [["Marksman", "SEN", [["Deadeye", "SEN"], ["Storm Archer", "AGI"]]],
           ["Stalker", "STR", [["Beast Slayer", "STR"], ["Monster Slayer", "VIT"]]],
           ["Warden", "VIT", [["Grove Warden", "VIT"], ["Nature Lord", "INT"]]]] },
-  cleric:  { name: "Cleric", icon: "✨", stats: { INT: 2, VIT: 2, SEN: 1 }, ability: "Sacred Dawn Arts",
+  cleric:  { name: "Cleric", icon: "✨", stats: { INT: 2, VIT: 2, SEN: 1, RES: 1 }, ability: "Sacred Dawn Arts",
     desc: "Healer and protector, blessed with holy light.",
     skills: ["Holy Light", "Sanctuary", "Blessing", "Divine Judgment"],
     evo: [["Priest", "INT", [["High Priest", "INT"], ["Saint", "SEN"]]],
@@ -966,7 +974,7 @@ function pathBonus(kind) {
 /* =========================================================
    WORLD DATA
    ========================================================= */
-const STAT_KEYS = ["STR", "AGI", "SEN", "VIT", "INT", "LUK"];
+const STAT_KEYS = ["STR", "AGI", "SEN", "VIT", "INT", "RES", "LUK"];
 const MATS = {
   gel: { name: "Slime Gel", icon: "🟢" }, shell: { name: "Beetle Shell", icon: "🪲" },
   hide: { name: "Boar Hide", icon: "🟫" }, meat: { name: "Boar Meat", icon: "🥩" },
@@ -983,10 +991,13 @@ const ENEMIES = [
 ];
 const GATHER = [["herb", 1, 2], ["shroom", 0, 2], ["ore", 0, 1], ["reed", 1, 2]];
 const RECIPES = [
-  { id: "dagger", cat: "Gear", name: "Fang Dagger", icon: "🗡️", slot: "Weapon", bonus: { STR: 3, AGI: 1 }, needs: { fang: 3, ore: 1 }, value: 120 },
-  { id: "armor",  cat: "Gear", name: "Shell Armor", icon: "🛡️", slot: "Armor",  bonus: { VIT: 4 },        needs: { shell: 4, hide: 1 }, value: 110 },
-  { id: "boots",  cat: "Gear", name: "Hide Boots",  icon: "👢", slot: "Boots",  bonus: { AGI: 3 },        needs: { hide: 3 }, value: 80 },
-  { id: "amulet", cat: "Gear", name: "Core Amulet", icon: "📿", slot: "Charm",  bonus: { INT: 3, LUK: 2 }, needs: { core: 1, gel: 2 }, value: 150 },
+  { id: "dagger", cat: "Gear", name: "Fang Dagger", icon: "🗡️", slot: "Main Hand", bonus: { STR: 3, AGI: 1 }, needs: { fang: 3, ore: 1 }, value: 120 },
+  { id: "armor",  cat: "Gear", name: "Shell Armor", icon: "🥋", slot: "Armor",  bonus: { VIT: 4, RES: 1 },        needs: { shell: 4, hide: 1 }, value: 110 },
+  { id: "buckler", cat: "Gear", name: "Shell Buckler", icon: "🛡️", slot: "Off-Hand", bonus: { VIT: 2, RES: 2 }, needs: { shell: 3, ore: 1 }, value: 100 },
+  { id: "grimoire", cat: "Gear", name: "Gel Grimoire", icon: "📘", slot: "Off-Hand", bonus: { INT: 3, RES: 1 }, needs: { reed: 4, gel: 2 }, value: 100 },
+  { id: "parry",  cat: "Gear", name: "Fang Parrying Knife", icon: "🔪", slot: "Off-Hand", bonus: { AGI: 2, STR: 1 }, needs: { fang: 2, hide: 1 }, value: 90 },
+  { id: "boots",  cat: "Gear", name: "Hide Boots",  icon: "👢", slot: "Accessory",  bonus: { AGI: 3 },        needs: { hide: 3 }, value: 80 },
+  { id: "amulet", cat: "Gear", name: "Core Amulet", icon: "📿", slot: "Accessory",  bonus: { INT: 3, LUK: 2 }, needs: { core: 1, gel: 2 }, value: 150 },
   { id: "hpPot",  cat: "Potion", name: "Health Potion", icon: "❤️", use: "hp",  amount: 60, needs: { herb: 2, gel: 1 }, value: 30 },
   { id: "mpPot",  cat: "Potion", name: "Mana Potion",   icon: "💙", use: "mp",  amount: 40, needs: { shroom: 2, gel: 1 }, value: 30 },
   { id: "tonic",  cat: "Potion", name: "Stamina Tonic", icon: "⚡", use: "fat", amount: 40, needs: { herb: 1, shroom: 1 }, value: 25 },
@@ -1014,7 +1025,7 @@ const inParty = id => A[id].inParty;
 
 const statInfo = {
   STR: "Strength: physical damage", AGI: "Agility: speed and dodging", SEN: "Sense: awareness, bonus EXP, taming",
-  VIT: "Vitality: max HP", INT: "Intelligence: max MP, spells, shadow army size", LUK: "Luck: rare drops and better pay",
+  VIT: "Vitality: max HP and physical defense", RES: "Resistance: defense against magic and elemental attacks", INT: "Intelligence: max MP, spells, shadow army size", LUK: "Luck: rare drops and better pay",
 };
 const GRADES = ["F", "E", "D", "C", "B", "A", "S"];
 const GRADE_COST = [60, 150, 300, 600, 1000, 1600];
@@ -1058,8 +1069,9 @@ function newPlayer(name, raceId, classId, jobId) {
     name, raceId, classId, jobId, racePath: [], classPath: [], subclass: null, pendingEvo: [],
     title: "The Unawakened", level: 1, xp: 0,
     hp: 100, maxHp: 100, mp: 40, maxMp: 40, fatigue: 0, points: 3,
-    stats: { STR: 10, AGI: 10, SEN: 10, VIT: 10, INT: 10, LUK: 10 },
-    mats: {}, items: {}, equipped: { Weapon: null, Armor: null, Boots: null, Charm: null },
+    stats: { STR: 10, AGI: 10, SEN: 10, VIT: 10, INT: 10, RES: 10, LUK: 10 },
+    mats: {}, items: {}, equipped: { "Main Hand": null, "Off-Hand": null, Armor: null, Accessory: null },
+    location: "Starting Town", loadout: [],
     buff: null, scrolls: { xp: false, ward: false, loot: false },
     ap: 50, gold: 0, jobXp: 0, grade: 0, layer: 0, skillTiers: [0, 0, 0, 0],
     army: [], armyMode: "attack", towerBest: 0,
@@ -1070,7 +1082,16 @@ function newPlayer(name, raceId, classId, jobId) {
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const subOf = () => player.subclass ? [...SUBCLASSES[player.classId], ...(HIDDEN_SUBCLASSES[player.classId] || [])].find(s => s.id === player.subclass) : null;
-const fx = k => { const s = subOf(); return s && s.fx[k] !== undefined ? s.fx[k] : 0; };
+// Effects stack from your subclass, racial trait and class mastery.
+// Numbers add up, multipliers multiply, and true/false or lists take the first one found.
+const MULT_KEYS = ["spellMult", "gearMult"];
+function fx(k) {
+  const srcs = [subOf(), RACE_PASSIVES[player.raceId], CLASS_PASSIVES[player.classId]].filter(s => s && s.fx && s.fx[k] !== undefined).map(s => s.fx[k]);
+  if (!srcs.length) return 0;
+  if (MULT_KEYS.includes(k)) return srcs.reduce((a, b) => a * b, 1);
+  if (srcs.every(v => typeof v === "number")) return srcs.reduce((a, b) => a + b, 0);
+  return srcs[0];
+}
 function bonusOf(k) {
   let b = 0;
   const gm = fx("gearMult") || 1;
@@ -1100,13 +1121,14 @@ const armyPower = () => player.army.reduce((s, u) => s + 1 + (u.lv - 1) * 0.1, 0
 function recalc() {
   const oldHp = player.maxHp, oldMp = player.maxMp;
   player.maxHp = 50 + eff("VIT") * 5 + player.level * 10 + player.layer * 20;
-  player.maxMp = 20 + eff("INT") * 2 + player.level * 4;
+  player.maxMp = Math.floor((20 + eff("INT") * 2 + player.level * 4) * (1 + fx("mpPct")));
   player.hp = Math.max(0, Math.min(player.maxHp, player.hp + Math.max(0, player.maxHp - oldHp)));
   player.mp = Math.max(0, Math.min(player.maxMp, player.mp + Math.max(0, player.maxMp - oldMp)));
 }
 function addMat(id, n) { if (n > 0) player.mats[id] = (player.mats[id] || 0) + n; }
 function addFatigue(n) {
   const before = player.fatigue;
+  if (fx("fatigueHalf")) n = Math.ceil(n / 2);
   player.fatigue = Math.min(100, player.fatigue + n);
   if (before < 80 && player.fatigue >= 80) notify("WARNING", "Fatigue is high. Your performance is dropping.", "warn");
 }
@@ -1535,6 +1557,7 @@ function roll(kind) {
   renderCreation();
 }
 function startGame() {
+  if (create.targetSlot) { setSlot(create.targetSlot); create.targetSlot = null; }
   player = newPlayer(create.name, create.pick.race, create.pick.class, create.pick.job);
   player.elem = create.pick.element;
   player.elems = [player.elem];
@@ -1563,7 +1586,7 @@ $("createBody").addEventListener("click", e => {
   if (b.dataset.roll) return roll(b.dataset.roll);
   const c = b.dataset.c;
   if (c === "begin") { create.name = ($("nameInput").value || "").trim() || "Player"; create.step = "q"; create.qi = 0; Sound.play("open"); renderCreation(); }
-  if (c === "cancel") { $("createOverlay").classList.remove("show"); Sound.play("close"); }
+  if (c === "cancel") { create.targetSlot = null; $("createOverlay").classList.remove("show"); Sound.play("close"); }
   if (c === "start") startGame();
   if (c === "back") { create.step = "result"; renderCreation(); }
   if (c === "buy") notify("STORE", "Payments aren't connected in this prototype yet.", "warn");
@@ -1590,6 +1613,7 @@ function render() {
     ["Job", `${job.icon} ${JOB_RANKS[jobRank()]} ${job.name}`],
     ["Rank", `${rk.text} <span class="muted small">(Lv. ${player.level})</span>`],
     ["Title", player.title],
+    ["Location", `📍 ${player.location || "Starting Town"}`],
     ["Ability", `${cls.ability} <span class="grade ${gL}">${gL}</span>`],
     ["Body Refinement", `${race.body} (${LAYERS[player.layer]})`],
     ["Ability Points", `<span class="points">${player.ap}</span>`],
@@ -1625,10 +1649,7 @@ function render() {
   $("equipList").innerHTML = Object.entries(player.equipped).map(([slot, id]) =>
     `<li><span class="muted">${slot}</span><span>${id ? `${R[id].icon} ${R[id].name} <span class="good small">${fmtBonus(R[id].bonus)}</span>` : `<span class="muted">Empty</span>`}</span></li>`).join("");
 
-  $("skillList").innerHTML = basicsList() + cls.skills.map((name, i) => {
-    const locked = player.level < SKILL_UNLOCK[i];
-    return `<li class="${locked ? "locked" : ""}"><span>${locked ? "🔒 " : ""}${name}</span><span class="rank">${locked ? "Unlocks Lv. " + SKILL_UNLOCK[i] : `${TIERS[player.skillTiers[i]]} <span class="small muted">· ${limitText(i, player.skillTiers[i])}</span>`}</span></li>`;
-  }).join("");
+  $("skillList").innerHTML = loadoutStatusHTML();
 
   // ---- Skills / Ability / Body ----
   $("apCount").textContent = player.ap;
@@ -1761,10 +1782,10 @@ function setDot(tab, on) {
 }
 
 /* ============ SAVE / LOAD (this browser only) ============ */
-const SAVE_KEY = "sysGame_v2";
 function save() {
+  if (!player) return;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({
+    localStorage.setItem(slotKey(currentSlot), JSON.stringify({
       player, quests: quests.map(q => q.progress), questClaimed,
       allies: ALLIES.map(a => ({ inParty: a.inParty, level: a.level })),
     }));
@@ -1772,9 +1793,15 @@ function save() {
 }
 function load() {
   try {
-    const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+    const s = JSON.parse(localStorage.getItem(slotKey(currentSlot)));
     if (!s || !s.player || !RACES[s.player.raceId] || !CLASSES[s.player.classId] || !JOBS[s.player.jobId]) return false;
     player = s.player;
+    // Older saves: add the RES stat and move gear into the new slots
+    if (player.stats.RES === undefined) player.stats.RES = 10;
+    if (!("Main Hand" in player.equipped)) {
+      const old = player.equipped;
+      player.equipped = { "Main Hand": old.Weapon || null, "Off-Hand": null, Armor: old.Armor || null, Accessory: old.Charm || old.Boots || null };
+    }
     if (!player.elem) { player.elem = rollAffinity(); setTimeout(() => notify("ELEMENT AWAKENED", `Your element is ${ELEM_ICON[player.elem]} ${player.elem} (${AFFINITY[player.elem].rarity}).`, "evolve"), 1200); }
     quests = QUEST_DEFS.map((q, i) => ({ ...q, progress: s.quests?.[i] || 0 }));
     questClaimed = !!s.questClaimed;
@@ -1837,7 +1864,7 @@ $("soundBtn").addEventListener("click", () => {
   $("soundBtn").textContent = on ? "🔊 Sound On" : "🔇 Sound Off";
   if (on) Sound.play("notify");
 });
-$("newCharBtn").addEventListener("click", () => { Sound.play("open"); openCreation(); });
+$("newCharBtn").addEventListener("click", () => { Sound.play("open"); openSlots(); });
 
 /* ============ OPEN / CLOSE ============ */
 function toggle() {
@@ -2043,9 +2070,9 @@ function playerMoves() {
   const cls = CLASSES[player.classId];
   const list = CLASS_BASICS[player.classId].map(m => resolveMove({ ...m, mp: 0, tier: 0, basic: true }));
   CLASS_MOVES[player.classId].forEach((m, i) => {
-    if (player.level >= SKILL_UNLOCK[i]) list.push(resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i], idx: i, cd: cdFor(i, player.skillTiers[i]) }));
+    if (player.level >= SKILL_UNLOCK[i] && getLoadout().includes("c" + i)) list.push(resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i], idx: i, cd: cdFor(i, player.skillTiers[i]) }));
   });
-  return list.concat(learnedMoves());
+  return list.concat(learnedMoves().filter(m => getLoadout().includes(m.lkey)));
 }
 
 /* =========================================================
@@ -2070,7 +2097,7 @@ const SHOP_STOCK = {
   Scrolls: ["sEmber", "sWard", "sLuck"],
   Meals: ["stew", "skewer"],
   Materials: ["herb", "shroom", "reed", "ore", "gel"],
-  Gear: ["boots", "armor", "dagger", "amulet"],
+  Gear: ["dagger", "buckler", "grimoire", "parry", "armor", "boots", "amulet"],
 };
 
 /* =========================================================
@@ -2172,6 +2199,7 @@ function startBattle(floor) {
   if (player.hp <= 0) return notify("SYSTEM", "You have fallen. Rest before entering the tower.", "warn");
   if (player.fatigue >= 100) return notify("SYSTEM", "Too exhausted to fight. Rest first.", "warn");
   addFatigue(6);
+  player.location = `${BRACKETS[bracketOf(floor)].name} · Floor ${floor}`;
   const mon = makeMonster(floor);
   B = { floor, mon, cd: {}, atkStage: 0, defStage: 0, evade: false, guard: false, busy: true, over: false };
   const br = BRACKETS[bracketOf(floor)];
@@ -2350,8 +2378,9 @@ async function doPlayer(action) {
   const same = mv.elem !== "Normal" && myElems().includes(mv.elem) ? SAME_ELEM_BONUS : 1;
   let dmg = calcDamage(player.level, mv.power * (1 + mv.tier * 0.1) * same, A, m.def * stageMult(fx("shatter") ? 0 : m.defStage) * (mv.fx === "pierce" ? 0.5 : 1), em);
   if (fx("rage") && B.rage) { dmg += B.rage * fx("rage"); B.rage = 0; }
+  dmg *= 1 + fx("dmgMult") + (mv.kind === "phys" ? fx("physMult") : 0);
   if (player.fatigue >= 80) dmg *= 0.8;
-  const crit = Math.random() < 0.06 + eff("LUK") * 0.002;
+  const crit = Math.random() < 0.06 + eff("LUK") * 0.002 + fx("critPlus");
   if (crit) dmg *= 1.5;
   dmg = Math.max(1, Math.floor(dmg));
   await sleep(220);
@@ -2371,6 +2400,7 @@ async function doPlayer(action) {
   if (em > 1) await say("It's super effective!", 700);
   if (em < 1) await say("It's not very effective...", 700);
   if (fx("stun") && m.hp > 0 && Math.random() < fx("stun")) { B.stun = true; Sound.play("crit"); await say(`💫 ${m.name} is stunned!`, 650); }
+  if (fx("drainPct") && player.hp < player.maxHp) { const h = Math.min(Math.ceil(dmg * fx("drainPct")), player.maxHp - player.hp); player.hp += h; bars(); floater("pl", "+" + h, "heal"); }
   if (mv.fx === "drain") { const h = Math.min(Math.floor(dmg * 0.4), player.maxHp - player.hp); player.hp += h; bars(); floater("pl", "+" + h, "heal"); await say(`You drained ${h} HP!`, 650); }
   if (mv.fx === "rally") { B.atkStage = Math.min(2, B.atkStage + 1); anim("bPl", "pulse-buff"); Sound.play("buff"); await say("Your attack rose!", 650); }
 }
@@ -2397,10 +2427,12 @@ async function monsterTurn() {
     return say(`⚔️ Rift Parry! You deflected the attack and struck back for ${c}!`, 900);
   }
   const magic = ["Dark", "Light", "Fire", "Water", "Wind"].includes(mv.elem) && m.body !== "beast";
-  const D = (magic ? (eff("VIT") + eff("INT")) / 2 : eff("VIT")) * stageMult(B.defStage);
+  // VIT defends against physical hits. RES defends against magic.
+  const D = (magic ? (eff("VIT") + eff("RES") * 2) / 3 : eff("VIT")) * stageMult(B.defStage);
   const inEm = elemMult(mv.elem, player.elem);
   let dmg = calcDamage(m.level, mv.power, m.atk * stageMult(m.atkStage), D, inEm) * MON_POWER * damageMult();
   if (B.guard) dmg *= 0.5;
+  if (mv.elem !== "Normal") dmg *= 1 - Math.min(0.35, eff("RES") / 400) - fx("elemResist");
   if (fx("resistDark") && (mv.elem === "Dark" || m.body === "ghost")) dmg *= 1 - fx("resistDark");
   let shielded = false;
   if (fx("elemShield") && mv.elem !== "Normal" && player.mp >= 3) { dmg *= 1 - fx("elemShield"); player.mp -= 3; shielded = true; }
@@ -2482,7 +2514,7 @@ async function victory() {
   const crit = fx("crit") && Math.random() < fx("crit"); if (crit) xp *= 2;
   xp = Math.floor(xp);
   const ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp");
-  let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100) * (m.boss ? 3 : 1));
+  let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1));
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   const loot = rollLoot(m);
   Object.entries(loot).forEach(([id, n]) => addMat(id, n));
@@ -2541,6 +2573,7 @@ async function defeat() {
 }
 function endBattle() {
   B = null;
+  player.location = "Tower Lobby";
   $("battleOverlay").classList.remove("show");
   render();
   if (player.pendingEvo.length) setTimeout(openEvolution, 300);
@@ -2646,6 +2679,9 @@ let lastGold = null;
 function renderExtras() {
   renderTower();
   renderTree();
+  renderLoadoutBox();
+  const sh = document.querySelector('[data-title="status"]');
+  if (sh) sh.textContent = document.body.dataset.theme === "holo" ? `[ SAVE FILE #0${currentSlot} ] STATUS WINDOW` : `${headers[document.body.dataset.theme].status} · Save #0${currentSlot}`;
   renderHidden();
   const g = $("goldHud");
   g.textContent = `💰 ${player.gold.toLocaleString()} Gold`;
@@ -2858,7 +2894,7 @@ const HIDDEN_SUBCLASSES = {
       hint: "The wall that only grows thicker...",
       fx: { dmgReduce: 0.45, reflect: 0.3, immune: true },
       progress: () => {
-        const spent = Object.values(player.stats).reduce((a, b) => a + b, 0) - 60;
+        const spent = Object.values(player.stats).reduce((a, b) => a + b, 0) - 10 * STAT_KEYS.length;
         const share = spent > 0 ? (player.stats.VIT - 10) / spent : 0;
         return [[`VIT share of spent points`, Math.round(share * 100), 80, "%"], [`Damage endured`, player.tstats.dmgTaken, 3000, ""], ["Level", player.level, 10, ""]];
       } },
@@ -2949,6 +2985,165 @@ $("panel").addEventListener("click", e => {
   const b = e.target.closest("[data-hiddenswitch]"); if (!b || !player) return;
   if (!player.pendingEvo.includes("hidden")) player.pendingEvo.unshift("hidden");
   openHiddenChoice();
+});
+
+
+/* =========================================================
+   PASSIVES: one racial trait + one class mastery for everyone.
+   Their fx stack with your subclass (see fx() in the core code).
+   ========================================================= */
+const RACE_PASSIVES = {
+  human:    { name: "Adaptable",            desc: "+8% EXP from battles", fx: { xpMult: 0.08 } },
+  elf:      { name: "Mana Affinity",        desc: "+12% max MP", fx: { mpPct: 0.12 } },
+  dwarf:    { name: "Stoneblood",           desc: "Take 6% less damage", fx: { dmgReduce: 0.06 } },
+  beastkin: { name: "Wild Reflexes",        desc: "+6% chance to dodge", fx: { dodge: 0.06 } },
+  slime:    { name: "Gel Regeneration",     desc: "Regenerate 3% HP every battle turn", fx: { regen: 0.03 } },
+  goblin:   { name: "Scavenger",            desc: "+15% gold from battles", fx: { goldPct: 0.15 } },
+  wolf:     { name: "Pack Instinct",        desc: "+6% critical hit chance", fx: { critPlus: 0.06 } },
+  lizard:   { name: "Scaled Hide",          desc: "Elemental attacks deal 12% less to you", fx: { elemResist: 0.12 } },
+  dragon:   { name: "Dragon Heart",         desc: "+8% damage with every attack", fx: { dmgMult: 0.08 } },
+  demon:    { name: "Life Thief",           desc: "Heal 8% of the damage you deal", fx: { drainPct: 0.08 } },
+  spirit:   { name: "Ethereal Form",        desc: "Elemental attacks deal 15% less to you", fx: { elemResist: 0.15 } },
+  undead:   { name: "Undead Constitution",  desc: "Fatigue builds half as fast. Monsters can't drain your life.", fx: { fatigueHalf: true, immune: true } },
+};
+const CLASS_PASSIVES = {
+  tank:    { name: "Shield Mastery",   desc: "Take 8% less damage", fx: { dmgReduce: 0.08 } },
+  warrior: { name: "Weapon Mastery",   desc: "+10% physical damage", fx: { physMult: 0.1 } },
+  rogue:   { name: "Vital Strikes",    desc: "+8% critical hit chance", fx: { critPlus: 0.08 } },
+  mage:    { name: "Arcane Mastery",   desc: "Spells deal 10% more damage", fx: { spellMult: 1.1 } },
+  ranger:  { name: "Keen Eye",         desc: "+8% damage and +4% dodge", fx: { dmgMult: 0.08, dodge: 0.04 } },
+  cleric:  { name: "Divine Grace",     desc: "Heal 10 HP after every battle", fx: { healAfter: 10 } },
+  tamer:   { name: "Beast Bond",       desc: "+10% gold and +5% EXP from battles", fx: { goldPct: 0.1, xpMult: 0.05 } },
+};
+
+/* =========================================================
+   SKILL LOADOUT: basics are always ready. Up to 4 other
+   skills (class skills or skill-tree skills) go into battle.
+   ========================================================= */
+const LOADOUT_SIZE = 4;
+function availableActives() {
+  const cls = CLASSES[player.classId], list = [];
+  CLASS_MOVES[player.classId].forEach((m, i) => {
+    if (player.level >= SKILL_UNLOCK[i]) list.push({ key: "c" + i, name: cls.skills[i], move: resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i] }), tier: TIERS[player.skillTiers[i]] });
+  });
+  (player.learned || []).forEach((s, j) => list.push({ key: "L" + j, name: s.name, move: s, rarity: s.rarity }));
+  return list;
+}
+function getLoadout() {
+  const avail = availableActives().map(a => a.key);
+  if (!Array.isArray(player.loadout)) player.loadout = [];
+  player.loadout = player.loadout.filter(k => avail.includes(k));
+  // Fill empty slots automatically until you pick for yourself
+  if (!player.loadoutManual) avail.forEach(k => { if (player.loadout.length < LOADOUT_SIZE && !player.loadout.includes(k)) player.loadout.push(k); });
+  return player.loadout;
+}
+function toggleLoadout(key) {
+  const lo = getLoadout();
+  player.loadoutManual = true;
+  if (lo.includes(key)) player.loadout = lo.filter(k => k !== key);
+  else if (lo.length >= LOADOUT_SIZE) return notify("LOADOUT", `Your loadout is full (${LOADOUT_SIZE} skills). Remove one first.`, "warn");
+  else player.loadout.push(key);
+  Sound.play("click"); render();
+}
+const inLoadout = m => m.basic || getLoadout().includes(m.idx !== undefined ? "c" + m.idx : m.lkey);
+function moveDesc(m) {
+  if (m.effect) return EFFECT_TEXT[m.effect];
+  if (m.fx === "mend") return `Heals ${Math.round(m.heal * 100)}% HP`;
+  return `${ELEM_ICON[m.elem]} ${m.elem} · Pow ${m.power}`;
+}
+function loadoutStatusHTML() {
+  const avail = availableActives(), lo = getLoadout();
+  const actives = lo.map(k => avail.find(a => a.key === k)).filter(Boolean);
+  const basics = CLASS_BASICS[player.classId].map(m => resolveMove({ ...m, basic: true }));
+  const sub = subOf(), rp = RACE_PASSIVES[player.raceId], cp = CLASS_PASSIVES[player.classId];
+  const row = (tag, name, desc, cls = "") => `<li><span><span class="lo-tag ${cls}">${tag}</span> ${name}</span><span class="small muted" style="text-align:right">${desc}</span></li>`;
+  return [
+    ...basics.map(m => row("Basic", m.name, moveDesc(m))),
+    ...actives.map(a => row("Active", a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span>` : a.name, moveDesc(a.move), "act")),
+    ...(actives.length ? [] : [row("Active", `<span class="muted">Empty</span>`, "Unlock skills by leveling up")]),
+    row("Passive", rp.name, rp.desc, "pas"),
+    row("Passive", cp.name, cp.desc, "pas"),
+    row("Unique", sub ? `${sub.name}${sub.hidden ? " (Hidden)" : ""}` : `<span class="muted">None yet</span>`, sub ? sub.perk : `Subclass unlocks at Lv. ${SUBCLASS_LEVEL}`, "uni"),
+  ].join("");
+}
+function renderLoadoutBox() {
+  const avail = availableActives(), lo = getLoadout();
+  $("loadoutBox").innerHTML = `
+    <div class="small muted" style="margin-bottom:6px">Basic skills are always ready. Choose up to ${LOADOUT_SIZE} more to bring into battle (${lo.length}/${LOADOUT_SIZE} equipped).</div>
+    <ul class="list">${avail.length ? avail.map(a => {
+      const on = lo.includes(a.key);
+      const label = a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span> <span class="small muted">${RARITY_NAME[a.rarity]}</span>` : `${a.name} <span class="small muted">${a.tier}</span>`;
+      return `<li><span>${on ? "✅ " : ""}${label}<br><span class="small muted">${moveDesc(a.move)}</span></span>
+        <button class="btn" data-loadout="${a.key}">${on ? "Remove" : "Equip"}</button></li>`;
+    }).join("") : `<li class="muted">No skills yet. Your first class skill unlocks at Lv. 1.</li>`}</ul>`;
+}
+$("panel").addEventListener("click", e => {
+  const b = e.target.closest("[data-loadout]"); if (b && player) toggleLoadout(b.dataset.loadout);
+});
+
+/* =========================================================
+   SAVE FILES: 3 slots, each its own character.
+   ========================================================= */
+const SAVE_SLOTS = 3;
+const slotKey = n => n === 1 ? "sysGame_v2" : `sysGame_v2_s${n}`;   // slot 1 keeps the old key, so existing saves carry over
+let currentSlot = 1;
+try { currentSlot = +localStorage.getItem("sysGame_slot") || 1; } catch (e) {}
+function setSlot(n) { currentSlot = n; try { localStorage.setItem("sysGame_slot", n); } catch (e) {} }
+function slotData(n) { try { return JSON.parse(localStorage.getItem(slotKey(n))); } catch (e) { return null; } }
+let deleteArm = null;
+function openSlots() {
+  if (player) save();
+  const cards = Array.from({ length: SAVE_SLOTS }, (_, i) => {
+    const n = i + 1, s = slotData(n), p = s && s.player;
+    const valid = p && RACES[p.raceId] && CLASSES[p.classId];
+    const tag = `SAVE FILE #0${n}${n === currentSlot && player ? " · ACTIVE" : ""}`;
+    if (!valid) return `<div class="evo-card"><div class="small muted">${tag}</div><div class="ec-name">Empty slot</div>
+      <button class="btn" data-slotnew="${n}">✨ New character</button></div>`;
+    const sub = p.subclass ? [...SUBCLASSES[p.classId], ...(HIDDEN_SUBCLASSES[p.classId] || [])].find(x => x.id === p.subclass) : null;
+    return `<div class="evo-card" ${n === currentSlot ? 'style="border-color:var(--accent)"' : ""}>
+      <div class="small muted">${tag}</div>
+      <div class="ec-name">${p.name} <span class="small muted">Lv. ${p.level}</span></div>
+      <div class="small" style="margin-top:4px">${RACES[p.raceId].icon} ${RACES[p.raceId].name} · ${CLASSES[p.classId].icon} ${CLASSES[p.classId].name}${sub ? ` / ${sub.name}` : ""}</div>
+      <div class="small muted">📍 ${p.location || "Starting Town"} · 💰 ${p.gold} · 🗼 Floor ${p.towerBest || 0}</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        ${n === currentSlot && player ? `<button class="btn" style="flex:1" data-slotclose>Continue</button>` : `<button class="btn" style="flex:1" data-slotload="${n}">Load</button>`}
+        <button class="btn" data-slotdel="${n}">${deleteArm === n ? "Tap again to delete" : "Delete"}</button></div></div>`;
+  }).join("");
+  $("evoBody").innerHTML = `<div class="header">[ SAVE FILES ]</div>
+    <div class="sys-intro">Each slot is a separate character, saved in this browser.</div>${cards}
+    ${player ? `<button class="dev-link" data-slotclose>Close</button>` : ""}`;
+  $("evoOverlay").classList.add("show");
+}
+function resetWorld() {
+  quests = QUEST_DEFS.map(q => ({ ...q, progress: 0 })); questClaimed = false;
+  ALLIES.forEach(a => { a.inParty = false; a.level = 1; });
+}
+$("evoBody").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.hasAttribute("data-slotclose")) { deleteArm = null; $("evoOverlay").classList.remove("show"); Sound.play("close"); return; }
+  if (b.dataset.slotload) {
+    const n = +b.dataset.slotload;
+    if (player) save();
+    resetWorld(); setSlot(n);
+    if (load()) { recalc(); lastGold = null; render(); $("evoOverlay").classList.remove("show"); Sound.play("open"); notify("SAVE FILE", `Loaded Save File #0${n}: ${player.name}.`, "notify"); }
+    return;
+  }
+  if (b.dataset.slotnew) {
+    if (player) save();
+    create.targetSlot = +b.dataset.slotnew;
+    $("evoOverlay").classList.remove("show");
+    openCreation();
+    return;
+  }
+  if (b.dataset.slotdel) {
+    const n = +b.dataset.slotdel;
+    if (deleteArm !== n) { deleteArm = n; Sound.play("warn"); return openSlots(); }
+    deleteArm = null;
+    try { localStorage.removeItem(slotKey(n)); } catch (e) {}
+    notify("SAVE FILE", `Save File #0${n} deleted.`, "close");
+    if (n === currentSlot) { player = null; resetWorld(); $("evoOverlay").classList.remove("show"); create.targetSlot = n; return openCreation(); }
+    openSlots();
+  }
 });
 
 let savedTheme = "holo";
