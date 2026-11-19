@@ -18,6 +18,12 @@ create table if not exists public.saves (
 create unique index if not exists saves_char_name_key_unique
   on public.saves (char_name_key) where char_name_key is not null;
 
+-- Let signed-in players reach this table through the Data API.
+-- (Needed when "Grant API access to new tables automatically" is off.)
+-- Row Level Security below still limits each player to their own rows.
+grant select, insert, update, delete on public.saves to authenticated;
+revoke all on public.saves from anon;
+
 -- Row Level Security: players can only ever see and change their own saves.
 alter table public.saves enable row level security;
 
