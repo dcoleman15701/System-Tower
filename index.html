@@ -3427,6 +3427,8 @@ async function doAuth() {
     authBusy = false;
     if (/already registered|already exists/i.test(m)) return renderAuth("That username is taken. Try another.");
     if (/invalid login credentials/i.test(m)) return renderAuth("Wrong username or password.");
+    if (/rate limit/i.test(m)) return renderAuth("Too many sign-up attempts right now. Please wait a bit and try again.");
+    if (/not confirmed/i.test(m)) return renderAuth("This account is stuck waiting for email confirmation. Ask the game owner to remove it, then sign up again.");
     if (/fetch|network|load failed/i.test(m)) return renderAuth("Can't reach the account server. Check your connection, or play as guest for now.");
     return renderAuth(m);
   }
