@@ -960,7 +960,19 @@ const QUESTIONS = [
     { t: "A throne to rule over everyone who failed", al: -1, r: { demon: 2, undead: 1, dragon: 1 }, c: { warrior: 1 } } ] },
 ];
 
-/* Alignment: each good answer is +1, each evil answer is -1 (range -10 to +10). */
+/* Alignment: each good answer is +1, each evil answer is -1 (range -10 to +10).
+   Good boosts max MP, Evil boosts max HP, Neutral boosts both a little. */
+const ALIGN_STEP = 0.03, NEUTRAL_BONUS = 0.06;
+function alignBonus(score) {
+  const s = score || 0;
+  if (s >= 3) return { hp: 0, mp: ALIGN_STEP * s };
+  if (s <= -3) return { hp: ALIGN_STEP * -s, mp: 0 };
+  return { hp: NEUTRAL_BONUS, mp: NEUTRAL_BONUS };
+}
+function alignBonusText(score) {
+  const b = alignBonus(score), pct = v => Math.round(v * 100);
+  return [b.hp ? `+${pct(b.hp)}% max HP` : "", b.mp ? `+${pct(b.mp)}% max MP` : ""].filter(Boolean).join(", ");
+}
 function alignmentOf(score) {
   const s = score || 0;
   if (s >= 7) return { name: "Paragon", icon: "🌟", desc: "A shining hero. Others look to you for hope." };
@@ -1170,8 +1182,9 @@ const armyPower = () => player.army.reduce((s, u) => s + 1 + (u.lv - 1) * 0.1, 0
 
 function recalc() {
   const oldHp = player.maxHp, oldMp = player.maxMp;
-  player.maxHp = 50 + eff("VIT") * 5 + player.level * 10 + player.layer * 20;
-  player.maxMp = Math.floor((20 + eff("INT") * 2 + player.level * 4) * (1 + fx("mpPct")));
+  const ab = alignBonus(player.alignment);
+  player.maxHp = Math.floor((50 + eff("VIT") * 5 + player.level * 10 + player.layer * 20) * (1 + ab.hp));
+  player.maxMp = Math.floor((20 + eff("INT") * 2 + player.level * 4) * (1 + fx("mpPct") + ab.mp));
   player.hp = Math.max(0, Math.min(player.maxHp, player.hp + Math.max(0, player.maxHp - oldHp)));
   player.mp = Math.max(0, Math.min(player.maxMp, player.mp + Math.max(0, player.maxMp - oldMp)));
 }
@@ -1582,7 +1595,7 @@ function renderCreation() {
     el.innerHTML = `
       <div class="header">[ ASSESSMENT COMPLETE ]</div>
       <div class="sys-intro">The System has read your soul.<br>
-        ${(() => { const a = alignmentOf(create.align); return `<span class="big" style="font-size:1.1em;margin:6px 0 2px">${a.icon} Alignment: ${a.name} (${create.align > 0 ? "+" : ""}${create.align})</span><span class="small muted">${a.desc}</span><br>`; })()}<span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
+        ${(() => { const a = alignmentOf(create.align); return `<span class="big" style="font-size:1.1em;margin:6px 0 2px">${a.icon} Alignment: ${a.name} (${create.align > 0 ? "+" : ""}${create.align})</span><span class="small muted">${a.desc}</span><br><span class="good small">Alignment bonus: ${alignBonusText(create.align)}</span><br>`; })()}<span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
       ${pickCard("race")}${pickCard("class")}${pickCard("element")}${pickCard("job")}
       <button class="btn wide" data-c="toName">Accept and choose my name ▶</button>`;
   }
@@ -1667,7 +1680,7 @@ function render() {
     ["Job", `${job.icon} ${JOB_RANKS[jobRank()]} ${job.name}`],
     ["Rank", `${rk.text} <span class="muted small">(Lv. ${player.level})</span>`],
     ["Title", player.title],
-    ["Alignment", (() => { const a = alignmentOf(player.alignment); return `${a.icon} ${a.name} <span class="muted small">(${(player.alignment || 0) > 0 ? "+" : ""}${player.alignment || 0})</span>`; })()],
+    ["Alignment", (() => { const a = alignmentOf(player.alignment); return `${a.icon} ${a.name} <span class="muted small">(${(player.alignment || 0) > 0 ? "+" : ""}${player.alignment || 0})</span> <span class="good small">${alignBonusText(player.alignment)}</span>`; })()],
     ["Location", `📍 ${player.location || "Starting Town"}`],
     ["Ability", `${cls.ability} <span class="grade ${gL}">${gL}</span>`],
     ["Body Refinement", `${race.body} (${LAYERS[player.layer]})`],
