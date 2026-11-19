@@ -395,6 +395,9 @@ body {
 .lo-tag.pas { color: var(--good); border-color: var(--good); }
 .lo-tag.uni { color: #ffb020; border-color: #ffb020; }
 
+.name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.name-opt { text-align: center; font-family: var(--font-title); font-weight: 800; margin-bottom: 0; }
+
 /* Overlays: creation + evolution */
 .overlay { position: fixed; inset: 0; z-index: 20; display: none; overflow-y: auto; padding: 24px 12px 40px;
   background: rgba(2,6,16,.82); backdrop-filter: blur(4px); }
@@ -1483,7 +1486,7 @@ function setRolls(kind, n) {
 }
 const topOf = (score, all) => Object.keys(all).map(id => [id, (score[id] || 0) + Math.random() * 0.5]).sort((a, b) => b[1] - a[1])[0][0];
 function openCreation() {
-  Object.assign(create, { step: "intro", qi: 0, score: { race: {}, class: {}, job: {} }, pick: {} });
+  Object.assign(create, { name: "", typedName: "", suggestions: null, step: "intro", qi: 0, score: { race: {}, class: {}, job: {} }, pick: {} });
   $("createOverlay").classList.add("show");
   renderCreation();
 }
@@ -1514,12 +1517,11 @@ function renderCreation() {
     el.innerHTML = `
       <div class="header">[ SYSTEM ]</div>
       <div class="sys-intro"><span class="big">Welcome, Player.</span>
-        Before you awaken, the System will ask you a few questions. Your answers will reveal the race you were born as, the class you fight with, and the job you earn your living by.</div>
-      <label class="small muted">Your name</label>
-      <input class="name-input" id="nameInput" maxlength="18" placeholder="Enter your name" value="${create.name || ""}">
+        Before you awaken, the System will ask you a few questions about yourself. Your answers will reveal the race you were born as, the class you fight with, the element you wield and the job you earn your living by. Then the System will suggest a gamer name to match.</div>
       <button class="btn wide" data-c="begin">Begin</button>
       ${player ? `<button class="dev-link" data-c="cancel">Cancel and keep my current character</button>` : ""}`;
   }
+  if (create.step === "name") return renderNameStep();
   if (create.step === "q") {
     const Q = QUESTIONS[create.qi];
     el.innerHTML = `
@@ -1531,9 +1533,9 @@ function renderCreation() {
   if (create.step === "result") {
     el.innerHTML = `
       <div class="header">[ ASSESSMENT COMPLETE ]</div>
-      <div class="sys-intro">The System has read your soul, <b>${create.name}</b>.<br><span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
+      <div class="sys-intro">The System has read your soul.<br><span class="small muted">Don't like it? Reroll. You get ${FREE_ROLLS} free rolls each for race, class, element and job.</span></div>
       ${pickCard("race")}${pickCard("class")}${pickCard("element")}${pickCard("job")}
-      <button class="btn wide" data-c="start">Accept and awaken</button>`;
+      <button class="btn wide" data-c="toName">Accept and choose my name ▶</button>`;
   }
   if (create.step === "paywall") {
     const kind = create.paywallKind;
@@ -1585,7 +1587,8 @@ $("createBody").addEventListener("click", e => {
   }
   if (b.dataset.roll) return roll(b.dataset.roll);
   const c = b.dataset.c;
-  if (c === "begin") { create.name = ($("nameInput").value || "").trim() || "Player"; create.step = "q"; create.qi = 0; Sound.play("open"); renderCreation(); }
+  if (c === "toName") { create.step = "name"; create.suggestions = null; create.typedName = ""; Sound.play("open"); renderCreation(); }
+  if (c === "begin") { create.step = "q"; create.qi = 0; Sound.play("open"); renderCreation(); }
   if (c === "cancel") { create.targetSlot = null; $("createOverlay").classList.remove("show"); Sound.play("close"); }
   if (c === "start") startGame();
   if (c === "back") { create.step = "result"; renderCreation(); }
@@ -3143,6 +3146,127 @@ $("evoBody").addEventListener("click", e => {
     notify("SAVE FILE", `Save File #0${n} deleted.`, "close");
     if (n === currentSlot) { player = null; resetWorld(); $("evoOverlay").classList.remove("show"); create.targetSlot = n; return openCreation(); }
     openSlots();
+  }
+});
+
+
+/* =========================================================
+   GAMER NAMES
+   Chosen last, after the System has read your answers.
+   Rules: 4 to 12 letters, letters only, no profanity,
+   no name already in use. Suggestions come only from your
+   in-game picks, never from personal information.
+   ========================================================= */
+const NAME_MIN = 4, NAME_MAX = 12;
+
+// Name pieces, by element (first half) and by class (second half)
+const NAME_START = {
+  Fire: ["Ash", "Ember", "Pyre", "Blaze", "Cinder"], Water: ["Tide", "Mist", "Rain", "Brine", "Frost"],
+  Earth: ["Stone", "Crag", "Grit", "Iron", "Thorn"], Wind: ["Gale", "Zeph", "Storm", "Wisp", "Sky"],
+  Light: ["Sol", "Lux", "Dawn", "Halo", "Star"], Dark: ["Grim", "Noct", "Umbra", "Shade", "Dusk"],
+};
+const RACE_START = {
+  human: ["Valor", "Brave"], elf: ["Sylv", "Lumen"], dwarf: ["Forge", "Anvil"], beastkin: ["Feral", "Mane"],
+  slime: ["Ooze", "Gloop"], goblin: ["Grub", "Snik"], wolf: ["Fang", "Howl"], lizard: ["Scale", "Sly"],
+  dragon: ["Drake", "Wyrm"], demon: ["Hex", "Vile"], spirit: ["Ether", "Wraith"], undead: ["Bone", "Grave"],
+};
+const CLASS_END = {
+  tank: ["Aegis", "Ward", "Bulwark", "Helm", "Guard"], warrior: ["Blade", "Edge", "Fury", "Brand"],
+  rogue: ["Veil", "Knife", "Step", "Mark"], mage: ["Rune", "Weave", "Sigil", "Spell"],
+  ranger: ["Shot", "Hawk", "Quill", "Arrow"], cleric: ["Grace", "Hymn", "Light", "Vow"],
+  tamer: ["Paw", "Claw", "Mane", "Fang"],
+};
+const JOB_END = { smith: ["Hammer"], alchemist: ["Brew"], scribe: ["Quill"], cook: ["Spice"], merchant: ["Coin"] };
+
+// Blocked words. Checked as substrings of the lowercased name, with
+// look-alike letter swaps undone. Short words that appear inside normal
+// fantasy words (like "ass" in "Assassin") are matched as whole names only.
+const BLOCKED_ANYWHERE = ["fuck", "shit", "bitch", "cunt", "nigg", "nigr", "fagg", "dick", "cock", "pussy", "whore",
+  "slut", "rape", "nazi", "hitler", "porn", "penis", "vagina", "asshole", "bastard", "retard", "kike", "spic", "chink",
+  "twat", "wank", "jizz", "dildo", "cum", "tits", "boob", "anal", "milf", "horny", "kkk", "molest", "pedo"];
+const BLOCKED_EXACT = ["ass", "fag", "sex", "hoe", "tit", "god", "admin", "system", "moderator", "staff", "anthropic", "claude"];
+function normalizeName(n) {
+  return n.toLowerCase().replace(/0/g, "o").replace(/1|!|\|/g, "i").replace(/3/g, "e").replace(/4|@/g, "a").replace(/5|\$/g, "s").replace(/7/g, "t").replace(/[^a-z]/g, "");
+}
+const isProfane = n => { const k = normalizeName(n); return BLOCKED_EXACT.includes(k) || BLOCKED_ANYWHERE.some(w => k.includes(w)); };
+
+/* Name registry. On this prototype it checks the save files in this browser.
+   Later this is the one place to swap in a server check, so names become
+   unique across every player without changing anything else. */
+const NameRegistry = {
+  isTaken(name, ignoreSlot) {
+    const key = normalizeName(name);
+    for (let n = 1; n <= SAVE_SLOTS; n++) {
+      if (n === ignoreSlot) continue;
+      const s = slotData(n);
+      if (s && s.player && normalizeName(s.player.name) === key) return true;
+    }
+    return false;
+  },
+};
+
+function checkName(raw, ignoreSlot) {
+  const name = (raw || "").trim();
+  const problems = [];
+  if (name.length < NAME_MIN || name.length > NAME_MAX) problems.push(`Use ${NAME_MIN} to ${NAME_MAX} letters`);
+  if (/[^A-Za-z]/.test(name)) problems.push("Letters only: no numbers, spaces or symbols");
+  if (name && isProfane(name)) problems.push("That name isn't allowed");
+  if (name && !problems.length && NameRegistry.isTaken(name, ignoreSlot)) problems.push("That name is already taken");
+  return { ok: !problems.length, name: name.charAt(0).toUpperCase() + name.slice(1), problems };
+}
+
+function suggestNames(count = 6) {
+  const elem = create.pick.element, race = create.pick.race, cls = create.pick.class, job = create.pick.job;
+  const starts = [...(NAME_START[elem] || []), ...(RACE_START[race] || [])];
+  const ends = [...(CLASS_END[cls] || []), ...(JOB_END[job] || [])];
+  const out = new Set(), slot = create.targetSlot || currentSlot;
+  for (let tries = 0; tries < 400 && out.size < count; tries++) {
+    const a = pick(starts), b = pick(ends);
+    if (a === b) continue;
+    const n = a + b;
+    if (checkName(n, slot).ok) out.add(n);
+  }
+  return [...out];
+}
+
+function renderNameStep() {
+  if (!create.suggestions) create.suggestions = suggestNames();
+  const typed = create.typedName || "";
+  const res = typed ? checkName(typed, create.targetSlot || currentSlot) : null;
+  const r = RACES[create.pick.race], c = CLASSES[create.pick.class];
+  $("createBody").innerHTML = `
+    <div class="header">[ CHOOSE YOUR NAME ]</div>
+    <div class="sys-intro">Based on your path, ${ELEM_ICON[create.pick.element]} ${create.pick.element} ${r.name} ${c.name}, the System suggests:</div>
+    <div class="name-grid">${create.suggestions.map(n => `<button class="opt name-opt" data-usename="${n}">${n}</button>`).join("")}</div>
+    <button class="btn wide" data-c="moreNames" style="margin-top:6px">🎲 More suggestions</button>
+    <div class="section-title"><span>OR TYPE YOUR OWN</span></div>
+    <input class="name-input" id="nameInput" maxlength="${NAME_MAX}" placeholder="Your gamer name" value="${typed}" autocomplete="off" autocapitalize="words" spellcheck="false">
+    <div class="small" id="nameCheck" style="min-height:20px;margin:4px 0">${res ? (res.ok ? `<span class="good">✔ ${res.name} is available</span>` : `<span class="warn-txt">${res.problems.join(" · ")}</span>`) : ""}</div>
+    <div class="small muted" style="line-height:1.5">Rules: ${NAME_MIN} to ${NAME_MAX} letters · no numbers or symbols · no profanity · each name can only be used once.</div>
+    <div class="small muted" style="line-height:1.5;margin-top:6px">🔒 Don't use your real name or anything personal. Your answers stay on this device and are only used to suggest a name.</div>
+    <button class="btn wide" data-c="claimName" ${res && res.ok ? "" : "disabled"}>Awaken as ${res && res.ok ? res.name : "…"}</button>
+    <button class="dev-link" data-c="back">◀ Back to my race, class and job</button>`;
+}
+function liveCheck() {
+  const v = $("nameInput").value.replace(/[^A-Za-z]/g, "").slice(0, NAME_MAX);   // block numbers and symbols as you type
+  if (v !== $("nameInput").value) $("nameInput").value = v;
+  create.typedName = v;
+  const res = v ? checkName(v, create.targetSlot || currentSlot) : null;
+  $("nameCheck").innerHTML = res ? (res.ok ? `<span class="good">✔ ${res.name} is available</span>` : `<span class="warn-txt">${res.problems.join(" · ")}</span>`) : "";
+  const btn = $("createBody").querySelector('[data-c="claimName"]');
+  btn.disabled = !(res && res.ok);
+  btn.textContent = `Awaken as ${res && res.ok ? res.name : "…"}`;
+}
+$("createBody").addEventListener("input", e => { if (e.target.id === "nameInput" && create.step === "name") liveCheck(); });
+$("createBody").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || create.step !== "name") return;
+  if (b.dataset.usename) { create.typedName = b.dataset.usename; Sound.play("click"); renderNameStep(); }
+  if (b.dataset.c === "moreNames") { create.suggestions = suggestNames(); Sound.play("roll"); renderNameStep(); }
+  if (b.dataset.c === "claimName") {
+    const res = checkName(create.typedName, create.targetSlot || currentSlot);
+    if (!res.ok) return renderNameStep();
+    create.name = res.name;
+    startGame();
   }
 });
 
