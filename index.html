@@ -1950,7 +1950,7 @@ function render() {
       return `<span class="chip ${have >= n ? "ok" : "no"}">${MATS[id].icon} ${MATS[id].name} ${have}/${n}</span>`;
     }).join("");
     return `<div class="recipe"><div class="r-top"><span class="r-icon">${r.icon}</span>
-      <div><div class="r-name">${r.name}</div><div class="r-effect">${effectText(r)}</div><div class="small muted">Sells for ${sellPrice(r)}g${player.items[r.id] ? ` · You have ${player.items[r.id]}` : ""}</div></div>
+      <div><div class="r-name">${rarityName(r)}</div><div class="r-effect">${effectText(r)}</div><div class="small muted">Sells for ${sellPrice(r)}g${player.items[r.id] ? ` · You have ${player.items[r.id]}` : ""}</div></div>
       <button class="btn" data-craft="${r.id}" ${canCraft(r) ? "" : "disabled"}>Craft</button></div>
       <div class="r-needs">${needs}</div></div>`;
   }).join("");
@@ -2506,7 +2506,7 @@ async function playerAction(action) {
   const m = B.mon;
   // Running, items and guarding always happen first. Attacks go by speed.
   let playerFirst = true;
-  if (action.type === "move") playerFirst = action.move.priority || playerSpeed() >= m.spd;
+  if (action.type === "move") playerFirst = action.move.priority || !!player.scrolls.haste || playerSpeed() >= m.spd;
 
   if (action.type === "run") {
     const chance = m.boss ? 0.3 : Math.max(0.25, Math.min(0.95, 0.55 + (playerSpeed() - m.spd) / 60));
@@ -2724,9 +2724,11 @@ async function victory() {
   if (fx("xpLowHp") && player.hp < player.maxHp / 2) xp *= 1 + fx("xpLowHp");
   if (summonType() && player.armyMode === "attack") xp *= 1 + 0.05 * armyPower();
   if (player.scrolls.xp) { xp *= 1.5; player.scrolls.xp = false; }
+  if (player.scrolls.xp2) { xp *= 3; player.scrolls.xp2 = false; }
   const crit = fx("crit") && Math.random() < fx("crit"); if (crit) xp *= 2;
   xp = Math.floor(xp);
-  const ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
+  let ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
+  if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
   let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1));
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   const loot = rollLoot(m);
@@ -2790,6 +2792,7 @@ async function defeat() {
 }
 function endBattle() {
   B = null;
+  player.scrolls.haste = false;   // Scroll of Gales lasts one fight
   player.location = "Tower Lobby";
   $("battleOverlay").classList.remove("show");
   render();
@@ -2976,6 +2979,41 @@ function armySummary() {
   player.army.forEach(u => { const p = UNIT_PERK[unitBody(u)]; if (p.kind === "heal") heal += unitValue(u); if (p.kind === "mp") mp += unitValue(u); });
   return [...stats, ...(heal ? [`heal ${heal}% max HP after each win`] : []), ...(mp ? [`restore ${mp} MP after each win`] : [])].join(", ");
 }
+
+
+/* =========================================================
+   RARE RECIPES: tower drops (feathers, ectoplasm, scales,
+   Mana Crystals, Shadow Essence, Drake Scales and Tower
+   Relics) now craft stronger gear, potions, scrolls and meals.
+   ========================================================= */
+[
+  // ---- Gear ----
+  { id: "galeBoots",   cat: "Gear", rarity: "rare", name: "Galeplume Boots",   icon: "🪶", slot: "Accessory", bonus: { AGI: 6, SEN: 2 },  needs: { feather: 4, hide: 2 }, value: 160 },
+  { id: "crystalEdge", cat: "Gear", rarity: "rare", name: "Crystal Edge",      icon: "🗡️", slot: "Main Hand", bonus: { STR: 6, SEN: 3 },  needs: { crystal: 2, ore: 3, fang: 2 }, value: 220 },
+  { id: "wraithFocus", cat: "Gear", rarity: "rare", name: "Wraithglass Focus", icon: "🔮", slot: "Off-Hand",  bonus: { INT: 7, RES: 2 },  needs: { ecto: 4, crystal: 1 }, value: 200 },
+  { id: "serpentMail", cat: "Gear", rarity: "rare", name: "Serpentscale Mail", icon: "🥋", slot: "Armor",     bonus: { VIT: 7, RES: 4 },  needs: { sscale: 5, shell: 3, ore: 2 }, value: 230 },
+  { id: "shadowBlade", cat: "Gear", rarity: "epic", name: "Shadowsteel Blade", icon: "⚔️", slot: "Main Hand", bonus: { STR: 10, AGI: 4 }, needs: { essence: 1, ore: 4, fang: 3 }, value: 380 },
+  { id: "umbralTome",  cat: "Gear", rarity: "epic", name: "Umbral Tome",       icon: "📕", slot: "Off-Hand",  bonus: { INT: 12, SEN: 3 }, needs: { essence: 2, crystal: 2, reed: 4 }, value: 420 },
+  { id: "drakePlate",  cat: "Gear", rarity: "epic", name: "Drakehide Plate",   icon: "🐲", slot: "Armor",     bonus: { VIT: 12, RES: 6, STR: 2 }, needs: { dscale: 2, sscale: 3, hide: 3 }, value: 450 },
+  { id: "spireBreaker",cat: "Gear", rarity: "legendary", name: "Spire Breaker",       icon: "🪓", slot: "Main Hand", bonus: { STR: 16, AGI: 6, LUK: 4 }, needs: { relic: 1, dscale: 2, essence: 1 }, value: 900 },
+  { id: "archCodex",   cat: "Gear", rarity: "legendary", name: "Archmage's Codex",    icon: "📜", slot: "Off-Hand",  bonus: { INT: 18, RES: 6 },        needs: { relic: 1, essence: 2, crystal: 3 }, value: 900 },
+  { id: "towerHeart",  cat: "Gear", rarity: "legendary", name: "Heart of the Tower",  icon: "🏺", slot: "Accessory", bonus: { STR: 4, AGI: 4, SEN: 4, VIT: 4, INT: 4, RES: 4, LUK: 4 }, needs: { relic: 1, crystal: 3, core: 2 }, value: 1000 },
+  // ---- Potions ----
+  { id: "ether",       cat: "Potion", rarity: "rare", name: "Ether",          icon: "🔷", use: "mp",  amount: 150, needs: { crystal: 1, shroom: 2 }, value: 70 },
+  { id: "spiritDraught", cat: "Potion", rarity: "rare", name: "Spirit Draught", icon: "🌫️", use: "fat", amount: 100, needs: { ecto: 2, herb: 2 }, value: 50 },
+  { id: "drakeElixir", cat: "Potion", rarity: "epic", name: "Drakeblood Elixir", icon: "🧪", use: "hp", amount: 500, needs: { dscale: 1, crystal: 1, herb: 3 }, value: 160 },
+  // ---- Scrolls ----
+  { id: "sGales",  cat: "Scroll", rarity: "rare", name: "Scroll of Gales",   icon: "🌪️", scroll: "haste", note: "Next fight: you always act first",           needs: { feather: 3, reed: 2 }, value: 70 },
+  { id: "sSpirit", cat: "Scroll", rarity: "rare", name: "Scroll of Spirits", icon: "👻", scroll: "apx",   note: "Next fight gives double Ability Points",     needs: { ecto: 2, reed: 2 }, value: 70 },
+  { id: "sDeep",   cat: "Scroll", rarity: "epic", name: "Scroll of the Deep", icon: "🌊", scroll: "xp2",  note: "Next fight gives triple EXP",                needs: { sscale: 2, crystal: 1, reed: 2 }, value: 130 },
+  // ---- Meals ----
+  { id: "serpentSushi", cat: "Meal", rarity: "rare", name: "Serpent Sushi", icon: "🍣", buff: { AGI: 5, SEN: 5 }, needs: { sscale: 2, herb: 1 }, value: 60 },
+  { id: "crystalBroth", cat: "Meal", rarity: "rare", name: "Crystal Broth", icon: "🥣", buff: { INT: 6, RES: 4 }, needs: { crystal: 1, shroom: 2, herb: 1 }, value: 80 },
+  { id: "drakeSteak",   cat: "Meal", rarity: "epic", name: "Drake Steak",   icon: "🥩", buff: { STR: 8, VIT: 6 }, needs: { dscale: 1, meat: 3 }, value: 120 },
+].forEach(r => { RECIPES.push(r); R[r.id] = r; });
+
+const usedIn = id => RECIPES.filter(r => !r.shopOnly && r.needs[id]).map(r => r.name);
+const rarityName = r => r.rarity ? `<span style="color:${RARITY_COLOR[r.rarity]}">${r.name}</span> <span class="small" style="color:${RARITY_COLOR[r.rarity]}">(${r.rarity})</span>` : r.name;
 
 
 /* =========================================================
@@ -4175,7 +4213,7 @@ function matSources(id) {
   if (SHOP_STOCK.Materials.includes(id)) out.push(`Tower Shop (${buyPrice(id)}g)`);
   return out.join(" · ") || "Unknown";
 }
-const matLine = id => `${MATS[id].icon} <b>${MATS[id].name}</b> (you have ${player.mats[id] || 0}): ${matSources(id)}`;
+const matLine = id => { const u = usedIn(id); return `${MATS[id].icon} <b>${MATS[id].name}</b> (you have ${player.mats[id] || 0}): ${matSources(id)}${u.length ? `<br><span class="muted">&nbsp;&nbsp;↳ Used in: ${u.join(", ")}</span>` : ""}`; };
 
 function guideItems(key) {
   const lv = player.level;
@@ -4218,7 +4256,7 @@ function guideItems(key) {
       ...(HIDDEN_SUBCLASSES[player.classId] ? [`<b>Hidden paths:</b> secret subclasses for your class. Each one shows clues and progress bars. Meet the goals to unlock it, then you can switch to it at any time.`] : []),
     ];
     case "bag": return [
-      `<b>Materials:</b> used for crafting. Tap Craft on the hub to make things with them.`,
+      `<b>Materials:</b> used for crafting. Tap Craft on the hub to make things with them. Rare drops (💎 Mana Crystal, 🔮 Shadow Essence, 🐲 Drake Scale, 🏺 Tower Relic) make the strongest gear, potions, scrolls and meals. Tower Relics make legendary gear.`,
       `<b>Potions, scrolls and meals:</b> tap Use. Potions heal right away. Meals last until you rest. Scrolls work on your next fight.`,
       `<b>Gear:</b> tap Equip. You have 4 slots: Main Hand, Off-Hand, Armor and Accessory. Gear bonuses add straight to your stats.`,
       `<b>Where materials come from:</b><br>${Object.keys(MATS).map(matLine).join("<br>")}`,
@@ -4230,6 +4268,7 @@ function guideItems(key) {
         `<b>Crafting:</b> when you have all the materials, tap Craft. Each craft gives 10 EXP and counts for the daily quest.`,
         `<b>Your job:</b> ${job.cat ? `as a ${job.name}, crafting ${job.cat === "Gear" ? "gear" : job.cat.toLowerCase() + "s"} gives job EXP and a ${Math.round((0.15 + jobRank() * 0.1) * 100)}% chance to make an extra one.` : "as a Merchant you don't get crafting bonuses, but you sell everything for more."}`,
         `<b>New gear</b> equips itself if that slot is empty.`,
+        `<b>Rarity:</b> recipes marked <span style="color:#4da3ff">rare</span>, <span style="color:#b06bff">epic</span> or <span style="color:#ffb020">legendary</span> need rare drops from the tower. Legendary gear needs a 🏺 Tower Relic, which drops mostly from bosses. Higher Luck helps.`,
         `<b>Materials for ${craftCat === "Gear" ? "gear" : craftCat.toLowerCase() + "s"}:</b><br>${needed.map(matLine).join("<br>")}`,
       ];
     }
