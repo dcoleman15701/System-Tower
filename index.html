@@ -537,6 +537,28 @@ body {
 @keyframes resIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 .res-actions { display: flex; gap: 8px; margin-top: 12px; } .res-actions .btn { flex: 1; padding: 10px; }
 .toast-wrap { z-index: 40; }
+
+/* Story quests */
+.sq-head { font-family: var(--font-title); letter-spacing: 2px; font-size: .8em; color: var(--accent); margin: 4px 0 8px; }
+.sq-head + .header { display: none; }
+.story-card { border: 1px solid var(--c, var(--accent)); border-radius: 10px; padding: 12px; margin-bottom: 16px; background: rgba(0,0,0,.25); box-shadow: 0 0 14px color-mix(in srgb, var(--c, #ffc94d) 30%, transparent); }
+.sq-act { font-size: .7em; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+.sq-title { font-family: var(--font-title); font-size: 1.15em; color: var(--c, var(--accent)); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.sq-rew { margin: 8px 0; }
+.glow-btn { animation: glowPulse 1.4s ease-in-out infinite; }
+@keyframes glowPulse { 50% { box-shadow: 0 0 16px var(--accent); } }
+.story-ov { z-index: 30; background: rgba(0,0,0,.55); display: none; align-items: flex-end; justify-content: center; padding: 16px 12px 28px; }
+.story-ov.show { display: flex; }
+.dlg { width: 100%; max-width: 520px; border: 2px solid var(--c); border-radius: 12px; padding: 14px 16px; background: rgba(8,12,24,.94); color: #e8eef7; box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent); }
+.dlg.pop { animation: flipIn .25s ease-out; }
+.dlg-sys { background: rgba(6,20,40,.95); }
+.dlg-who { font-weight: 700; color: var(--c); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; letter-spacing: .5px; }
+.dlg-av { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--c, var(--accent)); font-size: 1.1em; flex: none; }
+.dlg-text { font-size: 1.02em; line-height: 1.55; min-height: 3em; }
+.dlg-nav { display: flex; justify-content: space-between; margin-top: 12px; }
+.dlg-choices { display: grid; gap: 8px; margin-top: 8px; }
+.dlg-ch { text-align: left; white-space: normal; }
+.small-btn { font-size: .85em; opacity: .85; }
 </style>
 </head>
 <body data-theme="holo">
@@ -608,6 +630,9 @@ body {
   
       <!-- ================= QUEST ================= -->
       <section class="page" data-page="quest">
+        <div class="sq-head">📖 MAIN STORY</div>
+        <div id="storyQuest"></div>
+        <div class="sq-head">📅 DAILY QUEST</div>
         <div class="header" data-title="quest"></div>
         <div class="quest-intro">Complete today's training to grow stronger.</div>
         <div class="quest-timer">Resets in <span id="questTimer">--:--:--</span></div>
@@ -684,6 +709,7 @@ body {
 <!-- Evolution choice -->
 <!-- Battle -->
 <div class="overlay battle-ov" id="battleOverlay"><div class="panel" id="battleBody"></div></div>
+<div class="overlay story-ov" id="storyOverlay"><div class="dlg" id="storyBox2"></div></div>
 <div class="overlay sys-win" id="evoOverlay"><div class="panel" id="evoBody"></div></div>
 
 <div class="toast-wrap sys-win" id="toasts"></div>
@@ -1270,6 +1296,7 @@ function addFatigue(n) {
   if (before < 80 && player.fatigue >= 80) notify("WARNING", "Fatigue is high. Your performance is dropping.", "warn");
 }
 function questEvent(evt) {
+  if (typeof storyEvent === "function") storyEvent(evt);
   let justDone = false;
   quests.forEach(q => {
     if (q.event === evt && q.progress < q.goal) {
@@ -1720,6 +1747,7 @@ function startGame() {
   $("createOverlay").classList.remove("show");
   render();
   notify("AWAKENING", `${player.name}, you were born a ${RACES[player.raceId].name}. Class: ${CLASSES[player.classId].name}. Element: ${ELEM_ICON[player.elem]} ${player.elem}. Job: ${JOBS[player.jobId].name}.`, "levelUp");
+  setTimeout(() => notify("MAIN STORY", "Orin, the Gatekeeper wants to talk. Open Quests to begin Chapter 1.", "unlock"), 3000);
 }
 $("createBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -1913,7 +1941,8 @@ function render() {
     </div>`).join("");
 
   setDot("status", player.points > 0 || player.pendingEvo.length > 0);
-  setDot("quest", allQuestsDone() && !questClaimed);
+  checkStory(); renderStory();
+  setDot("quest", (allQuestsDone() && !questClaimed) || storyAlert());
   setDot("skills",
     (!maxG && player.ap >= GRADE_COST[g]) ||
     cls.skills.some((_, i) => player.level >= SKILL_UNLOCK[i] && player.skillTiers[i] < TIERS.length - 1 && player.ap >= TIER_COST[player.skillTiers[i]]) ||
@@ -2010,7 +2039,7 @@ $("newCharBtn").addEventListener("click", () => { Sound.play("open"); openSlots(
 /* ============ OPEN / CLOSE ============ */
 document.addEventListener("keydown", e => {
   if (e.target.tagName === "INPUT") return;
-  if (["createOverlay", "evoOverlay", "battleOverlay", "authOverlay"].some(id => $(id) && $(id).classList.contains("show"))) return;
+  if (["createOverlay", "evoOverlay", "battleOverlay", "authOverlay", "storyOverlay"].some(id => $(id) && $(id).classList.contains("show"))) return;
   const k = e.key.toLowerCase();
   if (k === "escape") { if ($("resultOverlay").classList.contains("show")) $("resultOverlay").classList.remove("show"); else closeWindow(); }
   if (k === "s") openWindow("status");
@@ -3420,13 +3449,13 @@ const WIN = {
   status: { title: "Status",       icon: "📊", sys: true },
   tower:  { title: "The Tower",    icon: "🗼", color: "#ff7a45" },
   shop:   { title: "Tower Shop",   icon: "🏪", color: "#3ddc84", page: "tower" },
-  quest:  { title: "Daily Quest",  icon: "📜", color: "#ffc94d" },
+  quest:  { title: "Quests",       icon: "📜", color: "#ffc94d" },
   skills: { title: "Abilities",    icon: "✨", color: "#b37bff" },
   bag:    { title: "Inventory",    icon: "🎒", color: "#e0a060" },
   craft:  { title: "Crafting",     icon: "⚒️", color: "#ff9a3d" },
   party:  { title: "Party",        icon: "👥", color: "#3dd6c6" },
 };
-const RESULT_COLOR = { gather: "#3ddc84", work: "#ffc94d", rest: "#9d8cff" };
+const RESULT_COLOR = { gather: "#3ddc84", work: "#ffc94d", rest: "#9d8cff", story: "#ffc94d" };
 let currentWin = null;
 
 function winColors(el, color) {
@@ -3474,7 +3503,7 @@ function showResult({ kind, icon, title, lines, footer }) {
       <ul class="res-lines">${lines.map((l, i) => `<li style="animation-delay:${i * 0.12}s">${l}</li>`).join("")}</ul>
       ${footer ? `<div class="small muted" style="margin-top:8px">${footer}</div>` : ""}
       <div class="res-actions">
-        <button class="btn" data-resagain="${kind}">${kind === "gather" ? "🌿 Gather again" : kind === "work" ? "💼 Work again" : "🗼 To the Tower"}</button>
+        <button class="btn" data-resagain="${kind}">${kind === "gather" ? "🌿 Gather again" : kind === "work" ? "💼 Work again" : kind === "story" ? "📜 Open Quests" : "🗼 To the Tower"}</button>
         <button class="btn" data-resclose>Done</button>
       </div>
     </div>`;
@@ -3488,6 +3517,7 @@ $("resultOverlay").addEventListener("click", e => {
   const k = again.dataset.resagain;
   if (k === "gather") gather();
   if (k === "work") work();
+  if (k === "story") { $("resultOverlay").classList.remove("show"); openWindow("quest"); }
   if (k === "rest") { $("resultOverlay").classList.remove("show"); openWindow("tower"); }
 });
 const bar = (cls, v, max) => `<div class="bar thin"><div class="${cls}" style="width:${Math.max(0, Math.min(100, v / max * 100))}%"></div></div>`;
@@ -3516,6 +3546,281 @@ $("hub").addEventListener("click", e => {
   const t = e.target.closest("[data-open]");
   if (t) openWindow(t.dataset.open);
   if (e.target.closest("#btnSaves")) { Sound.play("open"); openSlots(); }
+});
+
+
+/* =========================================================
+   STORY QUESTS: Act I, The Mossy Depths (floors 1 to 10)
+   NPCs tell the story in dialogue scenes. The System handles
+   objectives and rewards. Good or evil replies shift alignment.
+   ========================================================= */
+const NPC = {
+  orin:  { name: "Orin, the Gatekeeper", icon: "🧓", color: "#d8b46a" },
+  mira:  { name: "Mira, the Innkeeper",  icon: "👩‍🍳", color: "#ff9a7a" },
+  brann: { name: "Brann",                icon: "🛡️", color: "#7fa8ff" },
+  lyra:  { name: "Lyra",                 icon: "✨", color: "#ffe08a" },
+  kit:   { name: "Kit",                  icon: "🏹", color: "#7ddc8a" },
+  veyra: { name: "The Masked Climber",   icon: "🎭", color: "#c58bff" },
+  sys:   { name: "SYSTEM",               icon: "🔷", color: "#4fc3ff" },
+  you:   { name: "You",                  icon: "🙂", color: "#cfd8e3" },
+};
+
+// Objective types: floor (highest floor cleared), kill / gather / work / craft / sell (counted from chapter start), level
+const STORY = [
+  { title: "The Gate Opens", npc: "orin",
+    intro: [
+      ["sys", "A new climber has entered the Tower grounds. Main story unlocked."],
+      ["orin", "Another one. Name's Orin. I've watched this gate for forty years, {name}."],
+      ["orin", "Most who climb never come back down. So tell me, why do you climb?"],
+      { choice: [
+        { text: "To protect the town below.", al: 1, reply: "Hah. A good heart. The tower will test it." },
+        { text: "For power. Nothing else matters.", al: -1, reply: "Honest, at least. Power is easy to find here. So is death." },
+        { text: "I just want to see the top.", al: 0, reply: "Curiosity. That's how I started too." } ] },
+      ["orin", "Floor 1 is the Mossy Depths. Clear it and come back alive. Then we'll talk."],
+    ],
+    goals: [{ type: "floor", n: 1, label: "Clear Floor 1" }],
+    outro: [["orin", "You came back. That already puts you ahead of half of them."]],
+    reward: { gold: 50, xp: 60, ap: 20 } },
+
+  { title: "Slime in the Wells", npc: "mira",
+    intro: [
+      ["mira", "You're the new climber? Thank the stars. Slime from the tower is seeping into our wells."],
+      ["mira", "Clear out a few of those blobs and bring me anything useful you find."],
+    ],
+    goals: [{ type: "kill", n: 3, label: "Defeat 3 enemies" }, { type: "gather", n: 2, label: "Gather materials twice" }],
+    outro: [
+      ["mira", "The water's running clean again. I can't pay much, but what do I owe you?"],
+      { choice: [
+        { text: "Nothing. Keep the town fed.", al: 1, ap: 30, reply: "You're a rare one. Eat here free, anytime." },
+        { text: "Double what you offered. Pay up.", al: -1, gold: 60, reply: "...Fine. Take it and go." },
+        { text: "Whatever you think is fair.", al: 0, gold: 25, reply: "Here. And thank you." } ] },
+    ],
+    reward: { gold: 40, xp: 90, ap: 20 } },
+
+  { title: "A Shield at the Stairs", npc: "brann",
+    intro: [
+      ["brann", "Hold it. Nobody passes the Floor 3 stairs without proving they won't die on Floor 4."],
+      ["brann", "Reach Floor 3 on your own. If you can, I'll guard your back."],
+      { choice: [
+        { text: "Deal. I could use a shield.", al: 1, reply: "Good answer. Most just push past me." },
+        { text: "Move, or I'll move you.", al: -1, reply: "Big talk. Let's see you back it up." },
+        { text: "Fine. Watch me.", al: 0, reply: "I will." } ] },
+    ],
+    goals: [{ type: "floor", n: 3, label: "Clear Floor 3" }],
+    outro: [["brann", "Not bad, {name}. I keep my word. My shield is yours."], ["sys", "Brann has joined your party."]],
+    reward: { gold: 60, xp: 140, ap: 30, ally: "brann" } },
+
+  { title: "The Healer's Request", npc: "lyra",
+    intro: [
+      ["lyra", "Please, wait. Climbers keep coming down hurt, and I've run out of herbs."],
+      ["lyra", "If you gather materials and craft something useful, I can keep them alive."],
+    ],
+    goals: [{ type: "gather", n: 3, label: "Gather materials 3 times" }, { type: "craft", n: 1, label: "Craft 1 item" }],
+    outro: [
+      ["lyra", "This is perfect. How much do I owe you?"],
+      { choice: [
+        { text: "Nothing. Use it on the wounded.", al: 1, ap: 40, reply: "Then let me travel with you. You'll need a healer." },
+        { text: "Healers get paid. So do I.", al: -1, gold: 80, reply: "...I see. I'll still come. The wounded need someone watching you." },
+        { text: "Half price. You need it more.", al: 0, gold: 40, reply: "Thank you. Let me come with you." } ] },
+      ["sys", "Lyra has joined your party."],
+    ],
+    reward: { gold: 50, xp: 200, ap: 30, ally: "lyra" } },
+
+  { title: "Tracks in the Moss", npc: "kit",
+    intro: [
+      ["kit", "Psst. Over here. I'm Kit. I track things for a living."],
+      ["kit", "Something big is moving deeper in the Depths. The tracks don't belong to any monster I know."],
+      ["kit", "Clear Floor 5 and thin out the beasts so I can follow the trail."],
+    ],
+    goals: [{ type: "floor", n: 5, label: "Clear Floor 5" }, { type: "kill", n: 5, label: "Defeat 5 enemies" }],
+    outro: [["kit", "Found it. The tracks lead up, toward Floor 10. I'm coming with you."], ["sys", "Kit has joined your party."]],
+    reward: { gold: 80, xp: 280, ap: 40, ally: "kit" } },
+
+  { title: "The Masked Climber", npc: "veyra",
+    intro: [
+      ["veyra", "So you're the one everyone's talking about. Cute party."],
+      ["veyra", "The guardian on Floor 10 is being fed. Someone is pumping corruption into it."],
+      ["veyra", "I'll tell you who, for a price. Earn some coin and reach Floor 7."],
+      { choice: [
+        { text: "Why help us? What do you want?", al: 0, reply: "Same as you. The top. You're just useful right now." },
+        { text: "If the town is in danger, I'll pay.", al: 1, reply: "Noble. That'll get you killed, but noble." },
+        { text: "Talk now, or I'll take the mask off myself.", al: -1, reply: "Ooh, scary. Earn it anyway." } ] },
+    ],
+    goals: [{ type: "work", n: 1, label: "Work a shift" }, { type: "floor", n: 7, label: "Clear Floor 7" }],
+    outro: [["veyra", "A cult called the Hollow Choir. They want the guardian strong enough to break the floor seal."], ["veyra", "If it breaks, the Depths spill into town. See you at the top, {name}."]],
+    reward: { gold: 100, xp: 360, ap: 40, points: 2 } },
+
+  { title: "Rot at the Root", npc: "sys",
+    intro: [
+      ["sys", "WARNING. Corruption detected in the Mossy Depths. Seal integrity: 31%."],
+      ["orin", "I felt that from the gate. The seal is failing faster than I thought."],
+      ["brann", "Then we push. Floor 9, then the guardian."],
+    ],
+    goals: [{ type: "floor", n: 9, label: "Clear Floor 9" }, { type: "level", n: 6, label: "Reach Level 6" }],
+    outro: [["sys", "Seal integrity: 12%. The floor guardian is awakening."], ["lyra", "Rest first. Then we end this."]],
+    reward: { gold: 120, xp: 450, ap: 50 } },
+
+  { title: "The Slime King", npc: "sys",
+    intro: [
+      ["sys", "BOSS QUEST: The Slime King on Floor 10 has absorbed the Hollow Choir's corruption."],
+      ["kit", "That's what made the tracks. It's huge."],
+      { choice: [
+        { text: "Everyone stay behind me. I'll take the hits.", al: 1, reply: "", },
+        { text: "Its core is mine. Nobody else touches it.", al: -1, reply: "" },
+        { text: "Stick to the plan. We win together.", al: 0, reply: "" } ] },
+      ["sys", "Defeat the Slime King on Floor 10."],
+    ],
+    goals: [{ type: "floor", n: 10, label: "Defeat the Slime King (Floor 10)" }],
+    outro: [
+      ["sys", "The floor guardian has fallen. Seal restored. Act I complete."],
+      ["orin", "Forty years, and I've never seen a climber clear the Depths this fast."],
+      ["veyra", "Don't celebrate yet. The Hollow Choir has nine more seals to break. Floor 20 is next."],
+      ["sys", "Title earned: Depth Breaker."],
+    ],
+    reward: { gold: 300, xp: 800, ap: 100, points: 3, title: "Depth Breaker" } },
+];
+
+function storyState() {
+  if (!player.story) player.story = { ch: 0, step: "new", prog: {} };
+  return player.story;
+}
+const fill = t => t.replace(/\{name\}/g, player.name);
+function goalProgress(g) {
+  const st = storyState();
+  if (g.type === "floor") return Math.min(g.n, player.towerBest || 0);
+  if (g.type === "level") return Math.min(g.n, player.level);
+  return Math.min(g.n, st.prog[g.type] || 0);
+}
+const chapterDone = c => c.goals.every(g => goalProgress(g) >= g.n);
+function storyEvent(evt) {
+  if (!player) return;
+  const st = storyState();
+  if (st.step !== "active") return;
+  st.prog[evt] = (st.prog[evt] || 0) + 1;
+  checkStory();
+}
+function checkStory() {
+  const st = storyState(), c = STORY[st.ch];
+  if (!c || st.step !== "active" || !chapterDone(c)) return;
+  st.step = "ready";
+  setTimeout(() => notify("STORY", `Chapter ${st.ch + 1} objectives complete. Open Quests to finish "${c.title}".`, "unlock"), 900);
+}
+const storyAlert = () => { const st = player && storyState(); return !!st && st.ch < STORY.length && st.step !== "active"; };
+
+/* ---------- Dialogue scenes ---------- */
+let scene = null;
+function playScene(lines, onDone) {
+  scene = { lines, i: 0, onDone, gained: { gold: 0, ap: 0 } };
+  $("storyOverlay").classList.add("show");
+  Sound.play("open");
+  drawScene();
+}
+function drawScene() {
+  const L = scene.lines[scene.i], box = $("storyBox2");
+  if (!L) { $("storyOverlay").classList.remove("show"); const d = scene.onDone, g = scene.gained; scene = null; d && d(g); return; }
+  if (L.choice) {
+    box.className = "dlg"; box.style.setProperty("--c", NPC.you.color);
+    box.innerHTML = `<div class="dlg-who" style="--c:${NPC.you.color}">${NPC.you.icon} ${player.name}</div>
+      <div class="dlg-q muted small">Choose your answer</div>
+      <div class="dlg-choices">${L.choice.map((o, i) => `<button class="btn dlg-ch" data-ch="${i}">${o.text}</button>`).join("")}</div>`;
+    return;
+  }
+  const [who, text] = L, n = NPC[who];
+  box.className = "dlg" + (who === "sys" ? " sys-win dlg-sys" : "");
+  box.style.setProperty("--c", n.color);
+  box.innerHTML = `<div class="dlg-who"><span class="dlg-av">${n.icon}</span>${who === "sys" ? "[ SYSTEM ]" : n.name}</div>
+    <div class="dlg-text">${fill(text)}</div>
+    <div class="dlg-nav"><button class="btn small-btn" data-dskip>Skip ⏭</button><button class="btn" data-dnext>Next ▸</button></div>`;
+  box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
+}
+$("storyOverlay").addEventListener("click", e => {
+  if (!scene) return;
+  if (e.target.closest("[data-dnext]")) { scene.i++; Sound.play("notify"); drawScene(); return; }
+  if (e.target.closest("[data-dskip]")) {
+    // Skip to the next choice, or to the end of the scene
+    let j = scene.i + 1; while (j < scene.lines.length && !scene.lines[j].choice) j++;
+    scene.i = j; drawScene(); return;
+  }
+  const ch = e.target.closest("[data-ch]");
+  if (ch) {
+    const o = scene.lines[scene.i].choice[+ch.dataset.ch];
+    if (o.al) {
+      player.alignment = (player.alignment || 0) + o.al; recalc();
+      notify("ALIGNMENT", `${o.al > 0 ? "Good" : "Evil"} choice. Alignment ${o.al > 0 ? "+1" : "-1"} (now ${player.alignment > 0 ? "+" : ""}${player.alignment}, ${alignmentOf(player.alignment).name})`, o.al > 0 ? "unlock" : "warn", true);
+    }
+    if (o.gold) { player.gold += o.gold; scene.gained.gold += o.gold; }
+    if (o.ap) { player.ap += o.ap; scene.gained.ap += o.ap; }
+    const speaker = [...scene.lines.slice(0, scene.i)].reverse().find(l => !l.choice)?.[0] || "sys";
+    const rest = scene.lines.slice(scene.i + 1);
+    scene.lines = [...scene.lines.slice(0, scene.i), ["you", o.text], ...(o.reply ? [[speaker, o.reply]] : []), ...rest];
+    drawScene(); render(); save();
+  }
+});
+
+/* ---------- Chapter flow ---------- */
+function beginChapter() {
+  const st = storyState(), c = STORY[st.ch]; if (!c) return;
+  playScene(c.intro, () => {
+    st.step = "active"; st.prog = {};
+    notify("NEW QUEST", `Chapter ${st.ch + 1}: ${c.title}. ${c.goals.map(g => g.label).join(", ")}.`, "unlock");
+    checkStory(); render(); save();
+  });
+}
+function finishChapter() {
+  const st = storyState(), c = STORY[st.ch]; if (!c || st.step !== "ready") return;
+  playScene(c.outro, gained => {
+    const r = c.reward, lines = [];
+    player.gold += r.gold; lines.push(`💰 Gold <b>+${r.gold + gained.gold}</b>`);
+    player.ap += r.ap; lines.push(`✨ Ability Points <b>+${r.ap + gained.ap}</b>`);
+    if (r.points) { player.points += r.points; lines.push(`📈 Stat points <b>+${r.points}</b>`); }
+    lines.push(`⭐ EXP <b>+${r.xp}</b>`);
+    if (r.ally && A[r.ally]) {
+      const a = A[r.ally]; a.level = Math.max(a.level, player.level);
+      if (ALLIES.filter(x => x.inParty).length < 3) a.inParty = true;
+      lines.push(`${a.icon} <b>${a.name}</b> joined your party`);
+    }
+    if (r.title) { player.title = r.title; lines.push(`🏅 Title: <b>${r.title}</b>`); }
+    const num = st.ch + 1;
+    st.ch++; st.step = "new"; st.prog = {};
+    gainXp(r.xp);
+    Sound.play("levelUp");
+    showResult({ kind: "story", icon: "📜", title: `Chapter ${num} Complete`, lines: [`<b>${c.title}</b>`, ...lines],
+      footer: STORY[st.ch] ? `Next: Chapter ${st.ch + 1}, ${STORY[st.ch].title}.` : "Act I complete. Act II, the Echo Caves, is coming soon." });
+    render(); save();
+  });
+}
+
+/* ---------- Quest window: Story section ---------- */
+function renderStory() {
+  const st = storyState(), c = STORY[st.ch], el = $("storyQuest");
+  if (!el) return;
+  if (!c) {
+    el.innerHTML = `<div class="story-card done"><div class="sq-act">ACT I · THE MOSSY DEPTHS</div>
+      <div class="sq-title">✔ Act I complete</div>
+      <div class="small muted">The Slime King has fallen. Act II, the Echo Caves, is coming soon.</div></div>`;
+    return;
+  }
+  const n = NPC[c.npc];
+  const goals = st.step === "new" ? "" : c.goals.map(g => {
+    const p = goalProgress(g), done = p >= g.n;
+    return `<div class="q-item"><div class="q-top"><span>${done ? "✔ " : ""}${g.label}</span><span class="${done ? "good" : ""}">${p} / ${g.n}</span></div>
+      <div class="bar thin"><div class="q" style="width:${p / g.n * 100}%"></div></div></div>`;
+  }).join("");
+  const btn = st.step === "new" ? `<button class="btn wide" data-story="begin">▶ Begin Chapter ${st.ch + 1}</button>`
+    : st.step === "ready" ? `<button class="btn wide glow-btn" data-story="finish">📜 Complete Chapter</button>`
+    : `<button class="btn wide small-btn" data-story="replay">💬 Replay scene</button>`;
+  el.innerHTML = `<div class="story-card" style="--c:${n.color}">
+    <div class="sq-act">ACT I · MOSSY DEPTHS · CHAPTER ${st.ch + 1}/${STORY.length}</div>
+    <div class="sq-title"><span class="dlg-av">${n.icon}</span>${c.title}</div>
+    ${st.step === "new" ? `<div class="small muted">${n.name} wants to talk to you.</div>` : goals}
+    <div class="small muted sq-rew">Rewards: ${c.reward.gold} Gold, ${c.reward.xp} EXP, ${c.reward.ap} AP${c.reward.points ? `, ${c.reward.points} stat points` : ""}${c.reward.ally ? `, ${A[c.reward.ally].name} joins` : ""}${c.reward.title ? `, title "${c.reward.title}"` : ""}</div>
+    ${btn}</div>`;
+}
+$("storyQuest").addEventListener("click", e => {
+  const b = e.target.closest("[data-story]"); if (!b) return;
+  if (b.dataset.story === "begin") beginChapter();
+  if (b.dataset.story === "finish") finishChapter();
+  if (b.dataset.story === "replay") { const c = STORY[storyState().ch]; playScene(c.intro.filter(l => !l.choice), null); }
 });
 
 
