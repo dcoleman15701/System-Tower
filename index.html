@@ -2708,7 +2708,7 @@ async function victory() {
   if (player.scrolls.xp) { xp *= 1.5; player.scrolls.xp = false; }
   const crit = fx("crit") && Math.random() < fx("crit"); if (crit) xp *= 2;
   xp = Math.floor(xp);
-  const ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp");
+  const ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
   let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1));
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   const loot = rollLoot(m);
