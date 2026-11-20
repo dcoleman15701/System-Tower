@@ -559,6 +559,20 @@ body {
 .dlg-choices { display: grid; gap: 8px; margin-top: 8px; }
 .dlg-ch { text-align: left; white-space: normal; }
 .small-btn { font-size: .85em; opacity: .85; }
+
+/* Tap-for-details in the Status window */
+.tappable { cursor: pointer; border-radius: 6px; transition: background .15s; }
+.tappable:hover, .tappable.sel { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+#infoList .row.tappable::after, .bar-row.tappable .bar-label::after { content: "›"; color: var(--muted); margin-left: 6px; }
+.bar-row.tappable .bar-label { display: flex; }
+.bar-row.tappable .bar-label span { margin-left: auto; }
+.info-li { display: block !important; padding: 0 !important; border: 0 !important; }
+.info-detail { margin: 6px 0 10px; animation: flipIn .2s ease-out; }
+.id-val { font-size: 1em !important; text-align: right; max-width: 55%; }
+.tap-hint { text-align: center; margin: -2px 0 8px; }
+.win-status .win-head .wt::before, .win-status .win-head .wt::after { content: "" !important; }
+.win-status #winIcon { display: none; }
+.win-status .page > .header { display: none; }
 </style>
 </head>
 <body data-theme="holo">
@@ -601,12 +615,13 @@ body {
       <section class="page active" data-page="status">
         <div class="header" data-title="status"></div>
         <div id="evoBanner"></div>
+        <div class="small muted tap-hint">Tap anything below for details.</div>
         <div class="info" id="infoList"></div>
   
-        <div class="bar-row"><div class="bar-label"><b>HP</b><span id="hpText"></span></div><div class="bar"><div class="hp" id="hpBar"></div></div></div>
-        <div class="bar-row"><div class="bar-label"><b>MP</b><span id="mpText"></span></div><div class="bar"><div class="mp" id="mpBar"></div></div></div>
-        <div class="bar-row"><div class="bar-label"><b>FATIGUE</b><span id="fatText"></span></div><div class="bar"><div class="fat" id="fatBar"></div></div></div>
-        <div class="bar-row"><div class="bar-label"><b>EXP</b><span id="xpText"></span></div><div class="bar"><div class="xp" id="xpBar"></div></div></div>
+        <div class="bar-row" data-info="hp"><div class="bar-label"><b>HP</b><span id="hpText"></span></div><div class="bar"><div class="hp" id="hpBar"></div></div></div>
+        <div class="bar-row" data-info="mp"><div class="bar-label"><b>MP</b><span id="mpText"></span></div><div class="bar"><div class="mp" id="mpBar"></div></div></div>
+        <div class="bar-row" data-info="fatigue"><div class="bar-label"><b>FATIGUE</b><span id="fatText"></span></div><div class="bar"><div class="fat" id="fatBar"></div></div></div>
+        <div class="bar-row" data-info="exp"><div class="bar-label"><b>EXP</b><span id="xpText"></span></div><div class="bar"><div class="xp" id="xpBar"></div></div></div>
   
         <div class="section-title"><span>STATS</span><span>Points: <span class="points" id="pPoints"></span></span></div>
         <div class="small muted" style="margin:-4px 0 6px">Tap a stat to see where it comes from and what it does.</div>
@@ -1844,6 +1859,7 @@ function render() {
     `<li><span class="muted">${slot}</span><span>${id ? `${R[id].icon} ${R[id].name} <span class="good small">${fmtBonus(R[id].bonus)}</span>` : `<span class="muted">Empty</span>`}</span></li>`).join("");
 
   $("skillList").innerHTML = loadoutStatusHTML();
+  decorateStatus();
 
   // ---- Skills / Ability / Body ----
   $("apCount").textContent = player.ap;
@@ -2862,7 +2878,7 @@ function renderExtras() {
   renderTree();
   renderLoadoutBox();
   const sh = document.querySelector('[data-title="status"]');
-  if (sh) sh.textContent = document.body.dataset.theme === "holo" ? `[ SAVE FILE #0${currentSlot} ] STATUS WINDOW` : `${headers[document.body.dataset.theme].status} · Save #0${currentSlot}`;
+  if (sh) sh.textContent = "STATUS";
   renderHidden();
   const g = $("goldHud");
   g.textContent = `💰 ${player.gold.toLocaleString()} Gold`;
@@ -3442,7 +3458,218 @@ function renderStatDetail() {
 $("panel").addEventListener("click", e => {
   const card = e.target.closest("[data-statcard]");
   if (!card || !player || e.target.closest("[data-stat]")) return;
-  openStat = openStat === card.dataset.statcard ? null : card.dataset.statcard;
+  openStat = openStat === card.dataset.statcard ? null : card.dataset.statcard; openInfo = null;
+  Sound.play("click");
+  render();
+});
+
+
+/* =========================================================
+   STATUS DETAILS: tap any line in the Status window (info rows,
+   bars, gear slots, skills) to open a panel explaining it, with
+   the current numbers and what changes next.
+   Stats keep their own panel in stats.js.
+   ========================================================= */
+let openInfo = null;
+const sgn = v => (v > 0 ? "+" : "") + v;
+const li = (label, v, cls = "") => `<li><span>${label}</span><b class="${cls}">${v}</b></li>`;
+
+function infoDetail(key) {
+  const race = RACES[player.raceId], cls = CLASSES[player.classId], job = JOBS[player.jobId], sub = subOf();
+  const rk = rankOf(player.level), lv = player.level;
+  const D = { icon: "ℹ️", title: key, value: "", blurb: "", rows: [], rowsTitle: "RIGHT NOW", does: [], next: "" };
+  switch (key) {
+    case "name":
+      Object.assign(D, { icon: "🪪", title: "Name", value: player.name,
+        blurb: "Your gamer name. It is unique, so no other player can take it.",
+        does: ["Shown on your hub card, in battles and in story scenes.", "Characters in the story call you by this name."],
+        next: "Names are 4 to 12 letters, with no numbers, symbols or bad words." });
+      break;
+    case "race": {
+      const rp = RACE_PASSIVES[player.raceId], pb = pathBonus("race"), stageNext = rk.stage + 1;
+      Object.assign(D, { icon: race.icon, title: "Race", value: formOf("race"), blurb: race.desc,
+        rows: [["Race stat bonus", fmtBonus(race.stats) || "None"], ["Evolution bonus", fmtBonus(pb) || "None yet"], ["Racial trait", rp.name]],
+        does: [rp.desc],
+        next: `Your race can evolve at every Stage breakthrough. Next: Stage ${stageNext} at Lv. ${(stageNext - 1) * 3 + 1}.` });
+      break;
+    }
+    case "class": {
+      const cp = CLASS_PASSIVES[player.classId], pb = pathBonus("class"), nextAdv = (Math.floor(lv / CLASS_EVO_EVERY) + 1) * CLASS_EVO_EVERY;
+      Object.assign(D, { icon: cls.icon, title: "Class", value: formOf("class"), blurb: cls.desc,
+        rows: [["Class stat bonus", fmtBonus(cls.stats)], ["Advancement bonus", fmtBonus(pb) || "None yet"], ["Class trait", cp.name]],
+        does: [cp.desc, `Signature ability: ${cls.ability}.`],
+        next: `Next class advancement at Lv. ${nextAdv} (${nextAdv - lv} levels to go).` });
+      break;
+    }
+    case "element": {
+      const els = player.elems || [player.elem];
+      Object.assign(D, { icon: ELEM_ICON[els[0]], title: "Element", value: els.join(", "),
+        blurb: "Your elements decide which monsters you hit hard and which ones resist you.",
+        rows: els.map((e, i) => [`${ELEM_ICON[e]} ${e}${i === 0 ? " (main)" : ""}`, AFFINITY[e].rarity]),
+        does: els.map(e => `${e}: ${AFF_DESC[e]}`).concat([`Hitting a weak element does extra damage. Hitting a strong one does less.`]),
+        next: `Chart: ${ELEM_CHART}. You can learn new elements from the skill tree every 10 levels.` });
+      break;
+    }
+    case "subclass":
+      Object.assign(D, { icon: "★", title: "Subclass", value: sub ? sub.name : "Locked",
+        blurb: sub ? sub.desc : "A specialization that changes how your class plays.",
+        rows: sub ? [["Type", sub.hidden ? "Hidden subclass" : "Subclass"]] : [["Unlocks at", `Lv. ${SUBCLASS_LEVEL}`]],
+        does: sub ? [sub.perk] : [`You'll pick from 3 subclasses for your class when you reach Lv. ${SUBCLASS_LEVEL}.`],
+        next: sub ? "Some classes hide secret subclasses that unlock from special feats." : `${Math.max(0, SUBCLASS_LEVEL - lv)} levels to go.` });
+      break;
+    case "job": {
+      const r = jobRank(), nextXp = JOB_XP[r + 1];
+      const lo = Math.floor((job.pay[0] + lv * 2) * (1 + r * 0.25)), hi = Math.floor((job.pay[1] + lv * 2) * (1 + r * 0.25));
+      Object.assign(D, { icon: job.icon, title: "Job", value: `${JOB_RANKS[r]} ${job.name}`, blurb: job.desc,
+        rows: [["Wage per shift", `${lo} to ${hi} Gold`], ["Lucky shift (1.5x pay)", `${Math.min(100, eff("LUK"))}% chance`], ["Job EXP", nextXp ? `${player.jobXp} / ${nextXp}` : `${player.jobXp} (max rank)`], ["Fatigue per shift", "+10"]],
+        does: ["Work from the hub to earn gold. Each shift gives 5 job EXP.", "Higher job ranks pay 25% more per rank."],
+        next: nextXp ? `Next rank: ${JOB_RANKS[r + 1]} in ${nextXp - player.jobXp} job EXP (about ${Math.ceil((nextXp - player.jobXp) / 5)} shifts).` : "You've reached the top rank." });
+      break;
+    }
+    case "rank": {
+      const nr = rankOf(lv + 1), breakthrough = nr.stage > rk.stage;
+      Object.assign(D, { icon: "🎖️", title: "Rank", value: rk.text, blurb: "Your power level. Every level moves you up one rank: Lower, Middle, then Upper, then the next Stage.",
+        rows: [["Level", lv], ["EXP to next level", xpToNext(lv) - player.xp], ["Highest tower floor you can enter", maxFloor()]],
+        does: [`Each level: +3 stat points, +40 Ability Points, full HP and MP.`, `Each new Stage (every 3 levels): +100 Ability Points instead of 40, plus a race evolution.`],
+        next: `Next: ${nr.text} at Lv. ${lv + 1}${breakthrough ? " (Stage breakthrough!)" : ""}.` });
+      break;
+    }
+    case "title":
+      Object.assign(D, { icon: "🏅", title: "Title", value: player.title, blurb: "A name the world knows you by. Titles are earned from milestones.",
+        rows: [["Awakened One", lv >= 5 ? "✔ Earned" : "Reach Lv. 5"], ["Depth Breaker", player.title === "Depth Breaker" || (player.story && player.story.ch >= 8) ? "✔ Earned" : "Finish story Act I"]],
+        does: ["Shown on your Status window."], next: "More titles come from story acts, bosses and hidden paths." });
+      break;
+    case "alignment": {
+      const a = alignmentOf(player.alignment), s = player.alignment || 0, ab = alignBonus(s);
+      const hpBase = Math.floor(player.maxHp / (1 + ab.hp)), mpBase = Math.floor(player.maxMp / (1 + fx("mpPct") + ab.mp));
+      const nextStep = s >= 7 ? "You are a Paragon, the highest good." : s <= -7 ? "You are a Villain, the deepest evil."
+        : s >= 3 ? `${7 - s} more good choice${7 - s === 1 ? "" : "s"} to become a Paragon.` : s <= -3 ? `${7 + s} more evil choice${7 + s === 1 ? "" : "s"} to become a Villain.`
+        : `${3 - s} good choice${3 - s === 1 ? "" : "s"} to turn Good, or ${3 + s} evil choice${3 + s === 1 ? "" : "s"} to turn Evil.`;
+      Object.assign(D, { icon: a.icon, title: "Alignment", value: `${a.name} (${sgn(s)})`, blurb: a.desc,
+        rows: [["Score", sgn(s)], ["Bonus", alignBonusText(s)], ...(ab.hp ? [["Extra max HP", `+${player.maxHp - hpBase}`]] : []), ...(ab.mp ? [["Extra max MP", `+${player.maxMp - mpBase}`]] : [])],
+        does: ["Good (+3 or more): +3% max MP for each point.", "Evil (-3 or less): +3% max HP for each point.", "Neutral (-2 to +2): +6% max HP and MP."],
+        next: `${nextStep} Your answers in story scenes shift your score.` });
+      break;
+    }
+    case "location":
+      Object.assign(D, { icon: "📍", title: "Location", value: player.location || "Starting Town", blurb: "Where you are right now. It changes when you enter the tower.",
+        rows: [["Highest floor cleared", player.towerBest || 0], ["Floors you can enter", `1 to ${maxFloor()}`]],
+        does: ["You can enter floors up to 5 levels above your own.", "Every 10th floor has a boss guardian."],
+        next: "Level up to open higher floors." });
+      break;
+    case "ability": {
+      const g = player.grade, max = g >= GRADES.length - 1;
+      const mult = n => Object.fromEntries(Object.entries(GRADE_BONUS).map(([k, v]) => [k, v * n]));
+      Object.assign(D, { icon: "🌑", title: "Ability", value: `${cls.ability} (${GRADES[g]})`, blurb: "Your class's signature power. Grades go F, E, D, C, B, A, S.",
+        rows: [["Grade", GRADES[g]], ["Bonus now", g ? fmtBonus(mult(g)) : "None yet"], ["Your Ability Points", player.ap]],
+        does: [`Each grade gives ${fmtBonus(GRADE_BONUS)}.`],
+        next: max ? "Maxed at S grade." : `Next: grade ${GRADES[g + 1]} for ${GRADE_COST[g]} Ability Points${player.ap >= GRADE_COST[g] ? " (you can afford it now in Skills)" : ` (${GRADE_COST[g] - player.ap} more needed)`}.` });
+      break;
+    }
+    case "body": {
+      const ly = player.layer, nextL = ly + 1, maxL = ly >= LAYERS.length - 1;
+      Object.assign(D, { icon: "💪", title: "Body Refinement", value: `${race.body} (${LAYERS[ly]})`, blurb: "Your race's body technique. Each layer hardens your body further.",
+        rows: [["Layer", LAYERS[ly]], ["Bonus now", ly ? `${fmtBonus(Object.fromEntries(Object.entries(LAYER_BONUS).map(([k, v]) => [k, v * ly])))}, +${ly * 20} max HP` : "None yet"]],
+        does: [`Each layer gives ${fmtBonus(LAYER_BONUS)} and +20 max HP.`],
+        next: maxL ? "Fully refined." : `Next: ${LAYERS[nextL]} needs Stage ${nextL} and ${layerCost(nextL)} Ability Points${rk.stage < nextL ? ` (you're Stage ${rk.stage})` : ""}.` });
+      break;
+    }
+    case "ap":
+      Object.assign(D, { icon: "✨", title: "Ability Points", value: player.ap, blurb: "Points you spend to grow your powers in the Skills window.",
+        rows: [["You have", player.ap]],
+        does: ["Spend on: ability grades, body refinement and skill tiers.", `Earn from: fights (about ${8 + Math.floor(lv / 2)} to ${15 + Math.floor(lv / 2)} each), level ups (+40), Stage breakthroughs (+100), the daily quest (+100) and story chapters.`],
+        next: "" });
+      break;
+    case "gold":
+      Object.assign(D, { icon: "💰", title: "Gold", value: player.gold, blurb: "Money for the Tower Shop and the market.",
+        rows: [["You have", player.gold], ["Lost if defeated (10%)", Math.floor(player.gold * 0.1)]],
+        does: ["Earn from: work shifts, tower fights, selling items and story chapters.", "Higher Luck means more gold from fights."],
+        next: "" });
+      break;
+    case "hp": {
+      const ab = alignBonus(player.alignment), base = 50 + eff("VIT") * 5 + lv * 10 + player.layer * 20;
+      Object.assign(D, { icon: "❤️", title: "HP (Health)", value: `${player.hp} / ${player.maxHp}`, blurb: "If HP hits 0 in a fight, you're defeated.",
+        rowsTitle: "WHERE MAX HP COMES FROM",
+        rows: [["Base", 50], [`Vitality ${eff("VIT")} × 5`, `+${eff("VIT") * 5}`], [`Level ${lv} × 10`, `+${lv * 10}`], ["Body refinement", `+${player.layer * 20}`], ...(ab.hp ? [["Alignment", `+${Math.round(ab.hp * 100)}%`]] : []), ["Total", player.maxHp]],
+        does: ["Defeat: lose 10% of your gold, +20 Fatigue, wake with 1 HP.", "Recover by resting, drinking potions, leveling up or with Lyra in your party (+15 after each fight)."],
+        next: "Each point in Vitality adds 5 max HP." });
+      break;
+    }
+    case "mp": {
+      const ab = alignBonus(player.alignment), pct = fx("mpPct") + ab.mp;
+      Object.assign(D, { icon: "💙", title: "MP (Mana)", value: `${player.mp} / ${player.maxMp}`, blurb: "Fuel for your skills and spells.",
+        rowsTitle: "WHERE MAX MP COMES FROM",
+        rows: [["Base", 20], [`Intelligence ${eff("INT")} × 2`, `+${eff("INT") * 2}`], [`Level ${lv} × 4`, `+${lv * 4}`], ...(pct ? [["Traits and alignment", `+${Math.round(pct * 100)}%`]] : []), ["Total", player.maxMp]],
+        does: ["Active skills cost MP. Basic moves are free.", "Recover by resting, potions or leveling up."],
+        next: "Each point in Intelligence adds 2 max MP." });
+      break;
+    }
+    case "fatigue":
+      Object.assign(D, { icon: "💤", title: "Fatigue", value: `${player.fatigue} / 100`, blurb: "How tired you are. Everything you do wears you out.",
+        rows: [["Tower fight", "+6"], ["Gather", "+4"], ["Work shift", "+10"], ["Defeat", "+20"]],
+        rowsTitle: "WHAT ADDS FATIGUE",
+        does: [`At 80+: you deal 20% less damage.${player.fatigue >= 80 ? " <b class=\"warn-txt\">(active now)</b>" : ""}`, "At 90+: too tired to work.", "At 100: too exhausted to fight or gather."],
+        next: "Rest from the hub to reset Fatigue to 0." });
+      break;
+    case "exp": {
+      const need = xpToNext(lv);
+      Object.assign(D, { icon: "⭐", title: "EXP (Experience)", value: `${player.xp} / ${need}`, blurb: "Fill the bar to level up.",
+        rows: [["EXP needed", need - player.xp], ["Bonus EXP from Sense", `+${Math.round(senExp() * 100)}%`]],
+        does: ["Earn from tower fights (more for higher floors, 3x for bosses), quests and story chapters.", "Fighting above your level gives up to 75% more EXP."],
+        next: `Level ${lv + 1} gives +3 stat points, +40 Ability Points and full HP and MP.` });
+      break;
+    }
+    default:
+      if (key.startsWith("eq-")) {
+        const slot = key.slice(3), id = player.equipped[slot], it = id && R[id];
+        Object.assign(D, { icon: it ? it.icon : "🔲", title: slot, value: it ? it.name : "Empty",
+          blurb: it ? (it.note || "Gear you've equipped.") : "Nothing equipped here yet.",
+          rows: it ? [["Bonus", fmtBonus(it.bonus)], ...(fx("gearMult") && fx("gearMult") !== 1 ? [["Gear multiplier", `x${fx("gearMult")}`]] : [])] : [],
+          does: it ? ["Gear bonuses add straight to your stats."] : ["Craft gear in the Craft window, then equip it from your Bag."], next: "" });
+      } else if (key.startsWith("lo-")) {
+        const el = document.querySelector(`[data-info="${key}"]`), tag = el?.querySelector(".lo-tag")?.textContent || "";
+        const name = el?.firstElementChild?.textContent.replace(tag, "").trim(), desc = el?.lastElementChild?.textContent || "";
+        const TAG = { Basic: "A basic move. No cooldown and no MP cost, so you can always use it.",
+          Active: "An active skill. It costs MP and has a cooldown. Skill tiers make it stronger and cool down faster.",
+          Passive: "Always on. You don't need to do anything to use it.",
+          Unique: "Your subclass perk. It shapes how your class fights." };
+        Object.assign(D, { icon: "📘", title: `${tag} skill`, value: name, blurb: TAG[tag] || "", does: [desc], next: "Change your active skills in the Skills window." });
+      }
+  }
+  return `<div class="stat-detail info-detail">
+    <div class="sd-head"><span>${D.icon} <b>${D.title}</b></span><span class="sd-total id-val">${D.value}</span>
+      <button class="btn sd-close" data-info="${key}" aria-label="Close">✕</button></div>
+    ${D.blurb ? `<div class="small muted" style="margin-bottom:8px">${D.blurb}</div>` : ""}
+    ${D.rows.length ? `<div class="sd-title">${D.rowsTitle}</div><ul class="list sd-list">${D.rows.map(([l, v], i) => li(l, v, D.rowsTitle.startsWith("WHERE") && i === D.rows.length - 1 ? "" : "")).join("")}</ul>` : ""}
+    ${D.does.length ? `<div class="sd-title">WHAT IT DOES</div><ul class="sd-effects">${D.does.map(o => `<li>${o}</li>`).join("")}</ul>` : ""}
+    ${D.next ? `<div class="sd-next">➡️ ${D.next}</div>` : ""}</div>`;
+}
+
+const INFO_KEYS = { "Name": "name", "Race": "race", "Class": "class", "Element": "element", "Subclass": "subclass", "Job": "job", "Rank": "rank", "Title": "title",
+  "Alignment": "alignment", "Location": "location", "Ability": "ability", "Body Refinement": "body", "Ability Points": "ap", "Gold": "gold" };
+
+// Called at the end of render(): tag every tappable line and open the chosen panel under it.
+function decorateStatus() {
+  if (!player) return;
+  document.querySelectorAll("#infoList .row").forEach(r => { const k = INFO_KEYS[r.querySelector(".lbl")?.textContent]; if (k) r.dataset.info = k; });
+  document.querySelectorAll("#equipList li").forEach((l, i) => l.dataset.info = "eq-" + Object.keys(player.equipped)[i]);
+  document.querySelectorAll("#skillList li").forEach((l, i) => l.dataset.info = "lo-" + i);
+  document.querySelectorAll("[data-page='status'] [data-info]:not(.sd-close)").forEach(el => {
+    el.classList.add("tappable"); el.classList.toggle("sel", el.dataset.info === openInfo);
+    el.setAttribute("role", "button"); el.setAttribute("aria-expanded", el.dataset.info === openInfo);
+  });
+  document.querySelectorAll(".info-li, .info-detail").forEach(d => d.remove());
+  if (!openInfo) return;
+  const host = document.querySelector(`[data-page='status'] [data-info="${openInfo}"]:not(.sd-close)`);
+  if (!host) { openInfo = null; return; }
+  if (host.tagName === "LI") { host.insertAdjacentHTML("afterend", `<li class="info-li">${infoDetail(openInfo)}</li>`); }
+  else host.insertAdjacentHTML("afterend", infoDetail(openInfo));
+}
+document.querySelector("[data-page='status']").addEventListener("click", e => {
+  const t = e.target.closest("[data-info]");
+  if (!t || !player) return;
+  openInfo = openInfo === t.dataset.info ? null : t.dataset.info;
+  openStat = null;
   Sound.play("click");
   render();
 });
@@ -3455,7 +3682,7 @@ $("panel").addEventListener("click", e => {
    windows get their own color.
    ========================================================= */
 const WIN = {
-  status: { title: "Status",       icon: "📊", sys: true },
+  status: { title: "STATUS",       icon: "", sys: true },
   tower:  { title: "The Tower",    icon: "🗼", color: "#ff7a45" },
   shop:   { title: "Tower Shop",   icon: "🏪", color: "#3ddc84", page: "tower" },
   quest:  { title: "Quests",       icon: "📜", color: "#ffc94d" },
