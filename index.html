@@ -578,6 +578,84 @@ body {
 .guide-box summary { cursor: pointer; color: var(--accent); font-weight: 700; }
 .guide-box .guide { margin-top: 6px; }
 .guide li { margin-bottom: 4px; }
+
+/* ===== Side-view battle screen ===== */
+.battle-ov .panel { padding: 8px; max-width: 760px; }
+.arena.e7 { height: 340px; border-radius: 12px; }
+.arena.e7::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(transparent, rgba(0,0,0,.45)); pointer-events: none; }
+.b-top { position: absolute; top: 6px; left: 50px; right: 8px; z-index: 4; color: #fff; text-shadow: 0 1px 2px #000; font-family: 'Inter', sans-serif; }
+.b-top-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+.b-lv { color: #ffcf6a; font-weight: 800; font-size: 12px; }
+.b-hpbar { position: relative; height: 12px; margin-top: 3px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,215,120,.7); border-radius: 7px; overflow: hidden; }
+.b-hpbar .hp { height: 100%; background: linear-gradient(90deg, #7be04a, #c3f25a); transition: width .35s; }
+.b-hpbar span { position: absolute; inset: 0; text-align: center; font-size: 9px; line-height: 12px; font-weight: 800; }
+.b-icons { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; min-height: 22px; }
+.b-chip { position: relative; display: inline-grid; place-items: center; width: 22px; height: 22px; font-size: 13px; border-radius: 5px; background: rgba(20,40,80,.85); border: 1px solid #4fa3ff; cursor: pointer; }
+.b-chip.debuff { background: rgba(90,15,20,.88); border-color: #ff5a5a; }
+.b-chip.info { background: rgba(70,55,10,.88); border-color: #ffcf40; }
+.b-chip sup { position: absolute; top: -6px; left: -4px; font-size: 9px; font-weight: 900; color: #fff; text-shadow: 0 0 2px #000; }
+.b-floor2 { position: absolute; top: 64px; right: 8px; z-index: 4; font-size: 10px; color: #fff; opacity: .8; text-shadow: 0 1px 2px #000; }
+.b-turns { position: absolute; left: 6px; top: 6px; z-index: 5; display: flex; flex-direction: column; gap: 5px; align-items: center; }
+.t-head { font-size: 8px; letter-spacing: 1px; color: #fff; opacity: .8; }
+.t-face { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: rgba(0,0,0,.6); border: 2px solid #8fb8ff; cursor: pointer; }
+.t-face.foe { border-color: #ff6b6b; } .t-face.army { border-color: #c9b3ff; width: 28px; height: 28px; font-size: 14px; }
+.t-face.now { box-shadow: 0 0 10px #ffd84a; border-color: #ffd84a; transform: scale(1.08); }
+.b-party { position: absolute; left: 40px; bottom: 54px; width: 46%; height: 190px; z-index: 2; }
+.b-party .sprite.pl { left: 62%; bottom: 10px; width: 84px; height: 84px; }
+.pl-icons { position: absolute; left: 30%; bottom: 100px; width: 66%; justify-content: flex-end; justify-content: center; z-index: 3; }
+.b-shadow { position: absolute; left: 50%; bottom: 0; width: 110px; height: 18px; transform: translateX(-50%); border-radius: 50%; background: rgba(0,0,0,.4); }
+.pl-sh { left: 62%; }
+.b-ally { position: absolute; left: calc(3% + var(--i) * 25%); bottom: 92px; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(255,255,255,.35), rgba(30,50,90,.75)); border: 2px solid rgba(255,255,255,.5); font-size: 22px; animation: bob 2.6s ease-in-out infinite; }
+.b-ally small { position: absolute; bottom: -13px; font-size: 9px; color: #fff; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+.b-unit { position: absolute; left: calc(4% + var(--i) * 13%); bottom: calc(2px + var(--r) * 24px); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px;
+  background: radial-gradient(circle, rgba(60,20,110,.9), rgba(10,0,30,.9)); box-shadow: 0 0 10px #8a5cff; animation: bob 3s ease-in-out infinite; animation-delay: calc(var(--i) * .3s); }
+.b-unit.more { font-size: 10px; color: #fff; }
+.b-foe { position: absolute; right: 4%; bottom: 58px; width: 46%; height: 190px; z-index: 2; }
+.b-foe .sprite.mon { bottom: 8px; }
+.b-foe .sprite.mon svg { width: 150px; height: 140px; }
+.b-foe .sprite.mon.boss svg { width: 180px; height: 168px; }
+.arena.e7 .b-msg { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 6; width: max-content; max-width: 92%; min-height: 0; margin: 0; padding: 6px 14px;
+  background: rgba(0,0,0,.7); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 18px; font-size: 13px; text-align: center; transition: opacity .2s; }
+.arena.e7 .b-msg.empty { opacity: 0; }
+.arena.e7 .b-msg.result { inset: 8px; transform: none; width: auto; max-width: none; bottom: 8px; left: 8px; overflow: auto; border-radius: 12px; padding: 10px 14px; text-align: left; background: rgba(5,10,25,.9); }
+.dock { margin-top: 8px; display: grid; grid-template-columns: minmax(130px, 34%) 1fr; gap: 8px; align-items: start; }
+.d-card { display: flex; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--panel-border); border-radius: 10px; background: var(--card); }
+.d-av { position: relative; flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; background: radial-gradient(circle at 40% 35%, var(--accent-2, #6cf), var(--accent)); border: 2px solid var(--accent); }
+.d-av span { position: absolute; right: -6px; bottom: -4px; font-size: 15px; }
+.d-stats { flex: 1; min-width: 0; }
+.d-name { font-weight: 800; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-num { font-size: 11px; margin: 2px 0; } .hp-t { color: #7be04a; font-weight: 800; } .mp-t { color: #5ab8ff; font-weight: 700; }
+.d-stats .bar { margin-top: 3px; height: 6px; }
+.b-menu { min-width: 0; }
+.d-info { position: relative; min-height: 54px; padding: 7px 9px; border: 1px solid var(--panel-border); border-radius: 10px; background: var(--card); font-size: 12px; margin-bottom: 6px; }
+.d-skill-name { font-size: 13px; margin-bottom: 2px; } .d-cost { float: right; color: #5ab8ff; font-weight: 800; }
+.d-use { margin-top: 6px; width: 100%; font-weight: 900; letter-spacing: 1px; }
+.d-skills { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+.sk { position: relative; width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; cursor: pointer; padding: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.35)), var(--card); border: 2px solid var(--panel-border); transition: transform .12s; }
+.sk-i { font-size: 24px; }
+.sk.basic { border-color: #9aa7b8; }
+.sk.ult { border-color: #ffcf40; box-shadow: 0 0 8px rgba(255,207,64,.5); }
+.sk.sel { border-color: #ffd84a; box-shadow: 0 0 14px #ffd84a; transform: translateY(-3px) scale(1.06); }
+.sk.off .sk-i { filter: grayscale(1) brightness(.6); }
+.sk-cd { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 900; color: #fff; background: rgba(0,0,0,.55); border-radius: 10px; }
+.sk-mp { position: absolute; right: 2px; bottom: 1px; font-size: 9px; font-weight: 800; color: #5ab8ff; text-shadow: 0 0 2px #000; }
+.d-util { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.d-util .btn { padding: 7px 4px; font-size: 12px; }
+@media (max-width: 520px) {
+  .arena.e7 { height: 320px; }
+  .dock { grid-template-columns: 1fr; }
+  .d-skills { justify-content: center; }
+  .b-foe .sprite.mon svg { width: 120px; height: 112px; } .b-foe .sprite.mon.boss svg { width: 145px; height: 135px; }
+  .b-party .sprite.pl { width: 70px; height: 70px; left: 72%; }
+  .b-party { left: 34px; width: 58%; }
+  .pl-sh { left: 72%; width: 90px; }
+  .pl-icons { left: 46%; width: 54%; bottom: 86px; justify-content: center; }
+  .b-ally { width: 34px; height: 34px; font-size: 17px; bottom: 104px; left: calc(12% + var(--i) * 28%); }
+  .b-unit { width: 26px; height: 26px; font-size: 13px; left: calc(var(--i) * 11%); }
+  .b-foe { width: 40%; right: 2%; }
+}
 </style>
 </head>
 <body data-theme="holo">
@@ -2411,27 +2489,8 @@ function startBattle(floor) {
   const mon = makeMonster(floor);
   B = { floor, mon, cd: {}, atkStage: 0, defStage: 0, evade: false, guard: false, busy: true, over: false };
   const br = BRACKETS[bracketOf(floor)];
-  $("battleBody").innerHTML = `
-    <div class="arena" style="background:${br.bg}">
-      <div class="b-floor">🗼 Floor ${floor} · ${br.name}${mon.boss ? " · 👑 BOSS" : ""}</div>
-      <div class="info-box mon-info">
-        <div class="ib-top"><b>${mon.name}</b><span>Lv. ${mon.level}</span></div>
-        <div class="small">${ELEM_ICON[mon.elem]} ${mon.elem}</div>
-        <div class="bar thin"><div class="hp" id="bMonHp"></div></div>
-      </div>
-      <div class="mon-spot"><div class="platform"></div><div class="sprite mon ${mon.boss ? "boss" : ""}" id="bMon">${monsterSVG(mon.sp, mon.tier, mon.boss)}</div></div>
-      <div class="pl-spot"><div class="platform"></div><div class="sprite pl" id="bPl"><span class="pl-race">${RACES[player.raceId].icon}</span><span class="pl-class">${CLASSES[player.classId].icon}</span></div></div>
-      <div class="info-box pl-info">
-        <div class="ib-top"><b>${player.name}</b><span>Lv. ${player.level}</span></div>
-        <div class="small">${ELEM_ICON[player.elem]} ${player.elem}</div>
-        <div class="bar thin"><div class="hp" id="bPlHp"></div></div>
-        <div class="small" id="bPlHpTxt"></div>
-        <div class="bar thin"><div class="mp" id="bPlMp"></div></div>
-      </div>
-      <div id="floaters"></div>
-    </div>
-    <div class="b-msg" id="bMsg"></div>
-    <div class="b-menu" id="bMenu"></div>`;
+  B.sel = null;
+  $("battleBody").innerHTML = battleLayout(mon, br, floor);
   $("battleOverlay").classList.add("show");
   bars();
   Sound.play("encounter");
@@ -2442,67 +2501,15 @@ function startBattle(floor) {
   })();
 }
 
-function bars() {
-  if (!B) return;
-  const m = B.mon;
-  $("bMonHp").style.width = Math.max(0, m.hp / m.maxHp * 100) + "%";
-  $("bPlHp").style.width = Math.max(0, player.hp / player.maxHp * 100) + "%";
-  $("bPlMp").style.width = Math.max(0, player.mp / player.maxMp * 100) + "%";
-  $("bPlHpTxt").textContent = `HP ${player.hp} / ${player.maxHp} · MP ${player.mp}`;
-}
-async function say(html, ms = 850) { $("bMsg").innerHTML = html; await sleep(ms); }
-function floater(target, text, cls) {
-  const el = document.createElement("span");
-  el.className = "floater " + (cls || "");
-  el.textContent = text;
-  el.style.left = target === "mon" ? "68%" : "22%";
-  el.style.top = target === "mon" ? "26%" : "58%";
-  $("floaters").appendChild(el);
-  setTimeout(() => el.remove(), 1100);
-}
+async function say(html, ms = 850) { const el = $("bMsg"); el.classList.remove("result"); el.innerHTML = html; el.classList.toggle("empty", !html); await sleep(ms); }
 function anim(id, cls) { const el = $(id); el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
-
-function menuMain() {
-  if (!B || B.over) return;
-  $("bMsg").innerHTML = `What will <b>${player.name}</b> do?`;
-  $("bMenu").innerHTML = `<div class="cmd-grid">
-    <button class="cmd fight" data-b="fight">⚔️ FIGHT</button>
-    <button class="cmd" data-b="items">🎒 ITEMS</button>
-    <button class="cmd" data-b="guard">🛡️ GUARD</button>
-    <button class="cmd" data-b="run">🏃 RUN</button></div>`;
-}
-function menuFight() {
-  const moves = playerMoves();
-  $("bMenu").innerHTML = `<div class="move-grid">${moves.map((m, i) => {
-    const key = m.idx !== undefined ? m.idx : m.lkey;
-    const wait = key !== undefined ? (B.cd[key] || 0) : 0;
-    const ultOut = m.idx === ULT_SLOT && dailyUlt().used >= ultUses(m.tier);
-    const can = player.mp >= m.mp && !wait && !ultOut;
-    const limit = wait ? `<span class="warn-txt">⏳ Ready in ${wait} turn${wait > 1 ? "s" : ""}</span>`
-      : ultOut ? `<span class="warn-txt">No uses left today</span>`
-      : m.lkey ? `<span style="color:${RARITY_COLOR[m.rarity]}">${RARITY_NAME[m.rarity]} · Cooldown ${m.cd}</span>`
-      : m.idx !== undefined ? `<span class="muted">${TIERS[m.tier]} · ${limitText(m.idx, m.tier)}</span>`
-      : `<span class="good">Basic · Always ready</span>`;
-    const sub = m.fx === "mend" ? `Heals ${Math.round(m.heal * 100)}% HP` : m.effect ? EFFECT_TEXT[m.effect] : `${ELEM_ICON[m.elem]} ${m.elem} · Pow ${Math.round(m.power * (1 + m.tier * 0.1))}${m.priority ? " · First" : ""}`;
-    const eff = !m.effect && m.fx !== "mend" ? elemMult(m.elem, B.mon.elem) : 1;
-    const tag = (eff > 1 ? `<span class="good">Strong</span>` : eff < 1 ? `<span class="warn-txt">Weak</span>` : "") + (!m.effect && m.fx !== "mend" && m.elem !== "Normal" && myElems().includes(m.elem) ? ` <span class="points">+20%</span>` : "");
-    return `<button class="move" data-move="${i}" ${can ? "" : "disabled"}><b>${m.name}</b><span class="small">${sub}</span><span class="small">${m.mp ? m.mp + " MP" : "Free"} ${tag}</span>${limit ? `<span class="small">${limit}</span>` : ""}</button>`;
-  }).join("")}</div><button class="btn back-btn" data-b="back">◀ Back</button>`;
-}
-function menuItems() {
-  const usable = RECIPES.filter(r => player.items[r.id] && (r.use || r.scroll));
-  $("bMenu").innerHTML = (usable.length ? `<div class="move-grid">${usable.map(r =>
-    `<button class="move" data-item="${r.id}"><b>${r.icon} ${r.name}</b><span class="small">${effectText(r)}</span><span class="small">x${player.items[r.id]}</span></button>`).join("")}</div>`
-    : `<div class="small muted" style="text-align:center;padding:10px">No usable items. Buy potions at the Tower Shop or craft them.</div>`)
-    + `<button class="btn back-btn" data-b="back">◀ Back</button>`;
-}
 
 function playerSpeed() { return eff("AGI"); }
 
 async function playerAction(action) {
   if (!B || B.busy || B.over) return;
   B.busy = true;
-  $("bMenu").innerHTML = "";
+  B.sel = null; lockDock();
   const m = B.mon;
   // Running, items and guarding always happen first. Attacks go by speed.
   let playerFirst = true;
@@ -2758,6 +2765,7 @@ async function victory() {
     const r = MATS[id].rarity || "common";
     return `<li><span style="color:${RARITY_COLOR[r]}">${MATS[id].icon} ${MATS[id].name}${r !== "common" ? ` <span class="small">(${r})</span>` : ""}</span><b>x${n}</b></li>`;
   }).join("");
+  $("bMsg").classList.add("result");
   $("bMsg").innerHTML = `<div class="victory">
     <div class="v-title">VICTORY</div>
     <div class="v-row"><span>EXP</span><b>+${xp}${crit ? " 💥 x2" : ""}</b></div>
@@ -2783,6 +2791,7 @@ async function defeat() {
   const lost = Math.floor(player.gold * 0.1);
   player.gold -= lost; player.hp = 1; addFatigue(20);
   ensureTStats(); player.tstats.defeats++; checkHidden();
+  $("bMsg").classList.add("result");
   $("bMsg").innerHTML = `<div class="victory"><div class="v-title warn-txt">DEFEATED</div>
     <div class="small" style="text-align:center;margin:6px 0">You were carried back to the tower lobby.</div>
     <div class="v-row"><span>Gold lost</span><b class="warn-txt">-${lost}</b></div>
@@ -2806,6 +2815,11 @@ $("battleBody").addEventListener("click", e => {
   if (b.dataset.b === "back") menuMain();
   if (b.dataset.b === "guard") playerAction({ type: "guard" });
   if (b.dataset.b === "run") playerAction({ type: "run" });
+  if (b.dataset.sk !== undefined && !B.busy) {
+    const i = +b.dataset.sk;
+    if (B.sel === i && moveReady(playerMoves()[i])) return playerAction({ type: "move", move: playerMoves()[i] });
+    B.sel = i; return menuMain();
+  }
   if (b.dataset.move !== undefined) playerAction({ type: "move", move: playerMoves()[+b.dataset.move] });
   if (b.dataset.item) playerAction({ type: "item", id: b.dataset.item });
   if (b.dataset.b === "leave") endBattle();
@@ -2928,6 +2942,165 @@ $("panel").addEventListener("click", e => {
   if (t.dataset.sellmat) sellMat(t.dataset.sellmat, false);
   if (t.dataset.sellmatall) sellMat(t.dataset.sellmatall, true);
   if (t.hasAttribute("data-sellcommon")) sellAllCommon();
+});
+
+
+/* =========================================================
+   BATTLE SCREEN (side view): your party on the left, the
+   monster on the right, boss bar on top, turn order down
+   the side, status icons over everyone, and a skill dock at
+   the bottom. Tap a skill to see it, tap again to use it.
+   ========================================================= */
+function moveIcon(m) {
+  if (m.fx === "mend") return "💚";
+  if (m.effect) return { def: "🛡️", atk: "💪", evade: "💨", heal: "💖", mana: "💧" }[m.effect];
+  if (m.elem === "Normal") return m.kind === "mag" ? "🔮" : "⚔️";
+  return ELEM_ICON[m.elem];
+}
+function moveWait(m) { const key = m.idx !== undefined ? m.idx : m.lkey; return key !== undefined ? (B.cd[key] || 0) : 0; }
+function moveUltOut(m) { return m.idx === ULT_SLOT && dailyUlt().used >= ultUses(m.tier); }
+function moveReady(m) { return m && player.mp >= m.mp && !moveWait(m) && !moveUltOut(m); }
+
+function battleLayout(mon, br, floor) {
+  const allies = ALLIES.filter(a => a.inParty);
+  const army = summonType() ? player.army : [];
+  return `
+  <div class="arena e7" style="background:${br.bg}">
+    <div class="b-top">
+      <div class="b-top-row"><b>${mon.boss ? "👑 " : ""}${mon.name}</b><span class="b-lv">${ELEM_ICON[mon.elem]} Lv. ${mon.level}</span></div>
+      <div class="b-hpbar"><div class="hp" id="bMonHp"></div><span id="bMonHpTxt"></span></div>
+      <div class="b-icons" id="bMonIcons"></div>
+    </div>
+    <div class="b-floor2">🗼 F${floor} · ${br.name}</div>
+    <div class="b-turns" id="bTurns"></div>
+    <div class="b-party">
+      ${army.slice(0, 4).map((u, i) => `<div class="b-unit" style="--i:${i};--r:${i % 2}" title="${u.name}">${u.icon}</div>`).join("")}${army.length > 4 ? `<div class="b-unit more" style="--i:4;--r:0">+${army.length - 4}</div>` : ""}
+      ${allies.map((a, i) => `<div class="b-ally" style="--i:${i}"><span>${a.icon}</span><small>${a.name}</small></div>`).join("")}
+      <div class="b-icons pl-icons" id="bPlIcons"></div>
+      <div class="sprite pl" id="bPl"><span class="pl-race">${RACES[player.raceId].icon}</span><span class="pl-class">${CLASSES[player.classId].icon}</span></div>
+      <div class="b-shadow pl-sh"></div>
+    </div>
+    <div class="b-foe">
+      <div class="sprite mon ${mon.boss ? "boss" : ""}" id="bMon">${monsterSVG(mon.sp, mon.tier, mon.boss)}</div>
+      <div class="b-shadow"></div>
+    </div>
+    <div id="floaters"></div>
+    <div class="b-msg" id="bMsg"></div>
+  </div>
+  <div class="dock">
+    <div class="d-card">
+      <div class="d-av">${RACES[player.raceId].icon}<span>${CLASSES[player.classId].icon}</span></div>
+      <div class="d-stats">
+        <div class="d-name">${player.name} <span class="muted">Lv. ${player.level}</span></div>
+        <div class="d-num" id="bPlHpTxt"></div>
+        <div class="bar thin"><div class="hp" id="bPlHp"></div></div>
+        <div class="bar thin"><div class="mp" id="bPlMp"></div></div>
+      </div>
+    </div>
+    <div class="b-menu" id="bMenu"></div>
+  </div>`;
+}
+
+// Turn order for this round: faster acts first. Your army strikes last.
+function turnOrder() {
+  if (!B) return [];
+  const m = B.mon, sel = B.sel !== null && B.sel !== undefined ? playerMoves()[B.sel] : null;
+  const meFirst = (sel && sel.priority) || player.scrolls.haste || playerSpeed() >= m.spd;
+  const me = { icon: RACES[player.raceId].icon, label: "You", cls: "me" }, foe = { icon: m.boss ? "👑" : ELEM_ICON[m.elem], label: m.name, cls: "foe" };
+  const list = meFirst ? [me, foe] : [foe, me];
+  if (summonType() && player.army.length && player.armyMode === "attack") list.push({ icon: SUMMON[summonType()].icon, label: SUMMON[summonType()].group, cls: "army" });
+  return list;
+}
+function chip(icon, tip, n, cls = "") { return `<span class="b-chip ${cls}" data-tip="${tip}">${icon}${n ? `<sup>${n}</sup>` : ""}</span>`; }
+function renderBStatus() {
+  if (!B || !$("bPlIcons")) return;
+  const m = B.mon, pl = [];
+  if (B.atkStage) pl.push(chip("💪", `Attack up (x${stageMult(B.atkStage).toFixed(1)})`, B.atkStage, "buff"));
+  if (B.defStage) pl.push(chip("🛡️", `Defense up (x${stageMult(B.defStage).toFixed(1)})`, B.defStage, "buff"));
+  if (B.guard) pl.push(chip("🧱", "Guarding: half damage this turn", 0, "buff"));
+  if (B.evade) pl.push(chip("💨", "You'll dodge the next attack", 0, "buff"));
+  if (player.scrolls.ward) pl.push(chip("🔰", "Scroll of Warding: blocks the next hit", 0, "buff"));
+  if (player.scrolls.haste) pl.push(chip("🌪️", "Scroll of Gales: you always act first", 0, "buff"));
+  if (player.scrolls.xp || player.scrolls.xp2) pl.push(chip("🔥", player.scrolls.xp2 ? "Triple EXP this fight" : "+50% EXP this fight", 0, "buff"));
+  if (player.scrolls.apx) pl.push(chip("👻", "Double Ability Points this fight", 0, "buff"));
+  if (player.scrolls.loot) pl.push(chip("🍀", "Double materials this fight", 0, "buff"));
+  if (player.buff) pl.push(chip("🍲", `${player.buff.name}: ${fmtBonus(player.buff.stats)}`, 0, "buff"));
+  if (B.rage) pl.push(chip("🩸", `Rage: +${B.rage * fx("rage")} damage on your next hit`, 0, "buff"));
+  if (player.fatigue >= 80) pl.push(chip("😩", "Exhausted: you deal 20% less damage", 0, "debuff"));
+  const mo = [];
+  if (m.atkStage) mo.push(chip("💪", `Attack up (x${stageMult(m.atkStage).toFixed(1)})`, m.atkStage, "buff"));
+  if (m.defStage) mo.push(chip("🛡️", `Defense up (x${stageMult(m.defStage).toFixed(1)})`, m.defStage, "buff"));
+  if (B.stun) mo.push(chip("💫", "Stunned: skips its next turn", 0, "debuff"));
+  const weak = Object.keys(AFFINITY).filter(e => elemMult(e, m.elem) > 1);
+  if (weak.length) mo.push(chip("🎯", `Weak to ${weak.join(", ")}`, 0, "info"));
+  $("bPlIcons").innerHTML = pl.join("");
+  $("bMonIcons").innerHTML = mo.join("");
+  $("bTurns").innerHTML = `<div class="t-head">TURN</div>` + turnOrder().map((t, i) => `<div class="t-face ${t.cls} ${i === 0 ? "now" : ""}" data-tip="${i + 1}. ${t.label}">${t.icon}</div>`).join("");
+}
+
+function bars() {
+  if (!B) return;
+  const m = B.mon;
+  $("bMonHp").style.width = Math.max(0, m.hp / m.maxHp * 100) + "%";
+  $("bMonHpTxt").textContent = `${Math.max(0, m.hp)} / ${m.maxHp}`;
+  $("bPlHp").style.width = Math.max(0, player.hp / player.maxHp * 100) + "%";
+  $("bPlMp").style.width = Math.max(0, player.mp / player.maxMp * 100) + "%";
+  $("bPlHpTxt").innerHTML = `<span class="hp-t">${player.hp}/${player.maxHp}</span> <span class="mp-t">${player.mp} MP</span>`;
+  renderBStatus();
+}
+function floater(target, text, cls) {
+  const el = document.createElement("span");
+  el.className = "floater " + (cls || "");
+  el.textContent = text;
+  el.style.left = (target === "mon" ? 66 : 26) + Math.random() * 8 + "%";
+  el.style.top = (target === "mon" ? 34 : 44) + Math.random() * 6 + "%";
+  $("floaters").appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+function lockDock() { const d = $("bMenu"); if (d) d.querySelectorAll("button").forEach(b => b.disabled = true); }
+
+function moveInfo(m) {
+  const wait = moveWait(m), ultOut = moveUltOut(m);
+  const sub = m.fx === "mend" ? `Heals ${Math.round(m.heal * 100)}% HP` : m.effect ? EFFECT_TEXT[m.effect]
+    : `${ELEM_ICON[m.elem]} ${m.elem} · ${m.kind === "mag" ? "Magic" : "Physical"} · Power ${Math.round(m.power * (1 + m.tier * 0.1))}${m.priority ? " · Goes first" : ""}${m.fx === "combo" ? " · Hits 3 times" : m.fx === "drain" ? " · Drains HP" : m.fx === "pierce" ? " · Ignores half defense" : m.fx === "rally" ? " · Raises attack" : ""}`;
+  const em = !m.effect && m.fx !== "mend" ? elemMult(m.elem, B.mon.elem) : 1;
+  const tag = em > 1 ? `<span class="good">Super effective</span>` : em < 1 ? `<span class="warn-txt">Not very effective</span>` : "";
+  const same = !m.effect && m.fx !== "mend" && m.elem !== "Normal" && myElems().includes(m.elem) ? `<span class="points">+20% your element</span>` : "";
+  const kind = m.basic ? `<span class="good">Basic · always ready</span>` : m.lkey ? `<span style="color:${RARITY_COLOR[m.rarity]}">${RARITY_NAME[m.rarity]} · Cooldown ${m.cd}</span>` : `<span class="muted">${TIERS[m.tier]} · ${limitText(m.idx, m.tier)}</span>`;
+  const why = wait ? `<span class="warn-txt">⏳ Ready in ${wait} turn${wait > 1 ? "s" : ""}</span>` : ultOut ? `<span class="warn-txt">No uses left today</span>` : player.mp < m.mp ? `<span class="warn-txt">Not enough MP</span>` : "";
+  return `<div class="d-skill-name">${moveIcon(m)} <b>${m.name}</b> <span class="d-cost">${m.mp ? m.mp + " MP" : "Free"}</span></div>
+    <div class="small">${sub}</div><div class="small">${kind} ${tag} ${same}</div>${why ? `<div class="small">${why}</div>` : ""}`;
+}
+function menuMain() {
+  if (!B || B.over) return;
+  const moves = playerMoves(), sel = B.sel !== null && B.sel !== undefined ? moves[B.sel] : null;
+  $("bMsg").classList.remove("result");
+  $("bMsg").innerHTML = ""; $("bMsg").classList.add("empty");
+  $("bMenu").innerHTML = `
+    <div class="d-info">${sel ? `${moveInfo(sel)}<button class="btn d-use" data-move="${B.sel}" ${moveReady(sel) ? "" : "disabled"}>${moveReady(sel) ? "USE ▸" : "Not ready"}</button>`
+      : `<div class="small muted">Tap a skill to see what it does. Tap it again to use it.</div>`}</div>
+    <div class="d-skills">${moves.map((m, i) => {
+      const wait = moveWait(m), ready = moveReady(m);
+      return `<button class="sk ${B.sel === i ? "sel" : ""} ${ready ? "" : "off"} ${m.basic ? "basic" : ""} ${m.idx === ULT_SLOT ? "ult" : ""}" data-sk="${i}" aria-label="${m.name}">
+        <span class="sk-i">${moveIcon(m)}</span>${wait ? `<span class="sk-cd">${wait}</span>` : ""}<span class="sk-mp">${m.mp ? m.mp : ""}</span></button>`;
+    }).join("")}</div>
+    <div class="d-util"><button class="btn" data-b="items">🎒 Items</button><button class="btn" data-b="guard">🧱 Guard</button><button class="btn" data-b="run">🏃 Run</button></div>`;
+  renderBStatus();
+}
+const menuFight = menuMain;
+function menuItems() {
+  const usable = RECIPES.filter(r => player.items[r.id] && (r.use || r.scroll));
+  $("bMenu").innerHTML = `<div class="d-info"><b>🎒 Items</b> <span class="small muted">Using an item takes your turn.</span></div>`
+    + (usable.length ? `<div class="move-grid">${usable.map(r =>
+      `<button class="move" data-item="${r.id}"><b>${r.icon} ${r.name}</b><span class="small">${effectText(r)}</span><span class="small">x${player.items[r.id]}</span></button>`).join("")}</div>`
+      : `<div class="small muted" style="text-align:center;padding:10px">No usable items. Buy potions at the Tower Shop or craft them.</div>`)
+    + `<button class="btn back-btn" data-b="back">◀ Back</button>`;
+}
+// Tap a status icon or turn portrait to read what it means
+$("battleBody").addEventListener("click", e => {
+  const t = e.target.closest("[data-tip]"); if (!t || !B || B.over) return;
+  const info = document.querySelector("#bMenu .d-info");
+  if (info && !B.busy) info.innerHTML = `<div class="small">${t.innerHTML.replace(/<sup>.*<\/sup>/, "")} ${t.dataset.tip}</div>`;
 });
 
 
