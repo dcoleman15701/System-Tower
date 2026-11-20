@@ -2699,6 +2699,7 @@ function rollLoot(m) {
     add(id, n);
   });
   if (m.name.includes("Wolf") || m.name.includes("Hound")) add("fang", rnd(1, 2));
+  if (m.name.includes("Boar") && Math.random() < 0.5) add("fang", 1);   // boar tusks count as fangs
   const bossBoost = m.boss ? 3 : 1;
   if (Math.random() < Math.min(0.9, (0.08 + luck * 0.004 + m.level * 0.001) * bossBoost)) add("crystal", rnd(1, 1 + Math.floor(m.level / 30)));
   if (Math.random() < Math.min(0.6, (0.02 + luck * 0.002 + m.level * 0.0005) * bossBoost)) add(pick(["essence", "dscale"]), 1);
@@ -4109,7 +4110,7 @@ function matSources(id) {
     BRACKETS.forEach((br, i) => br.mobs.forEach(([n, body]) => { if (bodies.includes(body) && mons.length < 3) mons.push(`${n} (F${i * 10 + 1} to ${i * 10 + 10})`); }));
     out.push(mons.join(", "));
   }
-  if (id === "fang") out.push("Ash Wolf (F11 to 20), Bone Hound (F51 to 60)");
+  if (id === "fang") out.push("Thornback Boar tusks (F1 to 10, 50% chance), Ash Wolf (F11 to 20), Bone Hound (F51 to 60)");
   if (id === "crystal") out.push("Rare drop from any fight. Luck, higher floors and bosses help");
   if (id === "essence" || id === "dscale") out.push("Very rare drop from any fight. Bosses triple the odds");
   if (id === "relic") out.push("Legendary drop. Mostly from bosses with high Luck");
