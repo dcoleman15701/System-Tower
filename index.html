@@ -1298,6 +1298,7 @@ function bonusOf(k) {
   b += (LAYER_BONUS[k] || 0) * player.layer;
   b += (RACES[player.raceId].stats[k] || 0) + (CLASSES[player.classId].stats[k] || 0);
   b += (pathBonus("race")[k] || 0) + (pathBonus("class")[k] || 0);
+  b += armyStat(k);
   return b;
 }
 const eff = k => Math.max(1, player.stats[k] + bonusOf(k));
@@ -1585,7 +1586,7 @@ function toggleAlly(id) {
   render();
 }
 function setArmyMode(m) { player.armyMode = m; notify(SUMMON[summonType()].group.toUpperCase(), `Command: ${ARMY_MODES[m].label}`, "click"); render(); }
-function releaseUnit(i) { const u = player.army.splice(i, 1)[0]; notify("RELEASED", `${u.name} returns to dust.`, "close"); render(); }
+function releaseUnit(i) { const u = player.army.splice(i, 1)[0]; recalc(); notify("RELEASED", `${u.name} returns to dust.`, "close"); render(); }
 
 function claimReward() {
   if (!allQuestsDone() || questClaimed) return;
@@ -1963,7 +1964,8 @@ function render() {
       <details class="guide-box" ${player.army.length ? "" : "open"}><summary>How your ${S.group.toLowerCase()} works</summary>${summonGuideHTML(st)}</details>
       <div class="filters">${Object.entries(ARMY_MODES).map(([k, m]) => `<button class="btn ${player.armyMode === k ? "active" : ""}" data-mode="${k}">${m.label}</button>`).join("")}</div>
       <div class="small good" style="margin-bottom:8px">${ARMY_MODES[player.armyMode].desc}</div>
-      <ul class="list">${player.army.length ? player.army.map((u, i) => `<li><span>${S.icon}${u.icon} ${st === "shadow" ? "Shadow " : ""}${u.name} <span class="muted small">Lv. ${u.lv}</span></span><button class="btn" data-release="${i}">Release</button></li>`).join("")
+      ${player.army.length ? `<div class="party-bonus" style="margin-bottom:8px"><b class="good">Army perks active:</b> ${armySummary()}</div>` : ""}
+      <ul class="list">${player.army.length ? player.army.map((u, i) => `<li><span>${S.icon}${u.icon} ${st === "shadow" ? "Shadow " : ""}${u.name} <span class="muted small">Lv. ${u.lv}</span><br><span class="good small">${unitPerkText(u)}</span></span><button class="btn" data-release="${i}">Release</button></li>`).join("")
         : `<li class="muted">No ${S.unit}s yet. Defeat enemies to grow your ${S.group.toLowerCase()}.</li>`}</ul>
       <div class="section-title"><span>ALLIES</span></div>`;
   } else $("armyBox").innerHTML = "";
@@ -2732,6 +2734,7 @@ async function victory() {
   player.gold += gold; player.ap += ap;
   if (fx("healAfter")) player.hp = Math.min(player.maxHp, player.hp + fx("healAfter"));
   if (fx("mpPerFight")) player.mp = Math.min(player.maxMp, player.mp + fx("mpPerFight"));
+  const armyGain = armyAfterWin();
   const firstClear = B.floor > (player.towerBest || 0);
   if (firstClear) player.towerBest = B.floor;
 
@@ -2741,9 +2744,10 @@ async function victory() {
   if (st) {
     player.army.forEach(u => { u.fights++; if (u.fights % 5 === 0 && u.lv < 10) u.lv++; });
     if (player.army.length < armyCap() && Math.random() < 0.25 + eff(SUMMON[st].stat) / 200 - (m.boss ? 0.15 : 0)) {
-      bound = { name: m.name, icon: ELEM_ICON[m.elem], lv: 1, fights: 0 };
+      bound = { name: m.name, icon: ELEM_ICON[m.elem], lv: 1, fights: 0, body: m.body, boss: !!m.boss };
       player.army.push(bound);
     }
+    recalc();
   }
   questEvent("kill");
   ensureTStats(); if (m.boss) player.tstats.bosses++;
@@ -2759,6 +2763,8 @@ async function victory() {
     <div class="v-row"><span>Ability Points</span><b>+${ap}</b></div>
     ${firstClear ? `<div class="v-row good"><span>New highest floor</span><b>${B.floor}</b></div>` : ""}
     ${bound ? `<div class="v-row good"><span>${SUMMON[st].head}</span><b>${m.name}</b></div>` : ""}
+    ${bound ? `<div class="v-row good small"><span>New perk</span><b>${unitPerkText(bound)}</b></div>` : ""}
+    ${armyGain.length ? `<div class="v-row good"><span>Army perks</span><b>${armyGain.join(", ")}</b></div>` : ""}
     <ul class="list loot">${lootRows || `<li class="muted">No materials dropped.</li>`}</ul></div>`;
   const next = Math.min(B.floor + 1, maxFloor());
   $("bMenu").innerHTML = `<div class="cmd-grid">
@@ -2920,6 +2926,56 @@ $("panel").addEventListener("click", e => {
   if (t.dataset.sellmatall) sellMat(t.dataset.sellmatall, true);
   if (t.hasAttribute("data-sellcommon")) sellAllCommon();
 });
+
+
+/* =========================================================
+   ARMY PERKS: every shadow soldier or tamed beast keeps a
+   power from the monster it used to be. These stack on top
+   of the Attack / Guard / Forage command bonuses.
+   ========================================================= */
+const UNIT_PERK = {
+  slime:   { name: "Ooze Mend",   icon: "🟢", kind: "heal", base: 3,  text: v => `Heals you ${v}% max HP after each win` },
+  bug:     { name: "Carapace",    icon: "🪲", kind: "stat", stat: "RES", base: 2, text: v => `+${v} Resistance` },
+  beast:   { name: "Pack Fury",   icon: "🐗", kind: "stat", stat: "STR", base: 2, text: v => `+${v} Strength` },
+  bird:    { name: "Tailwind",    icon: "🪶", kind: "stat", stat: "AGI", base: 2, text: v => `+${v} Agility` },
+  golem:   { name: "Stone Skin",  icon: "🗿", kind: "stat", stat: "VIT", base: 3, text: v => `+${v} Vitality` },
+  ghost:   { name: "Soul Siphon", icon: "👻", kind: "mp",   base: 4,  text: v => `Restores ${v} MP after each win` },
+  serpent: { name: "Keen Eyes",   icon: "🐍", kind: "stat", stat: "SEN", base: 2, text: v => `+${v} Sense` },
+};
+// Old saves didn't store what a unit used to be: look it up by name.
+function unitBody(u) {
+  if (u.body) return u.body;
+  for (const br of BRACKETS) {
+    const hit = br.mobs.find(([n]) => n === u.name) || (br.boss[0] === u.name ? br.boss : null);
+    if (hit) { u.body = hit[1]; if (br.boss[0] === u.name) u.boss = true; return u.body; }
+  }
+  return u.body = "beast";
+}
+// Level 1 = base value, +10% per level. Former bosses are twice as strong.
+const unitScale = u => (1 + (u.lv - 1) * 0.1) * (u.boss ? 2 : 1);
+const unitValue = u => { const p = UNIT_PERK[unitBody(u)]; return Math.max(1, Math.round(p.base * unitScale(u))); };
+const unitPerkText = u => { const p = UNIT_PERK[unitBody(u)]; return `${p.icon} ${p.name}: ${p.text(unitValue(u))}${u.boss ? " (boss x2)" : ""}`; };
+
+function armyStat(k) {
+  if (!player || !summonType() || !player.army) return 0;
+  return player.army.reduce((s, u) => { const p = UNIT_PERK[unitBody(u)]; return s + (p.kind === "stat" && p.stat === k ? unitValue(u) : 0); }, 0);
+}
+function armyAfterWin() {
+  if (!summonType() || !player.army.length) return [];
+  let heal = 0, mp = 0;
+  player.army.forEach(u => { const p = UNIT_PERK[unitBody(u)]; if (p.kind === "heal") heal += unitValue(u); if (p.kind === "mp") mp += unitValue(u); });
+  const out = [];
+  if (heal) { const h = Math.min(player.maxHp - player.hp, Math.floor(player.maxHp * heal / 100)); if (h > 0) { player.hp += h; out.push(`+${h} HP`); } }
+  if (mp) { const m = Math.min(player.maxMp - player.mp, mp); if (m > 0) { player.mp += m; out.push(`+${m} MP`); } }
+  return out;
+}
+function armySummary() {
+  if (!summonType() || !player.army.length) return "";
+  const stats = STAT_KEYS.map(k => [k, armyStat(k)]).filter(([, v]) => v).map(([k, v]) => `+${v} ${STAT_NAME[k]}`);
+  let heal = 0, mp = 0;
+  player.army.forEach(u => { const p = UNIT_PERK[unitBody(u)]; if (p.kind === "heal") heal += unitValue(u); if (p.kind === "mp") mp += unitValue(u); });
+  return [...stats, ...(heal ? [`heal ${heal}% max HP after each win`] : []), ...(mp ? [`restore ${mp} MP after each win`] : [])].join(", ");
+}
 
 
 /* =========================================================
@@ -3397,6 +3453,7 @@ function statBreakdown(k) {
   if (player.buff) add(`Meal: ${player.buff.name}`, player.buff.stats[k] || 0);
   add(`Ability grade ${GRADES[player.grade]}`, (GRADE_BONUS[k] || 0) * player.grade);
   add(`Body refinement (${LAYERS[player.layer]})`, (LAYER_BONUS[k] || 0) * player.layer);
+  add(summonType() ? `${SUMMON[summonType()].group} perks` : "Army perks", armyStat(k));
   return rows;
 }
 
@@ -3702,6 +3759,7 @@ function summonGuide(st) {
     `<b>⚔️ Attack:</b> your ${S.group.toLowerCase()} hits the monster every turn, and each ${u} gives +5% EXP and +1 Ability Point per fight. Best for climbing.`,
     `<b>🛡️ Guard:</b> each ${u} blocks 8% of the damage you take (up to 60%). Best for bosses.`,
     `<b>🌿 Forage:</b> each ${u} adds a 20% chance of extra materials. Best for farming crafting materials.`,
+    `<b>Unit perks:</b> every ${u} keeps a power from the monster it used to be, on top of the command bonus. Slimes heal you after wins, beetles add Resistance, beasts add Strength, birds add Agility, golems add Vitality, ghosts restore MP and serpents add Sense. Each level makes the perk 10% stronger, and former bosses are twice as strong.`,
     `<b>Tip:</b> ${stat} boosts everything here: the chance to recruit, army size and how hard they hit.`,
   ];
 }
