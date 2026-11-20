@@ -644,6 +644,7 @@ body {
       <!-- ================= TOWER ================= -->
       <section class="page" data-page="tower">
         <div class="header" data-title="tower"></div>
+        <div data-guide="tower"></div>
         <div class="filters" id="towerViews"><button class="btn active" data-view="floors">🗼 Floors</button><button class="btn" data-view="shop">🏪 Tower Shop</button></div>
         <div id="towerBody"></div>
       </section>
@@ -651,20 +652,23 @@ body {
       <!-- ================= QUEST ================= -->
       <section class="page" data-page="quest">
         <div class="sq-head">📖 MAIN STORY</div>
+        <div data-guide="story"></div>
         <div id="storyQuest"></div>
         <div class="sq-head">📅 DAILY QUEST</div>
         <div class="header" data-title="quest"></div>
+        <div data-guide="quest"></div>
         <div class="quest-intro">Complete today's training to grow stronger.</div>
         <div class="quest-timer">Resets in <span id="questTimer">--:--:--</span></div>
         <div id="questList"></div>
-        <div class="reward-box"><b>Rewards:</b> Full recovery, +3 stat points, +100 EXP</div>
-        <div class="penalty">⚠ Unfinished quests carry a penalty when the day resets.</div>
+        <div class="reward-box"><b>Rewards:</b> Full recovery, +3 stat points, +100 EXP, +100 Ability Points, +50 Gold</div>
+        <div class="penalty">⚠ Penalty: if all 5 goals aren't done by midnight, you start tomorrow with +30 Fatigue.</div>
         <button class="btn wide" id="claimBtn" disabled>Claim Reward</button>
       </section>
   
       <!-- ================= SKILLS / ABILITY / BODY ================= -->
       <section class="page" data-page="skills">
         <div class="header" data-title="skills"></div>
+        <div data-guide="skills"></div>
         <div class="ap-box">Ability Points: <b id="apCount"></b></div>
         <div class="section-title"><span>BATTLE LOADOUT</span></div>
         <div id="loadoutBox"></div>
@@ -683,6 +687,7 @@ body {
       <!-- ================= BAG ================= -->
       <section class="page" data-page="bag">
         <div class="header" data-title="bag"></div>
+        <div data-guide="bag"></div>
         <div class="section-title" style="margin-top:0"><span>MATERIALS</span><span class="muted" id="matTotal"></span></div>
         <div class="mat-grid" id="matGrid"></div>
   
@@ -696,6 +701,7 @@ body {
       <!-- ================= CRAFT ================= -->
       <section class="page" data-page="craft">
         <div class="header" data-title="craft"></div>
+        <div data-guide="craft"></div>
         <div class="filters" id="craftFilters">
           <button class="btn active" data-cat="Gear">⚒️ Gear</button>
           <button class="btn" data-cat="Potion">⚗️ Potions</button>
@@ -710,6 +716,7 @@ body {
       <!-- ================= PARTY ================= -->
       <section class="page" data-page="party">
         <div class="header" data-title="party"></div>
+        <div data-guide="party"></div>
         <div id="armyBox"></div>
         <div class="party-bonus" id="partyBonus"></div>
         <div id="allyList"></div>
@@ -1810,6 +1817,7 @@ $("createBody").addEventListener("click", e => {
 let craftCat = "Gear";
 function render() {
   if (!player) return;
+  checkDailyReset();
   const race = RACES[player.raceId], cls = CLASSES[player.classId], job = JOBS[player.jobId], sub = subOf();
 
   // ---- Status ----
@@ -1886,7 +1894,7 @@ function render() {
       <div class="small muted">${locked ? "Locked" : TIERS[t]}</div>
       <div class="r-effect">${SKILL_EFFECTS[i](locked ? 0 : t)}</div>
       <div class="small muted">⏳ ${limitText(i, locked ? 0 : t)}</div>
-      ${!locked && !max ? `<div class="small muted">Next tier: ${limitText(i, t + 1).replace(/ · .*left today/, i === ULT_SLOT ? " · " + ultUses(t + 1) + " uses a day" : "")}</div>` : ""}</div>${btn}</div></div>`;
+      ${!locked && !max ? `<div class="small muted">Next tier (${TIERS[t + 1]}): +10% power, ${SKILL_EFFECTS[i](t + 1).replace(/^./, c => c.toLowerCase())}${cdFor(i, t + 1) < cdFor(i, t) ? `, cooldown ${cdFor(i, t + 1)} turn${cdFor(i, t + 1) === 1 ? "" : "s"}` : ""}${i === ULT_SLOT ? `, ${ultUses(t + 1)} uses a day` : ""}</div>` : ""}</div>${btn}</div></div>`;
   }).join("");
   const ly = player.layer, nextL = ly + 1, maxL = nextL >= LAYERS.length;
   const stageOk = !maxL && rk.stage >= nextL;
@@ -1973,7 +1981,7 @@ function render() {
     </div>`).join("");
 
   setDot("status", player.points > 0 || player.pendingEvo.length > 0);
-  checkStory(); renderStory();
+  checkStory(); renderStory(); renderGuides();
   setDot("quest", (allQuestsDone() && !questClaimed) || storyAlert());
   setDot("skills",
     (!maxG && player.ap >= GRADE_COST[g]) ||
@@ -4036,8 +4044,9 @@ function finishChapter() {
     lines.push(`⭐ EXP <b>+${r.xp}</b>`);
     if (r.ally && A[r.ally]) {
       const a = A[r.ally]; a.level = Math.max(a.level, player.level);
-      if (ALLIES.filter(x => x.inParty).length < 3) a.inParty = true;
-      lines.push(`${a.icon} <b>${a.name}</b> joined your party`);
+      if (!a.inParty && ALLIES.filter(x => x.inParty).length < 2) { a.inParty = true; lines.push(`${a.icon} <b>${a.name}</b> joined your party`); }
+      else if (!a.inParty) lines.push(`${a.icon} <b>${a.name}</b> is ready to join. Your party is full (2 max), so swap someone out in the Party window.`);
+      else lines.push(`${a.icon} <b>${a.name}</b> is already in your party`);
     }
     if (r.title) { player.title = r.title; lines.push(`🏅 Title: <b>${r.title}</b>`); }
     const num = st.ch + 1;
@@ -4082,6 +4091,129 @@ $("storyQuest").addEventListener("click", e => {
   if (b.dataset.story === "finish") finishChapter();
   if (b.dataset.story === "replay") { const c = STORY[storyState().ch]; playScene(c.intro.filter(l => !l.choice), null); }
 });
+
+
+/* =========================================================
+   GUIDES: a "How it works" dropdown at the top of every
+   window, filled with your real numbers. Also: where every
+   material comes from.
+   ========================================================= */
+const guideOpen = new Set();
+
+function matSources(id) {
+  const out = [];
+  if (GATHER.some(([g]) => g === id)) out.push("Gather (hub)");
+  const bodies = Object.entries(COMMON_DROPS).filter(([, ids]) => ids.includes(id)).map(([b]) => b);
+  if (bodies.length) {
+    const mons = [];
+    BRACKETS.forEach((br, i) => br.mobs.forEach(([n, body]) => { if (bodies.includes(body) && mons.length < 3) mons.push(`${n} (F${i * 10 + 1} to ${i * 10 + 10})`); }));
+    out.push(mons.join(", "));
+  }
+  if (id === "fang") out.push("Ash Wolf (F11 to 20), Bone Hound (F51 to 60)");
+  if (id === "crystal") out.push("Rare drop from any fight. Luck, higher floors and bosses help");
+  if (id === "essence" || id === "dscale") out.push("Very rare drop from any fight. Bosses triple the odds");
+  if (id === "relic") out.push("Legendary drop. Mostly from bosses with high Luck");
+  if (SHOP_STOCK.Materials.includes(id)) out.push(`Tower Shop (${buyPrice(id)}g)`);
+  return out.join(" · ") || "Unknown";
+}
+const matLine = id => `${MATS[id].icon} <b>${MATS[id].name}</b> (you have ${player.mats[id] || 0}): ${matSources(id)}`;
+
+function guideItems(key) {
+  const lv = player.level;
+  switch (key) {
+    case "tower": return [
+      `<b>Floors:</b> pick a floor and tap Enter. You can enter floors up to 5 levels above your own, so floors 1 to <b>${maxFloor()}</b> are open for you.`,
+      `<b>Turns:</b> each turn, pick a move, use an item, guard or run. Whoever is faster goes first: your Agility (<b>${eff("AGI")}</b>) against the monster's speed. Moves marked "First" always go first.`,
+      `<b>Elements:</b> hitting the element yours beats does 1.5x damage. Hitting one that resists you does 0.67x. Light and Dark only beat each other. ${ELEM_CHART}`,
+      `<b>Critical hits:</b> your crit chance is <b>${Math.round((0.06 + eff("LUK") * 0.002 + fx("critPlus")) * 100)}%</b> (6% plus Luck). Sense adds <b>${Math.round(senCrit() * 100)}%</b> more on super effective hits.`,
+      `<b>Dodging:</b> Agility gives you a <b>${Math.round(agiDodge() * 100)}%</b> chance to dodge attacks.`,
+      `<b>Bosses (👑):</b> every 10th floor. 2.2x HP, triple EXP and gold, better rare drops, and only a 30% chance to run.`,
+      `<b>Winning:</b> EXP, gold, Ability Points and materials. Fighting above your level gives +15% EXP per level above.`,
+      `<b>Losing:</b> you lose 10% of your gold, gain 20 Fatigue and wake up with 1 HP.`,
+      `<b>Fatigue:</b> each fight adds 6. At 80+ you deal 20% less damage. At 100 you can't fight until you rest.`,
+    ];
+    case "shop": return [
+      `<b>Buy:</b> potions, scrolls, meals, materials and gear.${player.jobId === "merchant" ? " As a Merchant you get 10% off." : " Merchants get 10% off."}`,
+      `<b>Sell:</b> items you own. Items from your job's category sell at full value (+15% per job rank). Merchants sell everything at 85% or more. Everything else sells for 40%.`,
+      `<b>Potions:</b> drink them from your Bag or from Items during a fight.`,
+      `<b>Scrolls:</b> read one before a fight. It works on your next fight only.`,
+      `<b>Meals:</b> give stat bonuses until you rest.`,
+    ];
+    case "story": return [
+      `<b>Main story:</b> tap Begin to hear the chapter, then complete its goals by playing normally. Tap Complete Chapter for your rewards.`,
+      `<b>Choices:</b> some answers are good or evil. They move your alignment by 1, which changes your HP or MP bonus. A few also change your payment.`,
+      `<b>Allies:</b> Brann, Lyra and Kit join through the story. You can also invite them early from the Party window.`,
+    ];
+    case "quest": return [
+      `<b>Daily quest:</b> 5 goals that fill up as you play: defeat enemies, gather, work, craft and sell.`,
+      `<b>Reward:</b> when all 5 are done, claim full HP and MP, +3 stat points, +100 EXP, +100 Ability Points and +50 Gold.`,
+      `<b>Reset:</b> a new daily quest starts at midnight. If you didn't finish all 5 goals, you start the new day with +30 Fatigue as a penalty.`,
+    ];
+    case "skills": return [
+      `<b>Ability Points (AP):</b> you have <b>${player.ap}</b>. Earn them from fights, gathering, rank ups, the daily quest and the story. Spend them on this page.`,
+      `<b>Battle loadout:</b> basic moves are always ready: no cooldown and no MP. You can also bring up to 4 skills into each fight.`,
+      `<b>Main ability:</b> your class's signature power. Each grade (F up to S) adds ${fmtBonus(GRADE_BONUS)}.`,
+      `<b>Skill mastery:</b> your 4 class skills unlock at Lv. ${SKILL_UNLOCK.join(", ")}. Training a skill raises its tier (Beginner, Intermediate, Advanced, Master). Each tier gives +10% power and a better bonus. The cooldown gets shorter every 2 tiers, and your strongest skill gets 1 more use a day.`,
+      `<b>Body refinement:</b> each layer adds ${fmtBonus(LAYER_BONUS)} and +20 max HP. Each new layer needs a higher Stage.`,
+      `<b>Skill tree:</b> every 10 levels, pick 1 of 3: a new skill or a new element. Higher Luck means rarer picks. Skills you pass on can come back later.`,
+      ...(HIDDEN_SUBCLASSES[player.classId] ? [`<b>Hidden paths:</b> secret subclasses for your class. Each one shows clues and progress bars. Meet the goals to unlock it, then you can switch to it at any time.`] : []),
+    ];
+    case "bag": return [
+      `<b>Materials:</b> used for crafting. Tap Craft on the hub to make things with them.`,
+      `<b>Potions, scrolls and meals:</b> tap Use. Potions heal right away. Meals last until you rest. Scrolls work on your next fight.`,
+      `<b>Gear:</b> tap Equip. You have 4 slots: Main Hand, Off-Hand, Armor and Accessory. Gear bonuses add straight to your stats.`,
+      `<b>Where materials come from:</b><br>${Object.keys(MATS).map(matLine).join("<br>")}`,
+    ];
+    case "craft": {
+      const needed = [...new Set(RECIPES.filter(r => r.cat === craftCat && !r.shopOnly).flatMap(r => Object.keys(r.needs)))];
+      const job = JOBS[player.jobId];
+      return [
+        `<b>Crafting:</b> when you have all the materials, tap Craft. Each craft gives 10 EXP and counts for the daily quest.`,
+        `<b>Your job:</b> ${job.cat ? `as a ${job.name}, crafting ${job.cat === "Gear" ? "gear" : job.cat.toLowerCase() + "s"} gives job EXP and a ${Math.round((0.15 + jobRank() * 0.1) * 100)}% chance to make an extra one.` : "as a Merchant you don't get crafting bonuses, but you sell everything for more."}`,
+        `<b>New gear</b> equips itself if that slot is empty.`,
+        `<b>Materials for ${craftCat === "Gear" ? "gear" : craftCat.toLowerCase() + "s"}:</b><br>${needed.map(matLine).join("<br>")}`,
+      ];
+    }
+    case "party": return [
+      `<b>Allies:</b> you can bring up to 2. Each one has a perk that's always on while they're in your party.`,
+      `<b>Leveling:</b> allies who are in your party level up with you.`,
+      `<b>Story:</b> Brann, Lyra and Kit also join you through the main story.`,
+      ...(summonType() ? [`<b>${SUMMON[summonType()].group}:</b> see the guide below for how your ${SUMMON[summonType()].unit}s work.`] : []),
+    ];
+  }
+  return [];
+}
+const GUIDE_TITLE = { tower: "How the tower works", shop: "How the shop works", story: "How the story works", quest: "How the daily quest works",
+  skills: "How Abilities work", bag: "How your bag works", craft: "How crafting works", party: "How your party works" };
+
+function renderGuides() {
+  if (!player) return;
+  document.querySelectorAll("[data-guide]").forEach(slot => {
+    let key = slot.dataset.guide;
+    if (key === "tower" && typeof towerView !== "undefined" && towerView === "shop") key = "shop";
+    slot.innerHTML = `<details class="guide-box" data-gkey="${key}" ${guideOpen.has(key) ? "open" : ""}><summary>❓ ${GUIDE_TITLE[key]}</summary>
+      <ul class="sd-effects guide">${guideItems(key).map(x => `<li>${x}</li>`).join("")}</ul></details>`;
+  });
+}
+document.addEventListener("toggle", e => {
+  const d = e.target; if (!d.dataset || !d.dataset.gkey) return;
+  if (d.open) guideOpen.add(d.dataset.gkey); else guideOpen.delete(d.dataset.gkey);
+}, true);
+
+/* ---------- Daily quest reset at midnight ---------- */
+function checkDailyReset() {
+  if (!player) return;
+  const d = new Date().toDateString();
+  if (!player.questDate) { player.questDate = d; return; }
+  if (player.questDate === d) return;
+  const missed = !allQuestsDone();
+  player.questDate = d;
+  quests = QUEST_DEFS.map(q => ({ ...q, progress: 0 })); questClaimed = false;
+  if (missed) { addFatigue(30); notify("PENALTY", "You didn't finish yesterday's daily quest. +30 Fatigue.", "warn"); }
+  else notify("DAILY QUEST", "A new daily quest is ready.", "unlock");
+  save();
+}
+setInterval(() => { if (player) { const before = player.questDate; checkDailyReset(); if (before !== player.questDate) render(); } }, 30000);
 
 
 /* =========================================================
