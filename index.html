@@ -634,7 +634,10 @@ body {
 .d-skills { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
 .sk { position: relative; width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; cursor: pointer; padding: 0;
   background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.35)), var(--card); border: 2px solid var(--panel-border); transition: transform .12s; }
-.sk-i { font-size: 24px; }
+.sk-i { font-size: 24px; pointer-events: none; }
+.sk { touch-action: none; user-select: none; -webkit-user-select: none; }
+.sk.dragging { z-index: 20; transition: none; box-shadow: 0 8px 20px rgba(0,0,0,.6), 0 0 14px #ffd84a; border-color: #ffd84a; }
+.d-skills.sorting .sk:not(.dragging) { transition: transform .15s; opacity: .85; }
 .sk.basic { border-color: #9aa7b8; }
 .sk.ult { border-color: #ffcf40; box-shadow: 0 0 8px rgba(255,207,64,.5); }
 .sk.sel { border-color: #ffd84a; box-shadow: 0 0 14px #ffd84a; transform: translateY(-3px) scale(1.06); }
@@ -3078,8 +3081,8 @@ function menuMain() {
   $("bMsg").innerHTML = ""; $("bMsg").classList.add("empty");
   $("bMenu").innerHTML = `
     <div class="d-info">${sel ? `${moveInfo(sel)}<button class="btn d-use" data-move="${B.sel}" ${moveReady(sel) ? "" : "disabled"}>${moveReady(sel) ? "USE ▸" : "Not ready"}</button>`
-      : `<div class="small muted">Tap a skill to see what it does. Tap it again to use it.</div>`}</div>
-    <div class="d-skills">${moves.map((m, i) => {
+      : `<div class="small muted">Tap a skill to see what it does. Tap it again to use it. Drag skills to change their order.</div>`}</div>
+    <div class="d-skills">${dockOrder(moves).map(({ m, i }) => {
       const wait = moveWait(m), ready = moveReady(m);
       return `<button class="sk ${B.sel === i ? "sel" : ""} ${ready ? "" : "off"} ${m.basic ? "basic" : ""} ${m.idx === ULT_SLOT ? "ult" : ""}" data-sk="${i}" aria-label="${m.name}">
         <span class="sk-i">${moveIcon(m)}</span>${wait ? `<span class="sk-cd">${wait}</span>` : ""}<span class="sk-mp">${m.mp ? m.mp : ""}</span></button>`;
@@ -3102,6 +3105,56 @@ $("battleBody").addEventListener("click", e => {
   const info = document.querySelector("#bMenu .d-info");
   if (info && !B.busy) info.innerHTML = `<div class="small">${t.innerHTML.replace(/<sup>.*<\/sup>/, "")} ${t.dataset.tip}</div>`;
 });
+
+/* ---------- Drag skills to set your own order (saved) ---------- */
+const moveKey = m => m.idx !== undefined ? "c" + m.idx : m.lkey || "b:" + m.name;
+function dockOrder(moves) {
+  const order = player.skillOrder || [];
+  return moves.map((m, i) => ({ m, i, k: moveKey(m) }))
+    .sort((a, b) => { const x = order.indexOf(a.k), y = order.indexOf(b.k); return (x < 0 ? 999 + a.i : x) - (y < 0 ? 999 + b.i : y); });
+}
+let skDrag = null, skJustDragged = false;
+$("battleBody").addEventListener("pointerdown", e => {
+  const sk = e.target.closest(".sk"); if (!sk || !B || B.busy || B.over) return;
+  const r = sk.getBoundingClientRect();
+  skDrag = { el: sk, x: e.clientX, y: e.clientY, offX: e.clientX - r.left, offY: e.clientY - r.top, on: false, id: e.pointerId };
+});
+document.addEventListener("pointermove", e => {
+  if (!skDrag || e.pointerId !== skDrag.id) return;
+  const dx = e.clientX - skDrag.x, dy = e.clientY - skDrag.y;
+  if (!skDrag.on && Math.hypot(dx, dy) < 10) return;
+  if (!skDrag.on) { skDrag.on = true; skDrag.el.classList.add("dragging"); skDrag.el.parentElement.classList.add("sorting"); Sound.play("click"); }
+  e.preventDefault();
+  skDrag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+  // Find the skill under your finger and slide this one into its spot
+  skDrag.el.style.visibility = "hidden";
+  const under = document.elementFromPoint(e.clientX, e.clientY)?.closest(".sk");
+  skDrag.el.style.visibility = "";
+  if (under && under !== skDrag.el && under.parentElement === skDrag.el.parentElement) {
+    const r = under.getBoundingClientRect(), after = e.clientX > r.left + r.width / 2;
+    under.parentElement.insertBefore(skDrag.el, after ? under.nextSibling : under);
+    skDrag.el.style.transform = "";
+    const r2 = skDrag.el.getBoundingClientRect();   // its new resting spot
+    skDrag.x = r2.left + skDrag.offX; skDrag.y = r2.top + skDrag.offY;
+    skDrag.el.style.transform = `translate(${e.clientX - skDrag.x}px, ${e.clientY - skDrag.y}px) scale(1.12)`;
+  }
+}, { passive: false });
+function endSkDrag() {
+  if (!skDrag) return;
+  if (skDrag.on) {
+    const row = skDrag.el.parentElement;
+    skDrag.el.classList.remove("dragging"); skDrag.el.style.transform = ""; row.classList.remove("sorting");
+    const moves = playerMoves();
+    player.skillOrder = [...row.querySelectorAll(".sk")].map(b => moveKey(moves[+b.dataset.sk]));
+    save(); Sound.play("notify");
+    skJustDragged = true; setTimeout(() => skJustDragged = false, 50);
+  }
+  skDrag = null;
+}
+document.addEventListener("pointerup", endSkDrag);
+document.addEventListener("pointercancel", endSkDrag);
+// A drag shouldn't also count as a tap
+$("battleBody").addEventListener("click", e => { if (skJustDragged && e.target.closest(".sk")) { e.stopPropagation(); e.preventDefault(); } }, true);
 
 
 /* =========================================================
