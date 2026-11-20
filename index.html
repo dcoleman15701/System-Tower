@@ -573,6 +573,11 @@ body {
 .win-status .win-head .wt::before, .win-status .win-head .wt::after { content: "" !important; }
 .win-status #winIcon { display: none; }
 .win-status .page > .header { display: none; }
+
+.guide-box { margin: 8px 0; border: 1px dashed var(--panel-border); border-radius: 8px; padding: 6px 10px; font-size: .9em; }
+.guide-box summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.guide-box .guide { margin-top: 6px; }
+.guide li { margin-bottom: 4px; }
 </style>
 </head>
 <body data-theme="holo">
@@ -1639,6 +1644,7 @@ function openEvolution() {
         <div class="ec-name">${o.sub.name}</div>
         <div class="small" style="margin-top:4px">${o.sub.desc}</div>
         <div class="good small" style="margin-top:4px">★ ${o.sub.perk}</div>
+        ${o.sub.fx && o.sub.fx.summon ? `<details class="guide-box"><summary>How it works</summary>${summonGuideHTML(o.sub.fx.summon)}</details>` : ""}
         <button class="btn" data-evo="${idx}">Become a ${o.sub.name}</button></div>`;
       if (o.type === "revert") return `<div class="evo-card revert">
         <div class="ec-name">↩ Revert to ${o.node.name}</div>
@@ -1945,7 +1951,8 @@ function render() {
   if (st) {
     const S = SUMMON[st];
     $("armyBox").innerHTML = `<div class="section-title" style="margin-top:0"><span>${S.group.toUpperCase()}</span><span class="points">${player.army.length} / ${armyCap()}</span></div>
-      <div class="small muted" style="margin-bottom:8px">Defeated enemies have a ${Math.round((0.25 + eff(S.stat) / 200) * 100)}% chance to join you. Army size grows with ${S.stat}. Units level up every 5 fights.</div>
+      <div class="small muted" style="margin-bottom:8px">Defeated enemies have a ${Math.round(Math.min(1, 0.25 + eff(S.stat) / 200) * 100)}% chance to join you. Army size grows with ${STAT_NAME[S.stat]}. Units level up every 5 fights.</div>
+      <details class="guide-box" ${player.army.length ? "" : "open"}><summary>How your ${S.group.toLowerCase()} works</summary>${summonGuideHTML(st)}</details>
       <div class="filters">${Object.entries(ARMY_MODES).map(([k, m]) => `<button class="btn ${player.armyMode === k ? "active" : ""}" data-mode="${k}">${m.label}</button>`).join("")}</div>
       <div class="small good" style="margin-bottom:8px">${ARMY_MODES[player.armyMode].desc}</div>
       <ul class="list">${player.army.length ? player.army.map((u, i) => `<li><span>${S.icon}${u.icon} ${st === "shadow" ? "Shadow " : ""}${u.name} <span class="muted small">Lv. ${u.lv}</span></span><button class="btn" data-release="${i}">Release</button></li>`).join("")
@@ -3514,7 +3521,7 @@ function infoDetail(key) {
       Object.assign(D, { icon: "★", title: "Subclass", value: sub ? sub.name : "Locked",
         blurb: sub ? sub.desc : "A specialization that changes how your class plays.",
         rows: sub ? [["Type", sub.hidden ? "Hidden subclass" : "Subclass"]] : [["Unlocks at", `Lv. ${SUBCLASS_LEVEL}`]],
-        does: sub ? [sub.perk] : [`You'll pick from 3 subclasses for your class when you reach Lv. ${SUBCLASS_LEVEL}.`],
+        does: sub ? [sub.perk, ...(sub.fx && sub.fx.summon ? summonGuide(sub.fx.summon) : [])] : [`You'll pick from 3 subclasses for your class when you reach Lv. ${SUBCLASS_LEVEL}.`],
         next: sub ? "Some classes hide secret subclasses that unlock from special feats." : `${Math.max(0, SUBCLASS_LEVEL - lv)} levels to go.` });
       break;
     case "job": {
@@ -3673,6 +3680,23 @@ document.querySelector("[data-page='status']").addEventListener("click", e => {
   Sound.play("click");
   render();
 });
+
+/* ---------- How summon subclasses work (Shadow Mage, Beast Tamer) ---------- */
+function summonGuide(st) {
+  const S = SUMMON[st], stat = STAT_NAME[S.stat], v = eff(S.stat);
+  const chance = Math.round(Math.min(1, 0.25 + v / 200) * 100), cap = 2 + Math.floor(v / 10);
+  const u = S.unit, us = S.unit + "s";
+  return [
+    `<b>Getting ${us}:</b> when you win a tower fight, the defeated monster may become your ${u}. Chance: 25% + 1% per 2 ${stat}. You have ${v} ${stat}, so <b>${chance}%</b> (bosses are 15% harder).`,
+    `<b>Army size:</b> 2 + 1 per 10 ${stat}. You can hold <b>${cap}</b>. When full, release a weak one in the Party window to make room.`,
+    `<b>Leveling:</b> every ${u} gains a level each 5 fights you win, up to Lv. 10. Higher levels add more power.`,
+    `<b>⚔️ Attack:</b> your ${S.group.toLowerCase()} hits the monster every turn, and each ${u} gives +5% EXP and +1 Ability Point per fight. Best for climbing.`,
+    `<b>🛡️ Guard:</b> each ${u} blocks 8% of the damage you take (up to 60%). Best for bosses.`,
+    `<b>🌿 Forage:</b> each ${u} adds a 20% chance of extra materials. Best for farming crafting materials.`,
+    `<b>Tip:</b> ${stat} boosts everything here: the chance to recruit, army size and how hard they hit.`,
+  ];
+}
+const summonGuideHTML = st => `<ul class="sd-effects guide">${summonGuide(st).map(x => `<li>${x}</li>`).join("")}</ul>`;
 
 
 /* =========================================================
