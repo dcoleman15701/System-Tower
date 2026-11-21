@@ -651,14 +651,48 @@ body {
   .dock { grid-template-columns: 1fr; }
   .d-skills { justify-content: center; }
   .b-foe .sprite.mon svg { width: 120px; height: 112px; } .b-foe .sprite.mon.boss svg { width: 145px; height: 135px; }
-  .b-party .sprite.pl { width: 70px; height: 70px; left: 72%; }
+  .b-party .sprite.pl { width: 70px; height: 70px; left: 64%; }
   .b-party { left: 34px; width: 58%; }
-  .pl-sh { left: 72%; width: 90px; }
+  .pl-sh { left: 64%; width: 90px; }
   .pl-icons { left: 46%; width: 54%; bottom: 86px; justify-content: center; }
   .b-ally { width: 34px; height: 34px; font-size: 17px; bottom: 104px; left: calc(12% + var(--i) * 28%); }
   .b-unit { width: 26px; height: 26px; font-size: 13px; left: calc(var(--i) * 11%); }
   .b-foe { width: 40%; right: 2%; }
 }
+
+/* ===== Character art ===== */
+.char-svg { width: 100%; height: 100%; overflow: visible; }
+.sprite.pl.art { width: 110px; height: 132px; border: 0; border-radius: 0; background: none; }
+.sprite.pl.art .char-svg { animation: bob 2.6s ease-in-out infinite; filter: drop-shadow(0 4px 3px rgba(0,0,0,.35)); }
+.b-party .sprite.pl.art { width: 104px; height: 125px; bottom: 0; }
+@media (max-width: 520px) { .b-party .sprite.pl.art { width: 88px; height: 106px; } }
+/* ===== Character sheet ===== */
+.cs { --ec: #a05cff; }
+.cs-title { font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 700; letter-spacing: 2px; line-height: 1; text-align: center; color: var(--text);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--ec) 60%, transparent); border-bottom: 3px solid var(--ec); padding-bottom: 6px; overflow-wrap: anywhere; }
+.cs-sub { text-align: center; font-size: 12px; color: var(--muted); margin: 6px 0 4px; }
+.cs-stage { position: relative; height: 310px; border-radius: 14px; margin: 6px 0 12px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--ec) 28%, transparent), transparent 70%), repeating-linear-gradient(0deg, transparent 0 23px, rgba(255,255,255,.04) 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, rgba(255,255,255,.04) 23px 24px); border: 1px solid var(--panel-border); }
+.cs-art { position: absolute; left: 50%; top: 22px; width: 230px; height: 276px; transform: translateX(-50%); }
+.cs-art .char-svg { animation: bob 3s ease-in-out infinite; }
+.cs-tag { position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 14px; background: rgba(0,0,0,.5); color: #fff; border: 1px solid var(--ec); }
+.cs-name { position: absolute; left: 10px; top: 10px; font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 1px 3px #000; padding: 4px 12px; background: color-mix(in srgb, var(--ec) 45%, #111); border-radius: 6px; }
+.cs-name small { display: block; font-size: 11px; font-weight: 600; opacity: .85; }
+.cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cs-box { border: 1px solid var(--panel-border); border-radius: 10px; padding: 8px 10px; background: var(--card); font-size: 12.5px; }
+.cs-box.wide { grid-column: 1 / -1; }
+.cs-box p { margin: 0; line-height: 1.45; }
+.cs-h { display: inline-block; font-family: Georgia, serif; font-size: 15px; color: #fff; background: color-mix(in srgb, var(--ec) 55%, #1a1a2e); padding: 2px 12px 2px 8px; margin: -2px 0 6px -10px; border-radius: 0 6px 6px 0; }
+.cs-skills { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs-sk { display: grid; place-items: center; width: 54px; font-size: 22px; text-align: center; }
+.cs-sk small { font-size: 9px; line-height: 1.1; margin-top: 2px; }
+.cs-sk::before { content: ""; }
+.cs-sk { border-radius: 10px; padding: 4px 2px; background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--ec) 35%, transparent), transparent 70%); }
+.cs-sk.lock { opacity: .35; filter: grayscale(1); }
+.cs-eq { display: flex; gap: 10px; flex-wrap: wrap; }
+.cs-item { display: grid; place-items: center; width: 72px; padding: 6px 2px; border: 1px dashed var(--ec); border-radius: 8px; text-align: center; }
+.cs-item b { font-size: 22px; } .cs-item small { font-size: 10px; line-height: 1.15; } .cs-item i { font-size: 9px; color: var(--muted); font-style: normal; }
+@media (max-width: 520px) { .cs-grid { grid-template-columns: 1fr; } .cs-title { font-size: 28px; } }
 </style>
 </head>
 <body data-theme="holo">
@@ -677,6 +711,7 @@ body {
   <div class="hub-card sys-win" id="hubCard"></div>
   <div class="hub" id="hub">
     <button class="tile sys" data-open="status"><span class="ti">📊</span>Status</button>
+    <button class="tile" data-open="sheet" style="--tc:#c08bff"><span class="ti">🧙</span>Character</button>
     <button class="tile" data-open="tower" style="--tc:#ff7a45"><span class="ti">🗼</span>Tower</button>
     <button class="tile" data-open="shop" style="--tc:#3ddc84"><span class="ti">🏪</span>Shop</button>
     <button class="tile" data-open="quest" style="--tc:#ffc94d"><span class="ti">📜</span>Quest</button>
@@ -795,6 +830,9 @@ body {
       </section>
   
       <!-- ================= PARTY ================= -->
+      <section class="page" data-page="sheet">
+        <div id="sheetBody" class="cs"></div>
+      </section>
       <section class="page" data-page="party">
         <div class="header" data-title="party"></div>
         <div data-guide="party"></div>
@@ -2064,7 +2102,7 @@ function render() {
     </div>`).join("");
 
   setDot("status", player.points > 0 || player.pendingEvo.length > 0);
-  checkStory(); renderStory(); renderGuides();
+  checkStory(); renderStory(); renderGuides(); renderSheet();
   setDot("quest", (allQuestsDone() && !questClaimed) || storyAlert());
   setDot("skills",
     (!maxG && player.ap >= GRADE_COST[g]) ||
@@ -2980,7 +3018,7 @@ function battleLayout(mon, br, floor) {
       ${army.slice(0, 4).map((u, i) => `<div class="b-unit" style="--i:${i};--r:${i % 2}" title="${u.name}">${u.icon}</div>`).join("")}${army.length > 4 ? `<div class="b-unit more" style="--i:4;--r:0">+${army.length - 4}</div>` : ""}
       ${allies.map((a, i) => `<div class="b-ally" style="--i:${i}"><span>${a.icon}</span><small>${a.name}</small></div>`).join("")}
       <div class="b-icons pl-icons" id="bPlIcons"></div>
-      <div class="sprite pl" id="bPl"><span class="pl-race">${RACES[player.raceId].icon}</span><span class="pl-class">${CLASSES[player.classId].icon}</span></div>
+      <div class="sprite pl art" id="bPl">${charSVG()}</div>
       <div class="b-shadow pl-sh"></div>
     </div>
     <div class="b-foe">
@@ -3155,6 +3193,280 @@ document.addEventListener("pointerup", endSkDrag);
 document.addEventListener("pointercancel", endSkDrag);
 // A drag shouldn't also count as a tap
 $("battleBody").addEventListener("click", e => { if (skJustDragged && e.target.closest(".sk")) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+
+/* =========================================================
+   CHARACTER ART: an original chibi figure drawn in code.
+   Race decides the body, class the outfit and weapon,
+   subclass adds signature gear, and your main element
+   colors the eyes, trim, aura and particles.
+   ========================================================= */
+const ELEM_COLOR = { Normal: "#c9d3e0", Fire: "#ff6a2b", Water: "#36a2ff", Wind: "#4fe3a5", Earth: "#c8954c", Light: "#ffe25c", Dark: "#a05cff" };
+const RACE_LOOK = {
+  human:    { skin: "#f3cba5", hair: "#5b3a24" },
+  elf:      { skin: "#f7dcc4", hair: "#eadfa6", ears: "long" },
+  dwarf:    { skin: "#e8b48c", hair: "#b8572a", beard: true, short: true },
+  beastkin: { skin: "#f2c79d", hair: "#d08a3a", ears: "cat", tail: "cat" },
+  slime:    { skin: "#6fe39a", hair: null, slime: true },
+  goblin:   { skin: "#86bf5c", hair: "#2c2c2c", ears: "goblin", short: true },
+  wolf:     { skin: "#b9c0c9", hair: "#8a929c", ears: "wolf", tail: "wolf", muzzle: true },
+  lizard:   { skin: "#5fae72", hair: null, crest: true, tail: "lizard", slit: true },
+  dragon:   { skin: "#f2cbb0", hair: "#b8323a", horns: "dragon", wings: "dragon", tail: "dragon" },
+  demon:    { skin: "#d98a8a", hair: "#241a2e", horns: "demon", wings: "bat", tail: "spade" },
+  spirit:   { skin: "#d6ecff", hair: "#9fd2ff", spirit: true },
+  undead:   { skin: "#efe9dc", hair: null, skull: true },
+};
+const CLASS_LOOK = {
+  tank:    { cloth: "#6f7f96", dark: "#3d4656", armor: true },
+  warrior: { cloth: "#8a5a3b", dark: "#4b2f20", armor: true },
+  rogue:   { cloth: "#3b3f52", dark: "#1f2130" },
+  mage:    { cloth: "#4f42a0", dark: "#2a2260", robe: true },
+  ranger:  { cloth: "#4d7a3a", dark: "#2c4722" },
+  cleric:  { cloth: "#ece6d6", dark: "#b9a77a", robe: true },
+  tamer:   { cloth: "#9b6a3a", dark: "#5a3a1e" },
+};
+const shade = (hex, amt) => {   // amt -1..1: darken or lighten
+  const n = parseInt(hex.slice(1), 16), f = c => Math.max(0, Math.min(255, Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt)));
+  return "#" + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(v => v.toString(16).padStart(2, "0")).join("");
+};
+
+function elemParticles(el, c, front) {
+  const P = [];
+  const seed = front ? [[30, 70], [168, 96], [150, 40], [44, 150]] : [[20, 120], [178, 150], [60, 30], [140, 200], [100, 18]];
+  seed.forEach(([x, y], i) => {
+    const d = (i % 3) * 0.7;
+    if (el === "Fire") P.push(`<path d="M${x} ${y} q4 -8 0 -14 q-4 6 0 14z" fill="${c}" opacity=".85"><animate attributeName="opacity" values=".9;.2;.9" dur="1.4s" begin="${d}s" repeatCount="indefinite"/></path>`);
+    else if (el === "Water") P.push(`<circle cx="${x}" cy="${y}" r="${3 + i % 3}" fill="none" stroke="${c}" stroke-width="1.5" opacity=".8"><animate attributeName="cy" values="${y};${y - 12};${y}" dur="2.6s" begin="${d}s" repeatCount="indefinite"/></circle>`);
+    else if (el === "Wind") P.push(`<path d="M${x - 8} ${y} q8 -6 16 0 q-6 -2 -10 2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" opacity=".8"><animateTransform attributeName="transform" type="translate" values="0 0;6 -3;0 0" dur="2s" begin="${d}s" repeatCount="indefinite"/></path>`);
+    else if (el === "Earth") P.push(`<path d="M${x} ${y} l5 -3 l4 4 l-3 5 l-6 -1z" fill="${c}" opacity=".9"><animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 0" dur="2.4s" begin="${d}s" repeatCount="indefinite"/></path>`);
+    else if (el === "Light") P.push(`<path d="M${x} ${y - 6} l1.6 4.4 l4.4 1.6 l-4.4 1.6 l-1.6 4.4 l-1.6 -4.4 l-4.4 -1.6 l4.4 -1.6z" fill="${c}"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin="${d}s" repeatCount="indefinite"/></path>`);
+    else if (el === "Dark") P.push(`<path d="M${x} ${y} q-6 -10 2 -16 q-2 8 4 10 q-2 4 -6 6z" fill="${c}" opacity=".75"><animate attributeName="opacity" values=".8;.15;.8" dur="2.2s" begin="${d}s" repeatCount="indefinite"/></path>`);
+    else if (!front && i < 3) P.push(`<circle cx="${x}" cy="${y}" r="2" fill="${c}" opacity=".6"/>`);
+  });
+  return P.join("");
+}
+
+/* ---------- Weapons and class gear (held in the hands) ---------- */
+function classGear(cls, sub, e, C) {
+  const metal = "#c9d2de", wood = "#7a5534", gold = "#e6b94a";
+  switch (cls) {
+    case "tank": {
+      const big = sub === "guardian" || sub === "fortress" || sub === "sovereign";
+      const w = big ? 46 : 38, h = big ? 62 : 50, cx = 52, cy = 160;
+      const emblem = sub === "templar" ? `<path d="M${cx} ${cy - 14} v26 M${cx - 9} ${cy - 4} h18" stroke="${gold}" stroke-width="5"/>`
+        : `<circle cx="${cx}" cy="${cy}" r="7" fill="${e}"/>`;
+      return { front: `<path d="M${cx - w / 2} ${cy - h / 2} h${w} v${h * 0.55} q0 ${h * 0.35} -${w / 2} ${h * 0.45} q-${w / 2} -${h * 0.1} -${w / 2} -${h * 0.45}z" fill="${metal}" stroke="${C.dark}" stroke-width="3"/>
+        <path d="M${cx - w / 2 + 5} ${cy - h / 2 + 5} h${w - 10} v${h * 0.5} q0 ${h * 0.3} -${w / 2 - 5} ${h * 0.38} q-${w / 2 - 5} -${h * 0.08} -${w / 2 - 5} -${h * 0.38}z" fill="${C.cloth}"/>${emblem}
+        <path d="M148 178 l6 -44" stroke="${wood}" stroke-width="5"/><rect x="146" y="124" width="16" height="14" rx="3" fill="${metal}" stroke="${C.dark}" stroke-width="2"/>` };
+    }
+    case "warrior": {
+      const axe = sub === "berserker";
+      return { front: axe
+        ? `<path d="M150 186 l8 -78" stroke="${wood}" stroke-width="6" stroke-linecap="round"/><path d="M156 112 q22 -6 26 14 q-12 4 -24 2z" fill="${metal}" stroke="${C.dark}" stroke-width="2.5"/><path d="M158 126 q14 0 22 -2" stroke="${e}" stroke-width="2"/>`
+        : `<path d="M151 176 l12 -92 l6 2 l-12 92z" fill="${metal}" stroke="${C.dark}" stroke-width="2"/><path d="M155 140 l9 -54" stroke="${e}" stroke-width="2" opacity=".8"/><rect x="138" y="170" width="28" height="6" rx="3" fill="${gold}" transform="rotate(8 152 173)"/><rect x="146" y="174" width="7" height="16" rx="3" fill="${wood}" transform="rotate(8 150 182)"/>`,
+        back: sub === "weaponmaster" ? `<g opacity=".9"><path d="M38 70 l8 70" stroke="${metal}" stroke-width="5"/><path d="M162 60 l-6 70" stroke="${metal}" stroke-width="5"/><path d="M40 72 l6 60" stroke="${e}" stroke-width="2"/></g>` : "" };
+    }
+    case "rogue":
+      return { front: `<path d="M150 170 l14 -26 l4 3 l-12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="146" y="168" width="8" height="12" rx="2" fill="${C.dark}"/>
+        <path d="M50 170 l-14 -26 l-4 3 l12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="46" y="168" width="8" height="12" rx="2" fill="${C.dark}"/>
+        <path d="M157 160 l6 -12" stroke="${e}" stroke-width="2"/><path d="M43 160 l-6 -12" stroke="${e}" stroke-width="2"/>` };
+    case "mage": {
+      const orb = `<circle cx="160" cy="92" r="10" fill="${e}" opacity=".9"><animate attributeName="r" values="9;11;9" dur="2s" repeatCount="indefinite"/></circle><circle cx="157" cy="89" r="3" fill="#fff" opacity=".8"/>`;
+      const staff = `<path d="M152 192 l8 -96" stroke="${wood}" stroke-width="5" stroke-linecap="round"/><path d="M150 100 q10 -22 20 0" fill="none" stroke="${gold}" stroke-width="3"/>${orb}`;
+      const sword = sub === "battlemage" ? `<path d="M44 176 l-8 -60 l5 -1 l8 60z" fill="${metal}" stroke="${e}" stroke-width="1.5"/><rect x="38" y="172" width="18" height="5" rx="2" fill="${gold}"/>` : "";
+      return { front: staff + sword };
+    }
+    case "ranger": {
+      const bow = `<path d="M150 98 q34 56 0 112" fill="none" stroke="${wood}" stroke-width="5" stroke-linecap="round"/><path d="M150 98 v112" stroke="#eee" stroke-width="1.2"/>`;
+      const scope = sub === "sniper" ? `<rect x="156" y="146" width="14" height="6" rx="2" fill="${C.dark}"/><circle cx="170" cy="149" r="3" fill="${e}"/>` : "";
+      return { front: bow + scope, back: `<rect x="128" y="104" width="12" height="44" rx="4" fill="${wood}" transform="rotate(20 134 126)"/><path d="M138 100 l2 -10 M142 102 l4 -9 M134 99 l-1 -10" stroke="${e}" stroke-width="2"/>` };
+    }
+    case "cleric": {
+      const mace = sub === "paladin" ? `<path d="M150 184 l8 -64" stroke="${gold}" stroke-width="5"/><circle cx="159" cy="116" r="10" fill="${gold}" stroke="${C.dark}" stroke-width="2"/>`
+        : `<path d="M152 192 l6 -92" stroke="${gold}" stroke-width="4"/><circle cx="158" cy="98" r="9" fill="none" stroke="${gold}" stroke-width="3"/><path d="M158 89 v18 M149 98 h18" stroke="${e}" stroke-width="2.5"/>`;
+      return { front: mace };
+    }
+    case "tamer": {
+      const pet = sub === "rider" ? 1.3 : sub === "beasttamer" ? 1.15 : 1;
+      return { front: `<path d="M150 170 q22 -10 30 10 q4 10 -6 14" fill="none" stroke="${wood}" stroke-width="3" stroke-linecap="round"/>`,
+        back: `<g transform="translate(30 196) scale(${pet}) translate(-30 -196)"><ellipse cx="30" cy="200" rx="20" ry="13" fill="${shade(e, -0.2)}"/><circle cx="18" cy="188" r="11" fill="${shade(e, -0.1)}"/><path d="M10 180 l2 -10 l6 7z M24 178 l4 -9 l3 9z" fill="${shade(e, -0.3)}"/><circle cx="15" cy="187" r="2" fill="#111"/><circle cx="22" cy="187" r="2" fill="#111"/></g>` };
+    }
+  }
+  return {};
+}
+
+/* ---------- Subclass signature gear ---------- */
+function subGear(sub, e, C, R) {
+  const gold = "#e6b94a", bone = "#efe9dc";
+  const halo = `<ellipse cx="100" cy="30" rx="26" ry="7" fill="none" stroke="${gold}" stroke-width="3.5" opacity=".95"><animate attributeName="opacity" values="1;.6;1" dur="2s" repeatCount="indefinite"/></ellipse>`;
+  const crown = `<path d="M80 40 l4 -14 l8 9 l8 -13 l8 13 l8 -9 l4 14z" fill="${gold}" stroke="#a07a20" stroke-width="1.5"/><circle cx="100" cy="30" r="3" fill="${e}"/>`;
+  const cape = col => `<path d="M72 118 q-26 60 -14 104 h84 q12 -44 -14 -104z" fill="${col}"/>`;
+  const hood = col => `<path d="M52 80 q0 -54 48 -56 q48 2 48 56 q-2 16 -8 22 q2 -40 -40 -44 q-42 4 -40 44 q-6 -6 -8 -22z" fill="${col}" stroke="${shade(col, -0.35)}" stroke-width="2"/>`;
+  const S = {
+    guardian:  { back: cape(shade(C.cloth, -0.2)) },
+    templar:   { top: halo },
+    juggernaut:{ front: `<path d="M62 116 l-10 -12 l14 4z M138 116 l10 -12 l-14 4z" fill="#c9d2de" stroke="${C.dark}" stroke-width="1.5"/>` },
+    aegis:     { back: `<path d="M100 14 l78 44 v88 l-78 44 l-78 -44 v-88z" fill="${e}" fill-opacity=".08" stroke="${e}" stroke-width="2" stroke-opacity=".6"><animate attributeName="stroke-opacity" values=".7;.2;.7" dur="2.4s" repeatCount="indefinite"/></path>` },
+    fortress:  { top: `<path d="M58 78 q0 -50 42 -52 q42 2 42 52 v10 h-84z" fill="#9aa6b6" stroke="${C.dark}" stroke-width="2.5"/><rect x="66" y="74" width="68" height="10" rx="3" fill="#1c2230"/><rect x="70" y="77" width="60" height="4" fill="${e}"/>`, hideFace: true },
+    wrath:     { back: cape("#a8202a") + `<path d="M64 210 q8 -20 0 -34 M136 210 q-8 -20 0 -34" stroke="#ff6a2b" stroke-width="4" fill="none"/>` },
+    sovereign: { top: crown, back: cape("#6b1d3a") },
+    bastion:   { back: `<circle cx="100" cy="128" r="86" fill="none" stroke="${e}" stroke-width="2" stroke-dasharray="6 8" opacity=".7"><animateTransform attributeName="transform" type="rotate" from="0 100 128" to="360 100 128" dur="14s" repeatCount="indefinite"/></circle>` },
+    berserker: { face: `<path d="M74 84 l14 6 M126 84 l-14 6" stroke="#c0202a" stroke-width="4" stroke-linecap="round"/>` },
+    weaponmaster: {},
+    assassin:  { face: `<path d="M70 96 q30 18 60 0 v16 q-30 14 -60 0z" fill="${C.dark}"/>` },
+    trickster: { back: `<g><rect x="22" y="70" width="14" height="20" rx="2" fill="#fff" stroke="${e}" transform="rotate(-15 29 80)"/><rect x="166" y="60" width="14" height="20" rx="2" fill="#fff" stroke="${e}" transform="rotate(12 173 70)"/><text x="25" y="86" font-size="10" fill="#c0202a" transform="rotate(-15 29 80)">♦</text><text x="169" y="75" font-size="10" fill="#111" transform="rotate(12 173 70)">♠</text></g>` },
+    phantom:   { fade: true, back: `<path d="M40 190 q10 -30 0 -60 M160 190 q-10 -30 0 -60" stroke="${e}" stroke-width="3" fill="none" opacity=".5"/>` },
+    shadowmage:{ hood: hood("#3b2c6e"), back: `<g><rect x="16" y="78" width="26" height="20" rx="2" fill="#3b2c6e" stroke="${gold}" stroke-width="1.5" transform="rotate(-12 29 88)"><animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 0" dur="3s" additive="sum" repeatCount="indefinite"/></rect><path d="M24 84 l5 4 l-5 4" fill="${e}"/><circle cx="174" cy="150" r="7" fill="${bone}"/><circle cx="171" cy="149" r="1.8" fill="${e}"/><circle cx="177" cy="149" r="1.8" fill="${e}"/></g>` },
+    elemental: { back: ["Fire", "Water", "Wind", "Earth"].map((el, i) => `<circle r="6" fill="${ELEM_COLOR[el]}"><animateMotion dur="6s" begin="${-i * 1.5}s" repeatCount="indefinite" path="M100 40 a80 30 0 1 0 1 0"/></circle>`).join("") },
+    battlemage:{ front: `<path d="M60 118 q-8 -10 2 -16 l16 6z" fill="#c9d2de" stroke="${C.dark}" stroke-width="1.5"/>` },
+    sniper:    { face: `<rect x="66" y="64" width="68" height="7" rx="3" fill="${C.dark}"/><circle cx="84" cy="68" r="7" fill="${e}" stroke="${C.dark}" stroke-width="2" opacity=".85"/>` },
+    hunter:    { back: cape("#8a6a44") + `<path d="M66 116 q34 18 68 0" stroke="#d9c4a0" stroke-width="8" fill="none"/>` },
+    trapper:   { front: `<path d="M70 190 h20 l-4 -8 h-12z" fill="#7d858f" stroke="${C.dark}"/><path d="M72 182 l2 -4 l2 4 l2 -4 l2 4 l2 -4 l2 4" stroke="#c9d2de" fill="none"/>` },
+    healer:    { back: [[30, 70], [170, 80], [40, 170]].map(([x, y]) => `<g><circle cx="${x}" cy="${y}" r="8" fill="#5fdc8a" opacity=".85"/><path d="M${x} ${y - 5} v10 M${x - 5} ${y} h10" stroke="#fff" stroke-width="2.5"/></g>`).join("") },
+    paladin:   { top: halo, armor: true },
+    exorcist:  { back: [[26, 90, -12], [172, 100, 10], [34, 156, 6]].map(([x, y, r]) => `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - 6}" y="${y - 14}" width="12" height="28" fill="#f6edc8" stroke="#b9a77a"/><path d="M${x} ${y - 9} v18" stroke="#c0202a" stroke-width="2"/></g>`).join("") },
+    beasttamer:{},
+    rider:     {},
+    spiritcaller: { back: [[34, 100], [166, 110], [150, 40]].map(([x, y], i) => `<g opacity=".8"><circle cx="${x}" cy="${y}" r="9" fill="${e}" opacity=".35"/><path d="M${x - 5} ${y} q5 -12 10 0 q-5 10 -10 0" fill="#fff" opacity=".8"><animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="${2.4 + i * 0.4}s" repeatCount="indefinite"/></path></g>`).join("") },
+  };
+  return S[sub] || {};
+}
+
+function charSVG(o = {}) {
+  const raceId = o.race || player.raceId, cls = o.cls || player.classId, sub = o.sub !== undefined ? o.sub : player.subclass;
+  const el = o.elem || (player.elems ? player.elems[0] : player.elem) || "Normal";
+  const R = RACE_LOOK[raceId] || RACE_LOOK.human, C = { ...CLASS_LOOK[cls] }, e = ELEM_COLOR[el];
+  const SG = subGear(sub, e, C, R), G = classGear(cls, sub, e, C);
+  const skin = R.skin, skinD = shade(skin, -0.25), hair = R.hair, hairS = hair || skin;
+  const uid = "c" + Math.random().toString(36).slice(2, 7);
+  const sy = R.short ? 1.08 : 1;   // short races: bigger head, stubbier body
+  const out = [];
+  out.push(`<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" class="char-svg">`);
+  out.push(`<defs><radialGradient id="${uid}a"><stop offset="0" stop-color="${e}" stop-opacity=".55"/><stop offset="1" stop-color="${e}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${uid}f" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="${uid}m"><rect width="200" height="240" fill="url(#${uid}f)"/></mask></defs>`);
+  // Aura + back particles
+  out.push(`<ellipse cx="100" cy="130" rx="92" ry="104" fill="url(#${uid}a)"><animate attributeName="rx" values="88;96;88" dur="3s" repeatCount="indefinite"/></ellipse>`);
+  out.push(`<ellipse cx="100" cy="226" rx="52" ry="9" fill="#000" opacity=".25"/>`);
+  out.push(elemParticles(el, e, false));
+  out.push(`<g ${SG.fade || R.spirit ? `mask="url(#${uid}m)"` : ""}>`);
+  // Wings & tails (behind)
+  if (R.wings === "dragon") out.push(`<path d="M76 128 q-50 -50 -70 -20 q20 0 18 20 q14 -8 18 8 q10 -10 34 4z" fill="${shade(hair, -0.1)}" stroke="${shade(hair, -0.4)}" stroke-width="2"/><path d="M124 128 q50 -50 70 -20 q-20 0 -18 20 q-14 -8 -18 8 q-10 -10 -34 4z" fill="${shade(hair, -0.1)}" stroke="${shade(hair, -0.4)}" stroke-width="2"/>`);
+  if (R.wings === "bat") out.push(`<path d="M78 126 q-40 -40 -62 -14 q12 2 10 14 q10 -6 14 6 q10 -8 38 -6z" fill="#3a2440"/><path d="M122 126 q40 -40 62 -14 q-12 2 -10 14 q-10 -6 -14 6 q-10 -8 -38 -6z" fill="#3a2440"/>`);
+  if (R.tail === "cat") out.push(`<path d="M122 196 q40 0 34 -40 q-2 -10 6 -12" fill="none" stroke="${hair}" stroke-width="8" stroke-linecap="round"/>`);
+  if (R.tail === "wolf") out.push(`<path d="M120 196 q44 6 46 -30 q-14 10 -22 4 q-6 18 -24 18z" fill="${hair}" stroke="${shade(hair, -0.3)}" stroke-width="2"/><path d="M160 170 q2 -4 6 -4" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`);
+  if (R.tail === "lizard" || R.tail === "dragon") out.push(`<path d="M118 198 q40 10 56 -8 q-20 26 -58 18z" fill="${R.tail === "dragon" ? hair : skinD}"/>`);
+  if (R.tail === "spade") out.push(`<path d="M120 198 q30 6 36 -20" fill="none" stroke="#3a2440" stroke-width="4"/><path d="M156 178 l-6 -10 l12 2z" fill="#3a2440"/>`);
+  if (SG.back) out.push(SG.back);
+  if (G.back) out.push(G.back);
+  // Legs / lower body
+  const legC = C.dark;
+  if (R.slime) out.push(`<path d="M58 222 q-6 -30 18 -40 h48 q24 10 18 40z" fill="${skin}" opacity=".85"/><ellipse cx="100" cy="222" rx="50" ry="8" fill="${shade(skin, -0.15)}" opacity=".8"/>`);
+  else if (R.spirit) out.push(`<path d="M74 178 q-4 30 26 50 q30 -20 26 -50z" fill="${C.cloth}" opacity=".8"/>`);
+  else {
+    out.push(`<rect x="78" y="${178}" width="18" height="${36 / sy}" rx="7" fill="${legC}"/><rect x="104" y="178" width="18" height="${36 / sy}" rx="7" fill="${legC}"/>`);
+    const by = 178 + 36 / sy - 8;
+    out.push(`<path d="M74 ${by} h24 v12 q-12 4 -26 0z" fill="${shade(legC, -0.3)}"/><path d="M102 ${by} h24 l2 12 q-14 4 -26 0z" fill="${shade(legC, -0.3)}"/>`);
+    if (R.skull) out.push(`<path d="M86 ${by + 2} v-4 M112 ${by + 2} v-4" stroke="${skin}" stroke-width="3"/>`);
+  }
+  // Torso (robe or tunic), trim and belt in element color
+  const armored = C.armor || SG.armor;
+  if (C.robe) out.push(`<path d="M70 120 q30 -10 60 0 l12 74 q-42 12 -84 0z" fill="${C.cloth}" stroke="${shade(C.cloth, -0.35)}" stroke-width="2"/><path d="M100 120 v76" stroke="${e}" stroke-width="3" opacity=".9"/><path d="M60 192 q40 10 80 0" stroke="${e}" stroke-width="3" fill="none"/>`);
+  else out.push(`<path d="M72 120 q28 -10 56 0 l4 60 q-32 8 -64 0z" fill="${C.cloth}" stroke="${shade(C.cloth, -0.35)}" stroke-width="2"/>`);
+  if (armored) out.push(`<path d="M76 124 q24 -8 48 0 l-2 30 q-22 8 -44 0z" fill="#c4ccd8" stroke="${C.dark}" stroke-width="2"/><path d="M100 126 v32" stroke="${e}" stroke-width="2.5"/><path d="M62 122 q-6 -14 12 -16 l8 10z M138 122 q6 -14 -12 -16 l-8 10z" fill="#aab4c2" stroke="${C.dark}" stroke-width="1.5"/>`);
+  if (R.skull && !armored) out.push(`<path d="M88 132 q12 4 24 0 M86 140 q14 5 28 0 M88 148 q12 4 24 0" stroke="${skin}" stroke-width="2.5" fill="none" opacity=".9"/>`);
+  out.push(`<rect x="70" y="170" width="60" height="8" rx="3" fill="${shade(C.dark, -0.2)}"/><rect x="95" y="169" width="10" height="10" rx="2" fill="${e}" stroke="#222" stroke-width="1"/>`);
+  if (cls === "rogue" || cls === "ranger") out.push(`<path d="M76 120 q24 12 48 0 l-4 8 q-20 8 -40 0z" fill="${e}" opacity=".9"/>`);
+  // Arms + hands
+  const handC = R.skull ? R.skin : skin;
+  out.push(`<path d="M72 124 q-16 18 -16 44" stroke="${C.cloth}" stroke-width="15" stroke-linecap="round" fill="none"/><path d="M128 124 q16 18 18 44" stroke="${C.cloth}" stroke-width="15" stroke-linecap="round" fill="none"/>`);
+  out.push(`<circle cx="56" cy="172" r="8" fill="${handC}" stroke="${shade(handC, -0.3)}" stroke-width="1.5"/><circle cx="148" cy="172" r="8" fill="${handC}" stroke="${shade(handC, -0.3)}" stroke-width="1.5"/>`);
+  out.push(`</g>`);
+  // ---- Head ----
+  const hx = 100, hy = 80, hr = 44 * (R.short ? 1.04 : 1);
+  const ears = { long: `<path d="M60 82 l-30 -18 l32 30z M140 82 l30 -18 l-32 30z" fill="${skin}" stroke="${skinD}" stroke-width="2"/>`,
+    goblin: `<path d="M60 84 l-34 -6 l34 22z M140 84 l34 -6 l-34 22z" fill="${skin}" stroke="${skinD}" stroke-width="2"/>`,
+    cat: `<path d="M66 54 l-4 -30 l24 16z M134 54 l4 -30 l-24 16z" fill="${hairS}" stroke="${shade(hairS, -0.3)}" stroke-width="2"/><path d="M68 48 l-2 -16 l12 10z M132 48 l2 -16 l-12 10z" fill="#f6b8b8"/>`,
+    wolf: `<path d="M64 56 l-6 -34 l26 18z M136 56 l6 -34 l-26 18z" fill="${hairS}" stroke="${shade(hairS, -0.35)}" stroke-width="2"/><path d="M66 50 l-3 -18 l14 11z M134 50 l3 -18 l-14 11z" fill="#e8d8d8"/>` };
+  if (R.ears === "long" || R.ears === "goblin") out.push(ears[R.ears]);
+  if (hair && !R.skull && !R.slime) out.push(`<path d="M${hx - hr - 2} ${hy + 6} q-2 -${hr + 10} ${hr + 2} -${hr + 8} q${hr + 4} -2 ${hr + 2} ${hr + 8} q2 22 -6 34 h-${2 * hr - 12} q-8 -12 -6 -34z" fill="${shade(hair, -0.15)}"/>`);
+  // Face
+  if (R.skull) {
+    out.push(`<path d="M${hx - 38} ${hy + 4} q0 -46 38 -46 q38 0 38 46 q0 20 -12 28 v12 h-52 v-12 q-12 -8 -12 -28z" fill="${skin}" stroke="#bdb5a4" stroke-width="2.5"/>`);
+    out.push(`<path d="M80 74 q8 -6 16 2 q-4 14 -16 8z M120 74 q-8 -6 -16 2 q4 14 16 8z" fill="#1c1626"/><circle cx="88" cy="80" r="4" fill="${e}"><animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/></circle><circle cx="112" cy="80" r="4" fill="${e}"><animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/></circle>`);
+    out.push(`<path d="M96 92 l4 -6 l4 6z" fill="#1c1626"/><path d="M82 104 h36 M88 100 v10 M96 100 v10 M104 100 v10 M112 100 v10" stroke="#1c1626" stroke-width="2"/>`);
+  } else {
+    const fs = R.slime || R.spirit ? 0.85 : 1;
+    out.push(`<circle cx="${hx}" cy="${hy}" r="${hr}" fill="${skin}" stroke="${skinD}" stroke-width="2" opacity="${fs}"/>`);
+    if (R.slime) out.push(`<path d="M70 52 q6 -14 16 -6" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".6"/><path d="M${hx - 30} ${hy - 34} q30 -22 60 0 q-10 -4 -14 6 q-6 -10 -16 -4 q-8 -8 -16 2 q-6 -8 -14 -4z" fill="${shade(skin, -0.1)}"/>`);
+    if (R.crest) out.push(`<path d="M${hx} ${hy - hr - 10} q-14 10 -12 22 l12 -6 l12 6 q2 -12 -12 -22z" fill="${e}" stroke="${shade(skin, -0.4)}"/><path d="M60 84 q-12 -4 -14 -14 q10 6 16 4z M140 84 q12 -4 14 -14 q-10 6 -16 4z" fill="${shade(skin, -0.2)}"/>`);
+    if (R.muzzle) out.push(`<ellipse cx="100" cy="98" rx="20" ry="14" fill="#eef0f2"/><path d="M94 92 q6 -4 12 0 q-6 6 -12 0z" fill="#222"/>`);
+    // Eyes take your element color
+    if (!SG.hideFace) {
+      const ey = 82, slit = R.slit;
+      [-16, 16].forEach(dx => {
+        out.push(`<ellipse cx="${hx + dx}" cy="${ey}" rx="8" ry="10" fill="#fff"/><ellipse cx="${hx + dx}" cy="${ey + 1}" rx="${slit ? 2.4 : 6}" ry="8" fill="${e}"/>`);
+        if (!slit) out.push(`<circle cx="${hx + dx}" cy="${ey + 2}" r="3.2" fill="#14121c"/>`);
+        out.push(`<circle cx="${hx + dx - 2.5}" cy="${ey - 3}" r="2.4" fill="#fff"/>`);
+      });
+      if (!R.muzzle) out.push(`<path d="M94 102 q6 5 12 0" stroke="${shade(skin, -0.5)}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`);
+      if (!R.slime && !R.spirit) out.push(`<ellipse cx="78" cy="96" rx="6" ry="3" fill="#ff8a8a" opacity=".35"/><ellipse cx="122" cy="96" rx="6" ry="3" fill="#ff8a8a" opacity=".35"/>`);
+    }
+    if (R.beard) out.push(`<path d="M68 92 q32 52 64 0 q-8 18 -32 20 q-24 -2 -32 -20z" fill="${hair}" stroke="${shade(hair, -0.3)}" stroke-width="1.5"/><path d="M90 100 q10 4 20 0" stroke="${shade(hair, -0.35)}" stroke-width="2" fill="none"/>`);
+    // Fringe
+    if (hair && !R.slime) out.push(`<path d="M${hx - hr + 2} ${hy - 6} q4 -${hr - 4} ${hr - 2} -${hr - 2} q${hr} 0 ${hr - 2} ${hr - 4} q-10 -14 -22 -10 q-6 12 -20 8 q-8 10 -18 6 q-12 -4 -20 6z" fill="${hair}" stroke="${shade(hair, -0.3)}" stroke-width="1.5" opacity="${R.spirit ? 0.85 : 1}"/>`);
+    if (R.ears === "cat" || R.ears === "wolf") out.push(ears[R.ears]);
+  }
+  if (R.horns === "dragon") out.push(`<path d="M74 50 q-14 -22 -2 -40 q2 18 14 30z M126 50 q14 -22 2 -40 q-2 18 -14 30z" fill="#efe0c0" stroke="#9a8460" stroke-width="2"/>`);
+  if (R.horns === "demon") out.push(`<path d="M72 52 q-6 -26 -22 -30 q12 14 10 34z M128 52 q6 -26 22 -30 q-12 14 -10 34z" fill="#2a1d30" stroke="${e}" stroke-width="1.2"/>`);
+  if (SG.hood) out.push(SG.hood);
+  if (SG.face) out.push(SG.face);
+  if (SG.top) out.push(SG.top);
+  if (SG.front) out.push(SG.front);
+  if (G.front) out.push(G.front);
+  out.push(elemParticles(el, e, true));
+  out.push(`</svg>`);
+  return out.join("");
+}
+
+
+/* =========================================================
+   CHARACTER SHEET: your drawn character with intro, skills,
+   traits and equipment, laid out like a class reveal card.
+   ========================================================= */
+function renderSheet() {
+  const el = $("sheetBody"); if (!el || !player) return;
+  const race = RACES[player.raceId], cls = CLASSES[player.classId], sub = subOf(), job = JOBS[player.jobId];
+  const els = player.elems || [player.elem], main = els[0], ec = ELEM_COLOR[main];
+  const rp = RACE_PASSIVES[player.raceId], cp = CLASS_PASSIVES[player.classId];
+  const beats = els.map(x => BEATS[x]).filter(Boolean);
+  const gear = Object.entries(player.equipped).filter(([, id]) => id && R[id]);
+  const title = sub ? sub.name : cls.name;
+  el.style.setProperty("--ec", ec);
+  el.innerHTML = `
+    <div class="cs-title"><span>${title.toUpperCase()}</span></div>
+    <div class="cs-sub">${formOf("race")} · ${formOf("class")}${sub && formOf("class") !== cls.name ? ` (${cls.name})` : ""}</div>
+    <div class="cs-stage">
+      <div class="cs-art">${charSVG()}</div>
+      <div class="cs-tag">${ELEM_ICON[main]} ${els.join(" / ")}</div>
+      <div class="cs-name">${player.name}<small>Lv. ${player.level} · ${rankOf(player.level).text}</small></div>
+    </div>
+    <div class="cs-grid">
+      <div class="cs-box"><div class="cs-h">Introduction</div>
+        <p>${race.desc} ${sub ? sub.desc : cls.desc}</p></div>
+      <div class="cs-box"><div class="cs-h">Skills</div>
+        <div class="cs-skills">${cls.skills.map((s, i) => `<span class="cs-sk ${player.level >= SKILL_UNLOCK[i] ? "" : "lock"}" title="${s}">${i === ULT_SLOT ? "🌟" : ["⚔️", "🛡️", "✨", "💥"][i]}<small>${s}</small></span>`).join("")}</div></div>
+      <div class="cs-box"><div class="cs-h">Offensive Traits</div>
+        <p><b>${cls.ability}</b> (${GRADES[player.grade]} grade).${sub ? ` ${sub.perk}` : ""}${beats.length ? ` Strong against ${[...new Set(beats)].join(" and ")}.` : ""}</p></div>
+      <div class="cs-box"><div class="cs-h">Defensive Traits</div>
+        <p><b>${rp.name}:</b> ${rp.desc} <b>${cp.name}:</b> ${cp.desc} ${race.body} at ${LAYERS[player.layer]}.</p></div>
+      <div class="cs-box wide"><div class="cs-h">Equipment</div>
+        <div class="cs-eq">${gear.length ? gear.map(([slot, id]) => `<span class="cs-item"><b>${R[id].icon}</b><small>${R[id].name}</small><i>${slot}</i></span>`).join("")
+          : `<span class="small muted">Nothing equipped. Craft gear in the Craft window.</span>`}</div></div>
+      <div class="cs-box wide"><div class="cs-h">Your look</div>
+        <p class="small">Your <b>race</b> sets your body, your <b>class</b> sets your outfit and weapon, your <b>subclass</b> adds signature gear, and your main <b>element</b> colors your eyes, trim and aura. Job: ${job.icon} ${job.name}.</p></div>
+    </div>`;
+}
 
 
 /* =========================================================
@@ -4045,6 +4357,7 @@ const WIN = {
   bag:    { title: "Inventory",    icon: "🎒", color: "#e0a060" },
   craft:  { title: "Crafting",     icon: "⚒️", color: "#ff9a3d" },
   party:  { title: "Party",        icon: "👥", color: "#3dd6c6" },
+  sheet:  { title: "Character",    icon: "🧙", color: "#c08bff" },
 };
 const RESULT_COLOR = { gather: "#3ddc84", work: "#ffc94d", rest: "#9d8cff", story: "#ffc94d" };
 let currentWin = null;
