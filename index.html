@@ -3255,9 +3255,9 @@ function classGear(cls, sub, e, C) {
       const w = big ? 46 : 38, h = big ? 62 : 50, cx = 52, cy = 160;
       const emblem = sub === "templar" ? `<path d="M${cx} ${cy - 14} v26 M${cx - 9} ${cy - 4} h18" stroke="${gold}" stroke-width="5"/>`
         : `<circle cx="${cx}" cy="${cy}" r="7" fill="${e}"/>`;
-      return { front: `<path d="M${cx - w / 2} ${cy - h / 2} h${w} v${h * 0.55} q0 ${h * 0.35} -${w / 2} ${h * 0.45} q-${w / 2} -${h * 0.1} -${w / 2} -${h * 0.45}z" fill="${metal}" stroke="${C.dark}" stroke-width="3"/>
-        <path d="M${cx - w / 2 + 5} ${cy - h / 2 + 5} h${w - 10} v${h * 0.5} q0 ${h * 0.3} -${w / 2 - 5} ${h * 0.38} q-${w / 2 - 5} -${h * 0.08} -${w / 2 - 5} -${h * 0.38}z" fill="${C.cloth}"/>${emblem}
-        <path d="M148 178 l6 -44" stroke="${wood}" stroke-width="5"/><rect x="146" y="124" width="16" height="14" rx="3" fill="${metal}" stroke="${C.dark}" stroke-width="2"/>` };
+      return { off: `<path d="M${cx - w / 2} ${cy - h / 2} h${w} v${h * 0.55} q0 ${h * 0.35} -${w / 2} ${h * 0.45} q-${w / 2} -${h * 0.1} -${w / 2} -${h * 0.45}z" fill="${metal}" stroke="${C.dark}" stroke-width="3"/>
+        <path d="M${cx - w / 2 + 5} ${cy - h / 2 + 5} h${w - 10} v${h * 0.5} q0 ${h * 0.3} -${w / 2 - 5} ${h * 0.38} q-${w / 2 - 5} -${h * 0.08} -${w / 2 - 5} -${h * 0.38}z" fill="${C.cloth}"/>${emblem}`,
+        front: `<path d="M148 178 l6 -44" stroke="${wood}" stroke-width="5"/><rect x="146" y="124" width="16" height="14" rx="3" fill="${metal}" stroke="${C.dark}" stroke-width="2"/>` };
     }
     case "warrior": {
       const axe = sub === "berserker";
@@ -3267,14 +3267,13 @@ function classGear(cls, sub, e, C) {
         back: sub === "weaponmaster" ? `<g opacity=".9"><path d="M38 70 l8 70" stroke="${metal}" stroke-width="5"/><path d="M162 60 l-6 70" stroke="${metal}" stroke-width="5"/><path d="M40 72 l6 60" stroke="${e}" stroke-width="2"/></g>` : "" };
     }
     case "rogue":
-      return { front: `<path d="M150 170 l14 -26 l4 3 l-12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="146" y="168" width="8" height="12" rx="2" fill="${C.dark}"/>
-        <path d="M50 170 l-14 -26 l-4 3 l12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="46" y="168" width="8" height="12" rx="2" fill="${C.dark}"/>
-        <path d="M157 160 l6 -12" stroke="${e}" stroke-width="2"/><path d="M43 160 l-6 -12" stroke="${e}" stroke-width="2"/>` };
+      return { front: `<path d="M150 170 l14 -26 l4 3 l-12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="146" y="168" width="8" height="12" rx="2" fill="${C.dark}"/><path d="M157 160 l6 -12" stroke="${e}" stroke-width="2"/>`,
+        off: `<path d="M50 170 l-14 -26 l-4 3 l12 25z" fill="${metal}" stroke="${C.dark}" stroke-width="1.5"/><rect x="46" y="168" width="8" height="12" rx="2" fill="${C.dark}"/><path d="M43 160 l-6 -12" stroke="${e}" stroke-width="2"/>` };
     case "mage": {
       const orb = `<circle cx="160" cy="92" r="10" fill="${e}" opacity=".9"><animate attributeName="r" values="9;11;9" dur="2s" repeatCount="indefinite"/></circle><circle cx="157" cy="89" r="3" fill="#fff" opacity=".8"/>`;
       const staff = `<path d="M152 192 l8 -96" stroke="${wood}" stroke-width="5" stroke-linecap="round"/><path d="M150 100 q10 -22 20 0" fill="none" stroke="${gold}" stroke-width="3"/>${orb}`;
       const sword = sub === "battlemage" ? `<path d="M44 176 l-8 -60 l5 -1 l8 60z" fill="${metal}" stroke="${e}" stroke-width="1.5"/><rect x="38" y="172" width="18" height="5" rx="2" fill="${gold}"/>` : "";
-      return { front: staff + sword };
+      return { front: staff, off: sword };
     }
     case "ranger": {
       const bow = `<path d="M150 98 q34 56 0 112" fill="none" stroke="${wood}" stroke-width="5" stroke-linecap="round"/><path d="M150 98 v112" stroke="#eee" stroke-width="1.2"/>`;
@@ -3332,11 +3331,68 @@ function subGear(sub, e, C, R) {
   return S[sub] || {};
 }
 
+
+/* ---------- Equipped gear shows on the character ---------- */
+const RARITY_GLOW = { rare: "#4da3ff", epic: "#b06bff", legendary: "#ffb020" };
+function gearGlow(id, x, y) {
+  const r = R[id] && R[id].rarity; if (!r) return "";
+  return `<circle cx="${x}" cy="${y}" r="16" fill="${RARITY_GLOW[r]}" opacity=".28"><animate attributeName="opacity" values=".35;.1;.35" dur="1.8s" repeatCount="indefinite"/></circle>`;
+}
+function mainHandSVG(id, e) {
+  const g = gearGlow(id, 160, 130);
+  switch (id) {
+    case "dagger": return g + `<path d="M150 172 l14 -34 l5 2 l-12 34z" fill="#d6dde6" stroke="#4a4f5a" stroke-width="1.5"/><path d="M162 142 l6 -8 l1 9z" fill="#fff"/><rect x="144" y="168" width="14" height="5" rx="2" fill="#7a5534" transform="rotate(20 151 170)"/>`;
+    case "crystalEdge": return g + `<path d="M150 174 l14 -80 l9 4 l-15 78z" fill="#9fe6ff" fill-opacity=".85" stroke="#3aa0ff" stroke-width="1.5"/><path d="M158 150 l9 -46" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="138" y="170" width="28" height="6" rx="3" fill="#7fd6ff" transform="rotate(10 152 173)"/>`;
+    case "shadowBlade": return g + `<path d="M150 176 l12 -90 l8 3 l-13 89z" fill="#2a2238" stroke="#b06bff" stroke-width="2"/><path d="M160 130 l6 -40" stroke="#d6b3ff" stroke-width="1.5"/><path d="M136 172 l30 6" stroke="#b06bff" stroke-width="5" stroke-linecap="round"/>`;
+    case "spireBreaker": return g + gearGlow(id, 168, 108) + `<path d="M150 192 l10 -98" stroke="#5a3a1e" stroke-width="7" stroke-linecap="round"/><path d="M158 100 q30 -10 34 18 q-16 6 -32 2z M156 104 q-26 -8 -30 14 q14 4 28 0z" fill="#ffd36a" stroke="#a07a20" stroke-width="2"/><circle cx="158" cy="104" r="5" fill="${e}"/>`;
+  }
+  return "";
+}
+function offHandSVG(id, e) {
+  const g = gearGlow(id, 50, 150);
+  switch (id) {
+    case "buckler": return `<circle cx="52" cy="162" r="20" fill="#e9d8b4" stroke="#8a7350" stroke-width="3"/><path d="M52 162 m-12 0 a12 12 0 1 1 12 12 a8 8 0 1 1 -8 -8 a4 4 0 1 1 4 4" fill="none" stroke="#b89a6a" stroke-width="2"/>`;
+    case "parry": return `<path d="M50 172 l-16 -24 l4 -3 l15 24z" fill="#d6dde6" stroke="#4a4f5a" stroke-width="1.5"/><path d="M40 150 q-6 -4 -4 -10 l4 4z" fill="#d6dde6"/><rect x="47" y="168" width="8" height="12" rx="2" fill="#7a5534"/>`;
+    case "grimoire": return floatBook(36, 140, "#3a7bd5", "#9fd2ff", "📘");
+    case "umbralTome": return g + floatBook(34, 138, "#2a1d40", "#b06bff") + `<ellipse cx="46" cy="148" rx="5" ry="3" fill="#ff4a6a"/>`;
+    case "archCodex": return g + floatBook(30, 132, "#b8862a", "#ffe9a0", null, 1.25) + `<path d="M40 128 l-6 -14 M48 126 l0 -16 M56 128 l6 -14" stroke="#ffe25c" stroke-width="2" opacity=".8"/>`;
+    case "wraithFocus": return g + `<circle cx="44" cy="148" r="13" fill="#bff0ff" fill-opacity=".55" stroke="#7fd6ff" stroke-width="2"><animate attributeName="cy" values="148;142;148" dur="2.6s" repeatCount="indefinite"/></circle><circle cx="40" cy="144" r="3" fill="#fff"/>`;
+  }
+  return "";
+}
+function floatBook(x, y, cover, page, _icon, sc = 1) {
+  return `<g transform="translate(${x} ${y}) scale(${sc})"><animateTransform attributeName="transform" type="translate" values="${x} ${y};${x} ${y - 5};${x} ${y}" dur="2.8s" repeatCount="indefinite" additive="replace"/>
+    <path d="M0 4 q12 -6 14 0 q2 -6 14 0 v18 q-12 -6 -14 0 q-2 -6 -14 0z" fill="${page}" stroke="${cover}" stroke-width="3"/><path d="M14 4 v18" stroke="${cover}" stroke-width="2"/></g>`;
+}
+function armorSVG(id, e) {
+  switch (id) {
+    case "armor": return `<path d="M76 124 q24 -8 48 0 l-2 32 q-22 8 -44 0z" fill="#e9d8b4" stroke="#8a7350" stroke-width="2"/><path d="M80 134 q20 6 40 0 M80 144 q20 6 40 0" stroke="#b89a6a" stroke-width="2" fill="none"/>`;
+    case "serpentMail": return `<path d="M74 122 q26 -10 52 0 l2 46 q-28 8 -56 0z" fill="#3f9a6a" stroke="#1e5a3c" stroke-width="2"/>` +
+      [0, 1, 2, 3].map(r => [0, 1, 2, 3, 4].map(c => `<path d="M${78 + c * 9 + (r % 2) * 4} ${130 + r * 9} q4 6 8 0" fill="none" stroke="#8fe0b0" stroke-width="1.5"/>`).join("")).join("");
+    case "drakePlate": return `<path d="M72 122 q28 -12 56 0 l2 48 q-30 8 -60 0z" fill="#a8282e" stroke="#4a0e12" stroke-width="2.5"/><path d="M84 130 l16 10 l16 -10 M84 148 l16 10 l16 -10" stroke="#ffb36a" stroke-width="2" fill="none"/>
+      <path d="M58 124 l-10 -16 l18 6z M142 124 l10 -16 l-18 6z" fill="#efe0c0" stroke="#4a0e12" stroke-width="1.5"/>`;
+  }
+  return "";
+}
+function accessorySVG(id, e, legBottom) {
+  switch (id) {
+    case "amulet": return `<path d="M88 118 q12 14 24 0" fill="none" stroke="#c9a14a" stroke-width="2"/><circle cx="100" cy="128" r="5" fill="#ff8a3a" stroke="#7a3a10" stroke-width="1.5"/>`;
+    case "towerHeart": return `<path d="M86 116 q14 16 28 0" fill="none" stroke="#e6b94a" stroke-width="2.5"/><path d="M94 124 h12 l2 6 q-8 10 -16 0z" fill="#ffd36a" stroke="#a07a20"/><circle cx="100" cy="129" r="3" fill="${e}"><animate attributeName="r" values="2.5;4;2.5" dur="1.6s" repeatCount="indefinite"/></circle>
+      <circle cx="100" cy="128" r="70" fill="none" stroke="#ffb020" stroke-width="1.5" stroke-dasharray="3 9" opacity=".6"><animateTransform attributeName="transform" type="rotate" from="0 100 128" to="-360 100 128" dur="18s" repeatCount="indefinite"/></circle>`;
+    case "boots": return `<path d="M74 ${legBottom - 10} h24 v14 q-12 4 -26 0z M102 ${legBottom - 10} h24 l2 14 q-14 4 -26 0z" fill="#8a5a34" stroke="#4b2f20" stroke-width="1.5"/>`;
+    case "galeBoots": return `<path d="M74 ${legBottom - 10} h24 v14 q-12 4 -26 0z M102 ${legBottom - 10} h24 l2 14 q-14 4 -26 0z" fill="#2f8a7a" stroke="#174a40" stroke-width="1.5"/>
+      <path d="M72 ${legBottom - 6} q-12 -6 -16 -16 q10 4 16 10z M128 ${legBottom - 6} q12 -6 16 -16 q-10 4 -16 10z" fill="#bff5e4" stroke="#4fe3a5"/>`;
+  }
+  return "";
+}
+
 function charSVG(o = {}) {
   const raceId = o.race || player.raceId, cls = o.cls || player.classId, sub = o.sub !== undefined ? o.sub : player.subclass;
   const el = o.elem || (player.elems ? player.elems[0] : player.elem) || "Normal";
   const R = RACE_LOOK[raceId] || RACE_LOOK.human, C = { ...CLASS_LOOK[cls] }, e = ELEM_COLOR[el];
   const SG = subGear(sub, e, C, R), G = classGear(cls, sub, e, C);
+  const EQ = o.equipped || (player && player.equipped) || {};
+  const eqId = slot => { const id = EQ[slot]; return id && typeof RECIPES !== "undefined" && RECIPES.some(r => r.id === id) ? id : null; };   // (R here is the race look)
   const skin = R.skin, skinD = shade(skin, -0.25), hair = R.hair, hairS = hair || skin;
   const uid = "c" + Math.random().toString(36).slice(2, 7);
   const sy = R.short ? 1.08 : 1;   // short races: bigger head, stubbier body
@@ -3368,6 +3424,7 @@ function charSVG(o = {}) {
     const by = 178 + 36 / sy - 8;
     out.push(`<path d="M74 ${by} h24 v12 q-12 4 -26 0z" fill="${shade(legC, -0.3)}"/><path d="M102 ${by} h24 l2 12 q-14 4 -26 0z" fill="${shade(legC, -0.3)}"/>`);
     if (R.skull) out.push(`<path d="M86 ${by + 2} v-4 M112 ${by + 2} v-4" stroke="${skin}" stroke-width="3"/>`);
+    if (eqId("Accessory") && /boots/i.test(eqId("Accessory"))) out.push(accessorySVG(eqId("Accessory"), e, by + 10));
   }
   // Torso (robe or tunic), trim and belt in element color
   const armored = C.armor || SG.armor;
@@ -3377,6 +3434,8 @@ function charSVG(o = {}) {
   if (R.skull && !armored) out.push(`<path d="M88 132 q12 4 24 0 M86 140 q14 5 28 0 M88 148 q12 4 24 0" stroke="${skin}" stroke-width="2.5" fill="none" opacity=".9"/>`);
   out.push(`<rect x="70" y="170" width="60" height="8" rx="3" fill="${shade(C.dark, -0.2)}"/><rect x="95" y="169" width="10" height="10" rx="2" fill="${e}" stroke="#222" stroke-width="1"/>`);
   if (cls === "rogue" || cls === "ranger") out.push(`<path d="M76 120 q24 12 48 0 l-4 8 q-20 8 -40 0z" fill="${e}" opacity=".9"/>`);
+  if (eqId("Armor")) out.push(armorSVG(eqId("Armor"), e));
+  if (eqId("Accessory") && !/boots/i.test(eqId("Accessory"))) out.push(accessorySVG(eqId("Accessory"), e));
   // Arms + hands
   const handC = R.skull ? R.skin : skin;
   out.push(`<path d="M72 124 q-16 18 -16 44" stroke="${C.cloth}" stroke-width="15" stroke-linecap="round" fill="none"/><path d="M128 124 q16 18 18 44" stroke="${C.cloth}" stroke-width="15" stroke-linecap="round" fill="none"/>`);
@@ -3423,7 +3482,10 @@ function charSVG(o = {}) {
   if (SG.face) out.push(SG.face);
   if (SG.top) out.push(SG.top);
   if (SG.front) out.push(SG.front);
-  if (G.front) out.push(G.front);
+  const off = eqId("Off-Hand") ? offHandSVG(eqId("Off-Hand"), e) : G.off;
+  const main = eqId("Main Hand") ? mainHandSVG(eqId("Main Hand"), e) : G.front;
+  if (off) out.push(off);
+  if (main) out.push(main);
   out.push(elemParticles(el, e, true));
   out.push(`</svg>`);
   return out.join("");
