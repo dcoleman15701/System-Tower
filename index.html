@@ -704,6 +704,72 @@ body {
 .st-art-info { min-width: 0; display: grid; gap: 3px; }
 .st-art-name { font-weight: 800; font-size: 17px; overflow-wrap: anywhere; }
 .st-art-info .btn { justify-self: start; margin-top: 4px; padding: 5px 10px; }
+
+/* ===== Pokemon-style battle plates + command menu ===== */
+.arena.e7 .b-top { left: auto; right: 8px; width: min(64%, 360px); padding: 6px 10px 4px; background: rgba(248,250,255,.93); color: #1b2030; text-shadow: none; border-radius: 10px 10px 10px 22px; border: 2px solid #2b3245; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.arena.e7 .b-top .b-lv { color: #1b2030; }
+.arena.e7 .b-top .b-icons { margin-top: 3px; }
+.arena.e7 .b-floor2 { top: auto; bottom: 8px; right: 10px; }
+.pl-plate { position: absolute; left: 8px; bottom: 8px; z-index: 5; width: min(58%, 320px); padding: 6px 10px; background: rgba(248,250,255,.93); color: #1b2030; border-radius: 22px 10px 10px 10px; border: 2px solid #2b3245; box-shadow: 0 3px 0 rgba(0,0,0,.25); font-size: 13px; }
+.pl-plate .b-top-row { display: flex; justify-content: space-between; } .pl-plate .b-lv { color: #1b2030; }
+.pp-bar { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+.pp-tag { font-size: 9px; font-weight: 900; color: #ffd84a; background: #2b3245; padding: 0 4px; border-radius: 3px; } .pp-tag.mp { color: #7cc8ff; }
+.pp-bar .b-hpbar { flex: 1; height: 8px; margin: 0; border-color: #2b3245; }
+.b-hpbar .mp { height: 100%; background: linear-gradient(90deg, #3a8bff, #7cc8ff); transition: width .35s; }
+.pl-plate .d-num { text-align: right; font-weight: 800; margin: 2px 0 0; color: #1b2030; } .pl-plate .hp-t { color: #1b2030; } .pl-plate .mp-t { color: #2a6acc; }
+.arena.e7 .b-party { bottom: 86px; height: 170px; }
+.arena.e7 .b-foe { bottom: 40px; }
+.dock { grid-template-columns: 1fr 1.1fr; }
+.dock .b-msg { margin: 0; min-height: 96px; padding: 10px 12px; border: 3px solid #2b3245; border-radius: 10px; background: rgba(248,250,255,.95); color: #1b2030; font-size: 15px; line-height: 1.4; }
+.dock .b-msg.empty { opacity: 1; }
+.dock .b-msg.result { grid-column: 1 / -1; background: var(--card); color: var(--text); border-color: var(--panel-border); max-height: 52vh; overflow: auto; }
+.dock:has(.b-msg.result) .b-menu { grid-column: 1 / -1; }
+.cmd4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.c4 { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; padding: 14px 12px; border-radius: 10px; border: 3px solid rgba(0,0,0,.35);
+  color: #fff; font-size: 19px; font-weight: 800; letter-spacing: .5px; text-shadow: 0 2px 0 rgba(0,0,0,.35); cursor: pointer; box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 3px 0 rgba(0,0,0,.3); }
+.c4 i { font-style: normal; font-size: 26px; opacity: .85; }
+.c4 sup { font-size: 11px; background: #fff; color: #2a9a4a; border-radius: 8px; padding: 0 5px; }
+.c4.fight { background: linear-gradient(180deg, #ff6a5c, #d8352c); }
+.c4.party { background: linear-gradient(180deg, #4fd07a, #23964a); }
+.c4.bag   { background: linear-gradient(180deg, #f2c94c, #c99a1e); }
+.c4.run   { background: linear-gradient(180deg, #7b8cff, #4a58c8); }
+.c4:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); }
+.party-list { display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.pl-row { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; border: 2px solid var(--sc, var(--panel-border)); background: var(--card); color: var(--text); text-align: left; cursor: pointer; }
+.pl-row.info { cursor: default; border-style: dashed; } .pl-row.used { opacity: .5; }
+.pl-fig { flex: none; width: 44px; height: 52px; } .pl-fig.emo { display: grid; place-items: center; font-size: 26px; }
+.pl-txt { flex: 1; min-width: 0; font-size: 13px; }
+.pl-go { flex: none; font-weight: 900; color: var(--sc); }
+.b-hero { position: absolute; left: calc(2% + var(--i) * 24%); bottom: 4px; width: 62px; height: 74px; z-index: 1; }
+.b-hero .char-svg { animation: bob 2.8s ease-in-out infinite; animation-delay: calc(var(--i) * .4s); }
+@media (max-width: 520px) { .dock { grid-template-columns: 1fr; } .dock .b-msg { min-height: 52px; } .c4 { padding: 12px 10px; font-size: 17px; } .b-hero { width: 50px; height: 60px; } .pl-plate { width: 64%; } }
+/* ===== Summon ===== */
+#gemHud { color: #ff8be0; font-weight: 800; }
+.gem-bar { text-align: center; margin: 6px 0 10px; font-size: 15px; }
+.banner { position: relative; border-radius: 14px; overflow: hidden; padding: 10px; margin-bottom: 10px; text-align: center;
+  background: radial-gradient(ellipse at 50% 70%, rgba(255,176,32,.35), transparent 65%), linear-gradient(160deg, #2a1650, #120a2a 60%, #3a1036); border: 2px solid #ffb020; }
+.banner-title { font-family: Georgia, serif; font-size: 22px; color: #ffe08a; letter-spacing: 1px; text-shadow: 0 0 12px rgba(255,176,32,.7); }
+.banner-art { display: flex; justify-content: center; margin: 4px 0; } .ba { width: 25%; max-width: 110px; aspect-ratio: 5 / 6; margin: 0 -6px; }
+.banner-names { color: #f3e6ff; }
+.res-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; } .res-btns small { opacity: .8; }
+.hero-list { display: grid; gap: 10px; }
+.hero-card { display: flex; gap: 10px; padding: 8px; border: 2px solid var(--sc); border-radius: 12px; background: var(--card); }
+.hero-card.on { box-shadow: 0 0 14px var(--sc); }
+.hc-fig { flex: none; width: 96px; height: 115px; background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--sc) 30%, transparent), transparent 70%); border-radius: 10px; }
+.hc-info { min-width: 0; display: grid; gap: 2px; } .hc-info .btn { justify-self: start; margin-top: 6px; padding: 5px 10px; }
+.sum-stars { color: var(--sc, #ffb020); letter-spacing: 1px; font-weight: 900; } .aw { font-size: 11px; background: var(--sc); color: #111; border-radius: 6px; padding: 0 5px; }
+.summon-res { max-width: 640px; }
+.sum-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 10px; } .sum-grid.ten { grid-template-columns: repeat(5, 1fr); }
+.sum-card { text-align: center; padding: 6px 4px; border-radius: 10px; border: 2px solid var(--sc); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--sc) 35%, transparent), rgba(0,0,0,.35));
+  animation: sumIn .5s both; animation-delay: var(--d); }
+.sum-card.s5 { box-shadow: 0 0 18px var(--sc); }
+.sum-art { width: 100%; aspect-ratio: 5 / 6; max-width: 150px; margin: 0 auto; }
+.sum-name { font-size: 11px; font-weight: 700; line-height: 1.15; } .sum-note { font-size: 10px; color: var(--muted); } .sum-note.new { color: #ff5fd2; font-weight: 900; }
+@keyframes sumIn { from { opacity: 0; transform: rotateY(90deg) scale(.7); } to { opacity: 1; transform: none; } }
+@media (max-width: 520px) { .sum-grid.ten { grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; } .sum-grid.ten .sum-name { font-size: 8.5px; } .sum-grid.ten .sum-stars { font-size: 9px; letter-spacing: 0; } .sum-grid.ten .sum-note { font-size: 8px; } }
+.res-btns > * { min-width: 0; white-space: normal; }
+.squad-box { margin-bottom: 12px; } .hero-mini { display: flex; gap: 8px; align-items: center; padding: 6px; border: 1px solid var(--sc); border-radius: 10px; margin-bottom: 6px; }
+.hm-fig { flex: none; width: 48px; height: 58px; }
 </style>
 </head>
 <body data-theme="holo">
@@ -718,11 +784,12 @@ body {
 </div>
 
 <div class="wrap" id="wrap">
-  <div class="hud" id="hud"><span id="goldHud">💰 0 Gold</span><span id="hudFloor">🗼 Floor 0</span></div>
+  <div class="hud" id="hud"><span id="goldHud">💰 0 Gold</span><span id="gemHud">💎 0</span><span id="hudFloor">🗼 Floor 0</span></div>
   <div class="hub-card sys-win" id="hubCard"></div>
   <div class="hub" id="hub">
     <button class="tile sys" data-open="status"><span class="ti">📊</span>Status</button>
     <button class="tile" data-open="sheet" style="--tc:#c08bff"><span class="ti">🧙</span>Character</button>
+    <button class="tile" data-open="summon" style="--tc:#ff5fd2"><span class="ti">🔮</span>Summon</button>
     <button class="tile" data-open="tower" style="--tc:#ff7a45"><span class="ti">🗼</span>Tower</button>
     <button class="tile" data-open="shop" style="--tc:#3ddc84"><span class="ti">🏪</span>Shop</button>
     <button class="tile" data-open="quest" style="--tc:#ffc94d"><span class="ti">📜</span>Quest</button>
@@ -842,12 +909,16 @@ body {
       </section>
   
       <!-- ================= PARTY ================= -->
+      <section class="page" data-page="summon">
+        <div id="summonBody"></div>
+      </section>
       <section class="page" data-page="sheet">
         <div id="sheetBody" class="cs"></div>
       </section>
       <section class="page" data-page="party">
         <div class="header" data-title="party"></div>
         <div data-guide="party"></div>
+        <div id="squadBox" class="squad-box"></div>
         <div id="armyBox"></div>
         <div class="party-bonus" id="partyBonus"></div>
         <div id="allyList"></div>
@@ -1429,7 +1500,7 @@ function bonusOf(k) {
   b += (LAYER_BONUS[k] || 0) * player.layer;
   b += (RACES[player.raceId].stats[k] || 0) + (CLASSES[player.classId].stats[k] || 0);
   b += (pathBonus("race")[k] || 0) + (pathBonus("class")[k] || 0);
-  b += armyStat(k);
+  b += armyStat(k) + heroStat(k);
   return b;
 }
 const eff = k => Math.max(1, player.stats[k] + bonusOf(k));
@@ -1491,7 +1562,7 @@ function gainXp(amount) {
     leveled = true;
     player.xp -= xpToNext(player.level);
     const before = rankOf(player.level);
-    player.level++; player.points += 3;
+    player.level++; player.points += 3; if (player.heroes) player.gems += 10;
     const now = rankOf(player.level);
     ALLIES.forEach(a => { if (a.inParty) a.level++; });
     recalc(); player.hp = player.maxHp; player.mp = player.maxMp;
@@ -1721,7 +1792,7 @@ function releaseUnit(i) { const u = player.army.splice(i, 1)[0]; recalc(); notif
 
 function claimReward() {
   if (!allQuestsDone() || questClaimed) return;
-  questClaimed = true; player.points += 3; player.ap += 100; player.gold += 50; gainXp(100);
+  questClaimed = true; player.points += 3; player.ap += 100; player.gold += 50; gainXp(100); gainGems(50, "daily quest");
   player.hp = player.maxHp; player.mp = player.maxMp; player.fatigue = 0;
   notify("REWARD", "Daily quest reward claimed. +3 points, +100 EXP, +100 AP, +50 Gold, full recovery", "levelUp");
   render();
@@ -1949,7 +2020,7 @@ $("createBody").addEventListener("click", e => {
 let craftCat = "Gear";
 function render() {
   if (!player) return;
-  checkDailyReset();
+  checkDailyReset(); heroState();
   const race = RACES[player.raceId], cls = CLASSES[player.classId], job = JOBS[player.jobId], sub = subOf();
 
   // ---- Status ----
@@ -2114,7 +2185,7 @@ function render() {
     </div>`).join("");
 
   setDot("status", player.points > 0 || player.pendingEvo.length > 0);
-  checkStory(); renderStory(); renderGuides(); renderSheet();
+  checkStory(); renderStory(); renderGuides(); renderSheet(); renderSummon(); renderSquadBox();
   setDot("quest", (allQuestsDone() && !questClaimed) || storyAlert());
   setDot("skills",
     (!maxG && player.ap >= GRADE_COST[g]) ||
@@ -2496,6 +2567,7 @@ async function playerAction(action) {
     await doPlayer(action); if (m.hp <= 0) return victory();
   }
   await armyStrike(); if (m.hp <= 0) return victory();
+  await heroAssist(); if (m.hp <= 0) return victory();
   roundEnd();
 }
 async function roundEnd() {
@@ -2517,6 +2589,7 @@ async function roundEnd() {
 
 async function doPlayer(action) {
   const m = B.mon;
+  if (action.type === "call") return heroSpecial(action.id);
   if (action.type === "guard") {
     B.guard = true;
     player.mp = Math.min(player.maxMp, player.mp + 5); bars();
@@ -2696,6 +2769,7 @@ async function victory() {
   xp *= 1 + fx("xpMult");
   if (fx("xpLowHp") && player.hp < player.maxHp / 2) xp *= 1 + fx("xpLowHp");
   if (summonType() && player.armyMode === "attack") xp *= 1 + 0.05 * armyPower();
+  xp *= 1 + heroPct("xp");
   if (player.scrolls.xp) { xp *= 1.5; player.scrolls.xp = false; }
   if (player.scrolls.xp2) { xp *= 3; player.scrolls.xp2 = false; }
   const crit = fx("crit") && Math.random() < fx("crit"); if (crit) xp *= 2;
@@ -2704,14 +2778,17 @@ async function victory() {
   if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
   let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
+  gold = Math.floor(gold * (1 + heroPct("gold")));
   const loot = rollLoot(m);
   Object.entries(loot).forEach(([id, n]) => addMat(id, n));
   player.gold += gold; player.ap += ap;
   if (fx("healAfter")) player.hp = Math.min(player.maxHp, player.hp + fx("healAfter"));
   if (fx("mpPerFight")) player.mp = Math.min(player.maxMp, player.mp + fx("mpPerFight"));
-  const armyGain = armyAfterWin();
+  const armyGain = armyAfterWin().concat(heroAfterWin());
   const firstClear = B.floor > (player.towerBest || 0);
   if (firstClear) player.towerBest = B.floor;
+  const gems = m.boss ? 30 + (firstClear ? 100 : 0) : 0;
+  if (gems) { heroState(); player.gems += gems; }
 
   // Shadow army / tamed beasts: chance to bind the defeated monster
   let bound = null;
@@ -2737,10 +2814,11 @@ async function victory() {
     <div class="v-row"><span>EXP</span><b>+${xp}${crit ? " 💥 x2" : ""}</b></div>
     <div class="v-row"><span>Gold</span><b>+${gold}</b></div>
     <div class="v-row"><span>Ability Points</span><b>+${ap}</b></div>
+    ${gems ? `<div class="v-row good"><span>Gems</span><b>💎 +${gems}</b></div>` : ""}
     ${firstClear ? `<div class="v-row good"><span>New highest floor</span><b>${B.floor}</b></div>` : ""}
     ${bound ? `<div class="v-row good"><span>${SUMMON[st].head}</span><b>${m.name}</b></div>` : ""}
     ${bound ? `<div class="v-row good small"><span>New perk</span><b>${unitPerkText(bound)}</b></div>` : ""}
-    ${armyGain.length ? `<div class="v-row good"><span>Army perks</span><b>${armyGain.join(", ")}</b></div>` : ""}
+    ${armyGain.length ? `<div class="v-row good"><span>Party perks</span><b>${armyGain.join(", ")}</b></div>` : ""}
     <ul class="list loot">${lootRows || `<li class="muted">No materials dropped.</li>`}</ul></div>`;
   const next = Math.min(B.floor + 1, maxFloor());
   $("bMenu").innerHTML = `<div class="cmd-grid">
@@ -2777,6 +2855,8 @@ $("battleBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !B) return;
   Sound.play("click");
   if (b.dataset.b === "fight" && !B.busy) menuFight();
+  if (b.dataset.b === "party" && !B.busy) menuParty();
+  if (b.dataset.call && !B.busy) playerAction({ type: "call", id: b.dataset.call });
   if (b.dataset.b === "items" && !B.busy) menuItems();
   if (b.dataset.b === "back") menuMain();
   if (b.dataset.b === "guard") playerAction({ type: "guard" });
@@ -2784,7 +2864,7 @@ $("battleBody").addEventListener("click", e => {
   if (b.dataset.sk !== undefined && !B.busy) {
     const i = +b.dataset.sk;
     if (B.sel === i && moveReady(playerMoves()[i])) return playerAction({ type: "move", move: playerMoves()[i] });
-    B.sel = i; return menuMain();
+    B.sel = i; return menuSkills();
   }
   if (b.dataset.move !== undefined) playerAction({ type: "move", move: playerMoves()[+b.dataset.move] });
   if (b.dataset.item) playerAction({ type: "item", id: b.dataset.item });
@@ -2897,6 +2977,7 @@ function renderExtras() {
   }
   lastGold = player.gold;
   $("hudFloor").textContent = `🗼 Floor ${player.towerBest || 0} / ${TOWER_FLOORS}`;
+  if ($("gemHud")) $("gemHud").textContent = `💎 ${(player.gems || 0).toLocaleString()}`;
 }
 $("panel").addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || !player) return;
@@ -3203,6 +3284,7 @@ function battleLayout(mon, br, floor) {
     <div class="b-party">
       ${army.slice(0, 4).map((u, i) => `<div class="b-unit" style="--i:${i};--r:${i % 2}" title="${u.name}">${u.icon}</div>`).join("")}${army.length > 4 ? `<div class="b-unit more" style="--i:4;--r:0">+${army.length - 4}</div>` : ""}
       ${allies.map((a, i) => `<div class="b-ally" style="--i:${i}"><span>${a.icon}</span><small>${a.name}</small></div>`).join("")}
+      ${squadHeroes().map((h, i) => `<div class="b-hero" style="--i:${i}" title="${h.name}">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>`).join("")}
       <div class="b-icons pl-icons" id="bPlIcons"></div>
       <div class="sprite pl art" id="bPl">${charSVG()}</div>
       <div class="b-shadow pl-sh"></div>
@@ -3212,18 +3294,15 @@ function battleLayout(mon, br, floor) {
       <div class="b-shadow"></div>
     </div>
     <div id="floaters"></div>
-    <div class="b-msg" id="bMsg"></div>
+    <div class="pl-plate">
+      <div class="b-top-row"><b>${player.name}</b><span class="b-lv">Lv. ${player.level}</span></div>
+      <div class="pp-bar"><span class="pp-tag">HP</span><div class="b-hpbar"><div class="hp" id="bPlHp"></div></div></div>
+      <div class="pp-bar"><span class="pp-tag mp">MP</span><div class="b-hpbar mpbar"><div class="mp" id="bPlMp"></div></div></div>
+      <div class="d-num" id="bPlHpTxt"></div>
+    </div>
   </div>
   <div class="dock">
-    <div class="d-card">
-      <div class="d-av">${RACES[player.raceId].icon}<span>${CLASSES[player.classId].icon}</span></div>
-      <div class="d-stats">
-        <div class="d-name">${player.name} <span class="muted">Lv. ${player.level}</span></div>
-        <div class="d-num" id="bPlHpTxt"></div>
-        <div class="bar thin"><div class="hp" id="bPlHp"></div></div>
-        <div class="bar thin"><div class="mp" id="bPlMp"></div></div>
-      </div>
-    </div>
+    <div class="b-msg" id="bMsg"></div>
     <div class="b-menu" id="bMenu"></div>
   </div>`;
 }
@@ -3298,11 +3377,11 @@ function moveInfo(m) {
   return `<div class="d-skill-name">${moveIcon(m)} <b>${m.name}</b> <span class="d-cost">${m.mp ? m.mp + " MP" : "Free"}</span></div>
     <div class="small">${sub}</div><div class="small">${kind} ${tag} ${same}</div>${why ? `<div class="small">${why}</div>` : ""}`;
 }
-function menuMain() {
+function menuSkills() {
   if (!B || B.over) return;
   const moves = playerMoves(), sel = B.sel !== null && B.sel !== undefined ? moves[B.sel] : null;
   $("bMsg").classList.remove("result");
-  $("bMsg").innerHTML = ""; $("bMsg").classList.add("empty");
+  $("bMsg").classList.remove("empty"); $("bMsg").innerHTML = "Pick a skill, then tap it again to use it.";
   $("bMenu").innerHTML = `
     <div class="d-info">${sel ? `${moveInfo(sel)}<button class="btn d-use" data-move="${B.sel}" ${moveReady(sel) ? "" : "disabled"}>${moveReady(sel) ? "USE ▸" : "Not ready"}</button>`
       : `<div class="small muted">Tap a skill to see what it does. Tap it again to use it. Drag skills to change their order.</div>`}</div>
@@ -3311,10 +3390,38 @@ function menuMain() {
       return `<button class="sk ${B.sel === i ? "sel" : ""} ${ready ? "" : "off"} ${m.basic ? "basic" : ""} ${m.idx === ULT_SLOT ? "ult" : ""}" data-sk="${i}" aria-label="${m.name}">
         <span class="sk-i">${moveIcon(m)}</span>${wait ? `<span class="sk-cd">${wait}</span>` : ""}<span class="sk-mp">${m.mp ? m.mp : ""}</span></button>`;
     }).join("")}</div>
-    <div class="d-util"><button class="btn" data-b="items">🎒 Items</button><button class="btn" data-b="guard">🧱 Guard</button><button class="btn" data-b="run">🏃 Run</button></div>`;
+    <div class="d-util"><button class="btn" data-b="back">◀ Back</button><button class="btn" data-b="guard">🧱 Guard</button></div>`;
   renderBStatus();
 }
-const menuFight = menuMain;
+const menuFight = menuSkills;
+// Main command menu: four big colored buttons
+function menuMain() {
+  if (!B || B.over) return;
+  B.sel = null;
+  $("bMsg").classList.remove("result", "empty");
+  $("bMsg").innerHTML = `What will <b>${player.name}</b> do?`;
+  const calls = squadHeroes().filter(h => !(B.called || {})[h.id]).length;
+  $("bMenu").innerHTML = `<div class="cmd4">
+    <button class="c4 fight" data-b="fight"><span>Fight</span><i>⚔️</i></button>
+    <button class="c4 party" data-b="party"><span>Party${calls ? ` <sup>${calls}</sup>` : ""}</span><i>🦸</i></button>
+    <button class="c4 bag" data-b="items"><span>Bag</span><i>🎒</i></button>
+    <button class="c4 run" data-b="run"><span>Run</span><i>🏃</i></button></div>`;
+  renderBStatus();
+}
+function menuParty() {
+  const hs = squadHeroes(), allies = ALLIES.filter(a => a.inParty), st = summonType();
+  $("bMsg").innerHTML = hs.length ? "Call a hero's special. Each hero can be called once per fight, and it takes your turn." : "No heroes in your squad. Summon heroes from the hub.";
+  $("bMenu").innerHTML = `<div class="party-list">
+    ${hs.map(h => { const used = (B.called || {})[h.id];
+      return `<button class="pl-row ${used ? "used" : ""}" data-call="${h.id}" ${used ? "disabled" : ""} style="--sc:${STAR_COLOR[h.stars]}">
+        <span class="pl-fig">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</span>
+        <span class="pl-txt"><b>${h.name}</b> <span class="small" style="color:var(--sc)">${starsTxt(h.stars)}</span><br>
+        <span class="small">🌟 ${h.special.name}: ${specialText(h)}</span><br><span class="small good">${perkText(h)}</span></span>
+        <span class="pl-go">${used ? "Used" : "CALL"}</span></button>`; }).join("")}
+    ${allies.map(a => `<div class="pl-row info"><span class="pl-fig emo">${a.icon}</span><span class="pl-txt"><b>${a.name}</b><br><span class="small good">${a.perk || a.desc || "Ally"}</span></span></div>`).join("")}
+    ${st && player.army.length ? `<div class="pl-row info"><span class="pl-fig emo">${SUMMON[st].icon}</span><span class="pl-txt"><b>${SUMMON[st].group}</b> (${player.army.length})<br><span class="small">Command: ${ARMY_MODES[player.armyMode].label}</span></span></div>` : ""}
+    </div><button class="btn back-btn" data-b="back">◀ Back</button>`;
+}
 function menuItems() {
   const usable = RECIPES.filter(r => player.items[r.id] && (r.use || r.scroll));
   $("bMenu").innerHTML = `<div class="d-info"><b>🎒 Items</b> <span class="small muted">Using an item takes your turn.</span></div>`
@@ -3326,7 +3433,7 @@ function menuItems() {
 // Tap a status icon or turn portrait to read what it means
 $("battleBody").addEventListener("click", e => {
   const t = e.target.closest("[data-tip]"); if (!t || !B || B.over) return;
-  const info = document.querySelector("#bMenu .d-info");
+  const info = document.querySelector("#bMenu .d-info") || $("bMsg");
   if (info && !B.busy) info.innerHTML = `<div class="small">${t.innerHTML.replace(/<sup>.*<\/sup>/, "")} ${t.dataset.tip}</div>`;
 });
 
@@ -3718,6 +3825,233 @@ function renderSheet() {
         <p class="small">Your <b>race</b> sets your body, your <b>class</b> sets your outfit and weapon, your <b>subclass</b> adds signature gear, and your main <b>element</b> colors your eyes, trim and aura. Job: ${job.icon} ${job.name}.</p></div>
     </div>`;
 }
+
+
+/* =========================================================
+   HEROES + SUMMONING (gacha). Earn gems by playing, summon
+   3 to 5 star heroes, bring 2 into battle. They strike on
+   their own, give a perk, and have a once-per-fight special.
+   Duplicates awaken a hero (up to 5 times).
+   ========================================================= */
+// perk kinds: stat (+stat), heal (% HP after win), mp (MP after win), xp / gold (% bonus)
+// special kinds: dmg (power), heal (% max HP), guard (defense up), rally (attack up)
+const HEROES = [
+  { id: "seraphine", stars: 5, name: "Seraphine Dawnveil", title: "Saint of the First Light", race: "elf", cls: "cleric", sub: "paladin", elem: "Light",
+    perk: { kind: "heal", base: 4 }, special: { name: "Sunburst Grace", kind: "heal", power: 40 }, bio: "A holy knight who walked out of the tower's light. Her prayers close wounds mid-battle." },
+  { id: "korvath", stars: 5, name: "Korvath the Ashen", title: "Last of the Ember Kings", race: "dragon", cls: "warrior", sub: "berserker", elem: "Fire",
+    perk: { kind: "stat", stat: "STR", base: 5 }, special: { name: "Cinderfall Cleave", kind: "dmg", power: 150 }, bio: "A dragon-blooded warlord whose axe still glows from a war no one remembers." },
+  { id: "nyx", stars: 5, name: "Nyx Hollowmoon", title: "Keeper of the Quiet Dead", race: "undead", cls: "mage", sub: "shadowmage", elem: "Dark",
+    perk: { kind: "stat", stat: "INT", base: 5 }, special: { name: "Night Requiem", kind: "dmg", power: 140 }, bio: "She reads from a book of names. Every name she reads becomes a shadow at her side." },
+  { id: "marisol", stars: 5, name: "Marisol Deepcurrent", title: "Voice of the Sunken Sea", race: "spirit", cls: "mage", sub: "elemental", elem: "Water",
+    perk: { kind: "mp", base: 6 }, special: { name: "Abyssal Tide", kind: "dmg", power: 135 }, bio: "A sea spirit who answers anyone who calls her name across still water." },
+  { id: "brakka", stars: 4, name: "Brakka Stoneheart", title: "The Unmoving Wall", race: "dwarf", cls: "tank", sub: "guardian", elem: "Earth",
+    perk: { kind: "stat", stat: "VIT", base: 4 }, special: { name: "Bulwark Call", kind: "guard", power: 2 }, bio: "Held a mine tunnel alone for three days. Still complains it was only two." },
+  { id: "vex", stars: 4, name: "Vex Quickpaw", title: "Fastest Blade in the Lower Floors", race: "beastkin", cls: "rogue", sub: "assassin", elem: "Wind",
+    perk: { kind: "stat", stat: "AGI", base: 4 }, special: { name: "Gale Fang", kind: "dmg", power: 110 }, bio: "Steals your coin purse, then hands it back to prove she could." },
+  { id: "rowan", stars: 4, name: "Rowan Greenshot", title: "Warden of the Mossy Gate", race: "elf", cls: "ranger", sub: "sniper", elem: "Wind",
+    perk: { kind: "stat", stat: "SEN", base: 4 }, special: { name: "Piercing Arrow", kind: "dmg", power: 115 }, bio: "Never misses twice. Usually doesn't miss once." },
+  { id: "sable", stars: 4, name: "Sable Nightcoil", title: "The Smiling Venom", race: "lizard", cls: "rogue", sub: "phantom", elem: "Dark",
+    perk: { kind: "stat", stat: "LUK", base: 4 }, special: { name: "Venom Veil", kind: "dmg", power: 105 }, bio: "Fades into fog, then out of it with a knife." },
+  { id: "ilsa", stars: 4, name: "Ilsa Frostmane", title: "Packleader of the White Ridge", race: "wolf", cls: "tamer", sub: "beasttamer", elem: "Water",
+    perk: { kind: "xp", base: 8 }, special: { name: "Frost Howl", kind: "dmg", power: 110 }, bio: "Raised by snow wolves. Talks to them more than to people." },
+  { id: "garro", stars: 4, name: "Garro Emberforge", title: "Smith of a Hundred Blades", race: "goblin", cls: "warrior", sub: "weaponmaster", elem: "Fire",
+    perk: { kind: "gold", base: 10 }, special: { name: "Forge Barrage", kind: "dmg", power: 110 }, bio: "Forged every weapon he carries. Sells the ones he doesn't like." },
+  { id: "pip", stars: 3, name: "Pip Tumbleweed", title: "Wandering Archer", race: "human", cls: "ranger", sub: "hunter", elem: "Earth",
+    perk: { kind: "stat", stat: "LUK", base: 2 }, special: { name: "Lucky Shot", kind: "dmg", power: 75 }, bio: "Got lost in the tower on day one and never left." },
+  { id: "moss", stars: 3, name: "Moss", title: "Gentle Gel Healer", race: "slime", cls: "cleric", sub: "healer", elem: "Water",
+    perk: { kind: "heal", base: 2 }, special: { name: "Gel Mend", kind: "heal", power: 20 }, bio: "A slime who learned healing by watching clerics. Squishy hugs included." },
+  { id: "tamsin", stars: 3, name: "Tamsin Reed", title: "Apprentice Spellblade", race: "human", cls: "mage", sub: "battlemage", elem: "Fire",
+    perk: { kind: "stat", stat: "INT", base: 2 }, special: { name: "Spark Slash", kind: "dmg", power: 75 }, bio: "Failed the mage exam twice. Passed the sword exam by accident." },
+  { id: "ogden", stars: 3, name: "Ogden Barrow", title: "Retired Gate Guard", race: "dwarf", cls: "tank", sub: "juggernaut", elem: "Earth",
+    perk: { kind: "stat", stat: "VIT", base: 2 }, special: { name: "Shield Up", kind: "guard", power: 1 }, bio: "Retired three times. Keeps coming back." },
+  { id: "lark", stars: 3, name: "Lark", title: "Fox-Rider Scout", race: "beastkin", cls: "tamer", sub: "rider", elem: "Wind",
+    perk: { kind: "stat", stat: "AGI", base: 2 }, special: { name: "Pounce", kind: "dmg", power: 70 }, bio: "Her fox is faster than her. She's fine with that." },
+  { id: "grizz", stars: 3, name: "Grizz", title: "Pocket Trickster", race: "goblin", cls: "rogue", sub: "trickster", elem: "Normal",
+    perk: { kind: "gold", base: 5 }, special: { name: "Card Toss", kind: "dmg", power: 65 }, bio: "Plays cards with monsters. Usually wins." },
+  { id: "wren", stars: 3, name: "Wren Ashby", title: "Talisman Writer", race: "human", cls: "cleric", sub: "exorcist", elem: "Light",
+    perk: { kind: "mp", base: 3 }, special: { name: "Ward Prayer", kind: "heal", power: 15 }, bio: "Writes charms for coin. Some even work." },
+  { id: "dusk", stars: 3, name: "Old Dusk", title: "The Sleepless Sentry", race: "undead", cls: "warrior", sub: "guardian", elem: "Dark",
+    perk: { kind: "stat", stat: "RES", base: 2 }, special: { name: "Grave Guard", kind: "guard", power: 1 }, bio: "Still guarding a door that fell down a century ago." },
+];
+const H = Object.fromEntries(HEROES.map(h => [h.id, h]));
+const STAR_RATE = { 5: 0.03, 4: 0.17, 3: 0.80 };
+const PITY = 50, PULL_COST = 100, TEN_COST = 900, MAX_AWAKEN = 5;
+const DUPE_GEMS = { 3: 20, 4: 50, 5: 150 };
+const STAR_COLOR = { 3: "#4da3ff", 4: "#b06bff", 5: "#ffb020" };
+const starsTxt = n => "★".repeat(n);
+
+function heroState() {
+  if (!player.heroes) player.heroes = {};
+  if (!player.squad) player.squad = [];
+  if (player.gems === undefined) player.gems = 0;
+  if (player.pity === undefined) player.pity = 0;
+  if (!player.gemGift) { player.gemGift = true; player.gems += 1000; setTimeout(() => notify("GIFT", "Welcome gift: 💎 1000 gems! Open Summon on the hub to call your first heroes.", "unlock"), 2500); }
+  return player.heroes;
+}
+const ownedHero = id => player.heroes && player.heroes[id];
+const squadHeroes = () => (player.squad || []).filter(id => ownedHero(id)).map(id => ({ ...H[id], aw: player.heroes[id].aw }));
+const heroScale = h => (1 + player.level / 20) * (1 + 0.15 * (h.aw || 0));
+const perkValue = h => Math.max(1, Math.round(h.perk.base * heroScale(h)));
+function perkText(h) {
+  const v = perkValue(h), p = h.perk;
+  return p.kind === "stat" ? `+${v} ${STAT_NAME[p.stat]}` : p.kind === "heal" ? `Heal ${v}% max HP after each win`
+    : p.kind === "mp" ? `Restore ${v} MP after each win` : p.kind === "xp" ? `+${v}% EXP` : `+${v}% gold`;
+}
+function specialText(h) {
+  const s = h.special, pw = Math.round(s.power * (1 + 0.1 * (h.aw || 0)));
+  return s.kind === "dmg" ? `${ELEM_ICON[h.elem]} ${h.elem} attack, power ${pw}` : s.kind === "heal" ? `Heals you ${pw}% max HP`
+    : s.kind === "guard" ? `Raises your defense ${s.power} stage${s.power > 1 ? "s" : ""}` : `Raises your attack`;
+}
+function gainGems(n, why) { if (!player) return; heroState(); player.gems += n; if (why) notify("GEMS", `💎 +${n} gems · ${why}`, "unlock", true); }
+
+/* ---------- Perks plug into stats and rewards ---------- */
+function heroStat(k) { return player && player.squad ? squadHeroes().reduce((s, h) => s + (h.perk.kind === "stat" && h.perk.stat === k ? perkValue(h) : 0), 0) : 0; }
+const heroPct = kind => player && player.squad ? squadHeroes().reduce((s, h) => s + (h.perk.kind === kind ? perkValue(h) : 0), 0) / 100 : 0;
+function heroAfterWin() {
+  const out = []; let heal = 0, mp = 0;
+  squadHeroes().forEach(h => { if (h.perk.kind === "heal") heal += perkValue(h); if (h.perk.kind === "mp") mp += perkValue(h); });
+  if (heal) { const v = Math.min(player.maxHp - player.hp, Math.floor(player.maxHp * heal / 100)); if (v > 0) { player.hp += v; out.push(`+${v} HP`); } }
+  if (mp) { const v = Math.min(player.maxMp - player.mp, mp); if (v > 0) { player.mp += v; out.push(`+${v} MP`); } }
+  return out;
+}
+
+/* ---------- Heroes in battle ---------- */
+const heroAtk = h => 10 + player.level * 1.5 * (h.stars / 4) * (1 + 0.1 * (h.aw || 0));
+async function heroAssist() {
+  const m = B.mon;
+  for (const h of squadHeroes()) {
+    if (m.hp <= 0 || Math.random() > 0.45) continue;
+    const em = elemMult(h.elem, m.elem);
+    const dmg = Math.max(1, Math.floor(calcDamage(player.level, 28 + h.stars * 6, heroAtk(h), m.def, em)));
+    m.hp = Math.max(0, m.hp - dmg); bars();
+    anim("bMon", "hit"); floater("mon", "-" + dmg, "army"); Sound.play("hit");
+    await say(`${ELEM_ICON[h.elem]} ${h.name.split(" ")[0]} joins in for ${dmg}!${em > 1 ? " Super effective!" : ""}`, 650);
+  }
+}
+async function heroSpecial(id) {
+  const h = squadHeroes().find(x => x.id === id), m = B.mon, s = h.special, pw = s.power * (1 + 0.1 * (h.aw || 0));
+  B.called = B.called || {}; B.called[id] = true;
+  Sound.play("buff");
+  if (s.kind === "dmg") {
+    const em = elemMult(h.elem, m.elem);
+    const dmg = Math.max(1, Math.floor(calcDamage(player.level, pw, heroAtk(h) * 1.3, m.def, em)));
+    m.hp = Math.max(0, m.hp - dmg); bars(); anim("bMon", "hit"); floater("mon", "-" + dmg, "crit"); Sound.play("crit");
+    return say(`🌟 ${h.name.split(" ")[0]} unleashes <b>${s.name}</b> for ${dmg}!${em > 1 ? " Super effective!" : ""}`, 1000);
+  }
+  if (s.kind === "heal") {
+    const v = Math.min(player.maxHp - player.hp, Math.floor(player.maxHp * pw / 100)); player.hp += v; bars(); floater("pl", "+" + v, "heal");
+    return say(`🌟 ${h.name.split(" ")[0]} casts <b>${s.name}</b>. You recover ${v} HP!`, 1000);
+  }
+  if (s.kind === "guard") { B.defStage = Math.min(4, B.defStage + s.power); bars(); return say(`🌟 ${h.name.split(" ")[0]} uses <b>${s.name}</b>. Your defense rose!`, 1000); }
+  B.atkStage = Math.min(4, B.atkStage + 1); bars(); return say(`🌟 ${h.name.split(" ")[0]} uses <b>${s.name}</b>. Your attack rose!`, 1000);
+}
+
+/* ---------- Summoning ---------- */
+function rollStar(guarantee4) {
+  if (player.pity >= PITY - 1) return 5;
+  const r = Math.random();
+  if (r < STAR_RATE[5]) return 5;
+  if (r < STAR_RATE[5] + STAR_RATE[4] || guarantee4) return 4;
+  return 3;
+}
+function summon(n) {
+  heroState();
+  const cost = n === 10 ? TEN_COST : PULL_COST * n;
+  if (player.gems < cost) return notify("SUMMON", `Not enough gems. You need 💎 ${cost}.`, "warn");
+  player.gems -= cost;
+  const results = [];
+  for (let i = 0; i < n; i++) {
+    const last = n === 10 && i === 9 && !results.some(r => r.stars >= 4);
+    const st = rollStar(last);
+    player.pity = st === 5 ? 0 : player.pity + 1;
+    const pool = HEROES.filter(h => h.stars === st), h = pool[Math.floor(Math.random() * pool.length)];
+    const own = player.heroes[h.id];
+    let note;
+    if (!own) { player.heroes[h.id] = { aw: 0 }; note = "NEW"; }
+    else if (own.aw < MAX_AWAKEN) { own.aw++; note = `Awakened ${own.aw}/${MAX_AWAKEN}`; }
+    else { player.gems += DUPE_GEMS[st]; note = `Max · +💎${DUPE_GEMS[st]}`; }
+    results.push({ ...h, note });
+  }
+  Sound.play(results.some(r => r.stars === 5) ? "evolve" : "levelUp");
+  lastPull = results; recalc(); render(); save();
+  showSummonResults(results);
+}
+let lastPull = null, summonTab = "banner";
+function showSummonResults(results) {
+  const best = Math.max(...results.map(r => r.stars));
+  $("resultWin").className = "win res-win summon-res";
+  $("resultWin").style.setProperty("--panel-border", STAR_COLOR[best]); $("resultWin").style.setProperty("--accent", STAR_COLOR[best]);
+  $("resultWin").innerHTML = `<div class="win-head"><span>🔮</span><span class="wt">SUMMON RESULTS</span><button class="btn win-x" data-resclose>✕</button></div>
+    <div class="sum-grid ${results.length > 1 ? "ten" : ""}">${results.map((r, i) => `<div class="sum-card s${r.stars}" style="--d:${i * 0.12}s;--sc:${STAR_COLOR[r.stars]}">
+      <div class="sum-art">${charSVG({ race: r.race, cls: r.cls, sub: r.sub, elem: r.elem, equipped: {} })}</div>
+      <div class="sum-stars">${starsTxt(r.stars)}</div><div class="sum-name">${r.name}</div><div class="sum-note ${r.note === "NEW" ? "new" : ""}">${r.note}</div></div>`).join("")}</div>
+    <div class="res-btns"><button class="btn" data-sum="1" ${player.gems < PULL_COST ? "disabled" : ""}>Summon x1 (💎${PULL_COST})</button><button class="btn" data-sum="10" ${player.gems < TEN_COST ? "disabled" : ""}>Summon x10 (💎${TEN_COST})</button></div>
+    <div class="small muted" style="text-align:center;margin-top:6px">💎 ${player.gems} gems left</div>`;
+  $("resultOverlay").classList.add("show");
+}
+$("resultWin").addEventListener("click", e => {
+  const s = e.target.closest("[data-sum]"); if (s) { summon(+s.dataset.sum); return; }
+  if (e.target.closest("[data-resclose]")) { $("resultOverlay").classList.remove("show"); $("resultWin").className = "win res-win"; }
+});
+
+function toggleSquad(id) {
+  heroState();
+  const i = player.squad.indexOf(id);
+  if (i >= 0) player.squad.splice(i, 1);
+  else if (player.squad.length >= 2) return notify("SQUAD", "Your hero squad is full (2 max). Remove one first.", "warn");
+  else player.squad.push(id);
+  Sound.play("click"); recalc(); render(); save();
+}
+
+function renderSummon() {
+  const el = $("summonBody"); if (!el || !player) return;
+  heroState();
+  const owned = HEROES.filter(h => ownedHero(h.id));
+  const featured = HEROES.filter(h => h.stars === 5);
+  el.innerHTML = `
+    <div class="filters"><button class="${summonTab === "banner" ? "active" : ""}" data-stab="banner">🔮 Summon</button><button class="${summonTab === "heroes" ? "active" : ""}" data-stab="heroes">🦸 Heroes (${owned.length}/${HEROES.length})</button></div>
+    <div class="gem-bar">💎 <b>${player.gems}</b> gems <span class="small muted">· Pity: ${player.pity}/${PITY} (a 5★ is guaranteed by pull ${PITY})</span></div>
+    ${summonTab === "banner" ? `
+      <div class="banner">
+        <div class="banner-title">Heroes of the Tower</div>
+        <div class="banner-art">${featured.map(h => `<div class="ba">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>`).join("")}</div>
+        <div class="banner-names small">Featured 5★: ${featured.map(h => h.name).join(", ")}</div>
+      </div>
+      <div class="res-btns"><button class="btn" data-sum="1" ${player.gems < PULL_COST ? "disabled" : ""}>Summon x1<br><small>💎 ${PULL_COST}</small></button>
+        <button class="btn glow-btn" data-sum="10" ${player.gems < TEN_COST ? "disabled" : ""}>Summon x10<br><small>💎 ${TEN_COST} · one 4★ or better guaranteed</small></button></div>
+      <details class="guide-box"><summary>❓ Rates and how summoning works</summary><ul class="sd-effects guide">
+        <li><b>Rates:</b> <span style="color:${STAR_COLOR[5]}">5★ 3%</span>, <span style="color:${STAR_COLOR[4]}">4★ 17%</span>, <span style="color:${STAR_COLOR[3]}">3★ 80%</span>.</li>
+        <li><b>Pity:</b> if you go ${PITY - 1} pulls without a 5★, the next one is a 5★.</li>
+        <li><b>Duplicates</b> awaken a hero (up to ${MAX_AWAKEN} times): +15% perk and +10% damage each. Past that, you get gems back.</li>
+        <li><b>Earn gems:</b> first boss clear +100, every boss win +30, story chapters +80, the daily quest +50, each level up +10. No real money.</li>
+        <li><b>Heroes in battle:</b> bring 2. They sometimes attack on their own, their perk is always on, and you can call their special once per fight from the Party button.</li></ul></details>`
+    : owned.length ? `<div class="hero-list">${owned.map(h0 => { const h = { ...h0, aw: player.heroes[h0.id].aw }, on = player.squad.includes(h.id);
+        return `<div class="hero-card s${h.stars} ${on ? "on" : ""}" style="--sc:${STAR_COLOR[h.stars]}">
+          <div class="hc-fig">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>
+          <div class="hc-info"><div class="sum-stars">${starsTxt(h.stars)} ${h.aw ? `<span class="aw">+${h.aw}</span>` : ""}</div>
+            <div class="r-name">${h.name}</div><div class="small muted">${h.title}</div>
+            <div class="small">${RACES[h.race].name} ${CLASSES[h.cls].name} · ${ELEM_ICON[h.elem]} ${h.elem}</div>
+            <div class="small good">Perk: ${perkText(h)}</div><div class="small">🌟 ${h.special.name}: ${specialText(h)}</div>
+            <div class="small muted" style="margin-top:3px">${h.bio}</div>
+            <button class="btn ${on ? "" : "glow-btn"}" data-squad="${h.id}">${on ? "Remove from squad" : "Add to squad"}</button></div></div>`; }).join("")}</div>`
+      : `<div class="small muted" style="text-align:center;padding:20px">No heroes yet. Summon some!</div>`}`;
+}
+$("summonBody").addEventListener("click", e => {
+  const t = e.target.closest("[data-stab]"); if (t) { summonTab = t.dataset.stab; renderSummon(); return; }
+  const s = e.target.closest("[data-sum]"); if (s) { summon(+s.dataset.sum); return; }
+  const q = e.target.closest("[data-squad]"); if (q) toggleSquad(q.dataset.squad);
+});
+
+function renderSquadBox() {
+  const el = $("squadBox"); if (!el || !player) return;
+  const hs = squadHeroes();
+  el.innerHTML = `<div class="section-title">🦸 Hero Squad (${hs.length}/2)</div>
+    ${hs.length ? hs.map(h => `<div class="hero-mini" style="--sc:${STAR_COLOR[h.stars]}"><span class="hm-fig">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</span>
+      <span><b>${h.name}</b> <span style="color:var(--sc)">${starsTxt(h.stars)}${h.aw ? ` +${h.aw}` : ""}</span><br><span class="small good">${perkText(h)}</span><br><span class="small">🌟 ${h.special.name}</span></span></div>`).join("")
+      : `<div class="small muted">No heroes in your squad yet.</div>`}
+    <button class="btn" data-open-summon>🔮 Summon and manage heroes</button>`;
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-open-summon]")) { summonTab = "heroes"; openWindow("summon"); } });
 
 
 /* =========================================================
@@ -4624,6 +4958,7 @@ const WIN = {
   craft:  { title: "Crafting",     icon: "⚒️", color: "#ff9a3d" },
   party:  { title: "Party",        icon: "👥", color: "#3dd6c6" },
   sheet:  { title: "Character",    icon: "🧙", color: "#c08bff" },
+  summon: { title: "Summon",       icon: "🔮", color: "#ff5fd2" },
 };
 const RESULT_COLOR = { gather: "#3ddc84", work: "#ffc94d", rest: "#9d8cff", story: "#ffc94d" };
 let currentWin = null;
@@ -4962,6 +5297,7 @@ function finishChapter() {
     if (r.title) { player.title = r.title; lines.push(`🏅 Title: <b>${r.title}</b>`); }
     const num = st.ch + 1;
     st.ch++; st.step = "new"; st.prog = {};
+    heroState(); player.gems += 80; lines.push(`💎 Gems <b>+80</b>`);
     gainXp(r.xp);
     Sound.play("levelUp");
     showResult({ kind: "story", icon: "📜", title: `Chapter ${num} Complete`, lines: [`<b>${c.title}</b>`, ...lines],
