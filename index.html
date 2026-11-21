@@ -2288,54 +2288,34 @@ function elemMult(atk, def) {
   return 1;
 }
 
-// [name, body, element, power multiplier, speed multiplier]
+// Each floor range has its own monster types and elements. Names mix both: "Mud Dog", "Frost Bear", "Darkness Beetle".
+// boss: [name, type, element, power multiplier, speed multiplier, species]
 const BRACKETS = [
   { name: "Mossy Depths", bg: "linear-gradient(180deg,#2f6b3a 0%,#7fbf6a 55%,#3d5e2a 100%)",
-    mobs: [["Mire Slime", "slime", "Water", 0.85, 0.8], ["Glass Beetle", "bug", "Earth", 0.95, 0.9], ["Thornback Boar", "beast", "Earth", 1.0, 1.0]],
-    boss: ["Slime King", "slime", "Water", 1.0, 0.9] },
+    types: ["beast", "insect", "humanoid"], elems: ["Earth", "Water", "Normal", "Wind"], boss: ["Mud King", "giant", "Earth", 1.0, 0.9, "Ogre"] },
   { name: "Echo Caves", bg: "linear-gradient(180deg,#2a2440 0%,#5a4f7a 55%,#231d33 100%)",
-    mobs: [["Ash Wolf", "beast", "Fire", 1.0, 1.15], ["Cave Bat", "bird", "Dark", 0.9, 1.25], ["Mud Golem", "golem", "Earth", 1.1, 0.7]],
-    boss: ["Alpha Ash Wolf", "beast", "Fire", 1.05, 1.2] },
+    types: ["beast", "undead", "insect"], elems: ["Dark", "Fire", "Earth"], boss: ["Ashmaw, the Cinder Hound", "beast", "Fire", 1.05, 1.2, "Wolf"] },
   { name: "Sunken Ruins", bg: "linear-gradient(180deg,#1d4d5c 0%,#4fa3a8 55%,#1a3a40 100%)",
-    mobs: [["Stone Golem", "golem", "Earth", 1.1, 0.7], ["Wind Harpy", "bird", "Wind", 0.95, 1.25], ["Bog Serpent", "serpent", "Water", 1.0, 1.0]],
-    boss: ["Golem Warden", "golem", "Earth", 1.1, 0.75] },
+    types: ["undead", "humanoid", "dragon"], elems: ["Water", "Earth", "Dark"], boss: ["The Drowned Knight", "undead", "Water", 1.1, 0.9, "Death Knight"] },
   { name: "Ember Halls", bg: "linear-gradient(180deg,#5c1a10 0%,#d4602a 55%,#3a120a 100%)",
-    mobs: [["Ember Salamander", "serpent", "Fire", 1.0, 1.05], ["Grave Wisp", "ghost", "Dark", 0.95, 1.15], ["Iron Beetle", "bug", "Earth", 1.1, 0.85]],
-    boss: ["Wisp Matriarch", "ghost", "Dark", 1.05, 1.1] },
+    types: ["demon", "dragon", "insect"], elems: ["Fire", "Dark", "Earth"], boss: ["Blaze Fiend Lord", "demon", "Fire", 1.1, 1.05, "Fiend"] },
   { name: "Frozen Spire", bg: "linear-gradient(180deg,#2c4f7a 0%,#a9d6f5 55%,#2a3e5c 100%)",
-    mobs: [["Frost Wyrmling", "serpent", "Water", 1.05, 1.0], ["Storm Hawk", "bird", "Wind", 1.0, 1.3], ["Shade Stalker", "beast", "Dark", 1.0, 1.2]],
-    boss: ["Storm Roc", "bird", "Wind", 1.05, 1.3] },
+    types: ["snowfolk", "beast", "giant"], elems: ["Water", "Wind", "Normal"], boss: ["Glacier Chieftain", "snowfolk", "Water", 1.1, 1.0, "Chieftain"] },
   { name: "Crystal Vault", bg: "linear-gradient(180deg,#3a2a6b 0%,#b49cf0 55%,#2a1f4d 100%)",
-    mobs: [["Crystal Golem", "golem", "Light", 1.15, 0.75], ["Lava Slime", "slime", "Fire", 1.0, 0.85], ["Bone Hound", "beast", "Dark", 1.05, 1.2]],
-    boss: ["Molten Colossus", "golem", "Fire", 1.15, 0.8] },
+    types: ["giant", "spectre", "insect"], elems: ["Light", "Earth", "Dark"], boss: ["Crystal Titan", "giant", "Light", 1.15, 0.8, "Titan"] },
   { name: "Storm Gallery", bg: "linear-gradient(180deg,#1f2a3a 0%,#6c87a8 55%,#141c28 100%)",
-    mobs: [["Thunder Drake", "serpent", "Wind", 1.05, 1.15], ["Wraith Knight", "ghost", "Dark", 1.1, 1.0], ["Tide Hydra", "serpent", "Water", 1.1, 0.95]],
-    boss: ["Wraith Lord", "ghost", "Dark", 1.1, 1.05] },
+    types: ["dragon", "spectre", "humanoid"], elems: ["Wind", "Dark", "Water"], boss: ["Tempest Wyvern Queen", "dragon", "Wind", 1.1, 1.3, "Wyvern"] },
   { name: "Radiant Sanctum", bg: "linear-gradient(180deg,#7a5a10 0%,#f5dc8a 55%,#5c4310 100%)",
-    mobs: [["Sun Griffin", "bird", "Light", 1.05, 1.25], ["Abyss Slime", "slime", "Dark", 1.05, 0.9], ["Titan Beetle", "bug", "Earth", 1.15, 0.85]],
-    boss: ["Abyss Maw", "slime", "Dark", 1.15, 0.9] },
+    types: ["humanoid", "spectre", "giant"], elems: ["Light", "Fire", "Wind"], boss: ["The Fallen Sun Knight", "undead", "Light", 1.15, 1.0, "Death Knight"] },
   { name: "Void Rift", bg: "linear-gradient(180deg,#0d0820 0%,#3d2470 55%,#08040f 100%)",
-    mobs: [["Elder Treant", "golem", "Earth", 1.15, 0.7], ["Void Phantom", "ghost", "Dark", 1.1, 1.15], ["Inferno Wyvern", "bird", "Fire", 1.1, 1.2]],
-    boss: ["Void Herald", "ghost", "Dark", 1.2, 1.1] },
+    types: ["demon", "spectre", "undead"], elems: ["Dark", "Fire", "Water"], boss: ["Void Archfiend", "demon", "Dark", 1.2, 1.1, "Archfiend"] },
   { name: "Celestial Crown", bg: "linear-gradient(180deg,#1a2a5c 0%,#e8e0ff 55%,#2a2a5c 100%)",
-    mobs: [["Celestial Seraph", "bird", "Light", 1.15, 1.25], ["Dread Behemoth", "beast", "Dark", 1.2, 1.0], ["Primordial Ooze", "slime", "Water", 1.15, 0.9]],
-    boss: ["Tower Sovereign", "golem", "Light", 1.3, 1.0] },
+    types: ["beast", "demon", "dragon", "giant", "humanoid", "insect", "snowfolk", "undead", "spectre"], elems: ["Light", "Dark", "Fire", "Water", "Wind", "Earth"],
+    boss: ["Tower Sovereign", "dragon", "Light", 1.3, 1.0, "Elder Dragon"] },
 ];
 const bracketOf = f => Math.min(BRACKETS.length - 1, Math.floor((f - 1) / 10));
 const isBossFloor = f => f % 10 === 0;
 const maxFloor = () => Math.min(TOWER_FLOORS, player.level + LEVEL_GAP);
-
-// Monster moves by body type. "elem" means the monster's own element.
-const BODY_MOVES = {
-  slime:   [["Tackle", 35, "Normal"], ["Acid Splash", 50, "elem"], ["Engulf", 42, "elem", "drain"]],
-  bug:     [["Pinch", 35, "Normal"], ["Horn Charge", 55, "elem"], ["Shell Bash", 45, "Earth"]],
-  beast:   [["Bite", 40, "Normal"], ["Claw Rush", 55, "elem"], ["Savage Roar", 0, "Normal", "atkup"]],
-  bird:    [["Peck", 35, "Normal"], ["Gust", 50, "Wind"], ["Dive Strike", 58, "elem"]],
-  golem:   [["Slam", 45, "Normal"], ["Rock Throw", 60, "Earth"], ["Harden", 0, "Normal", "defup"]],
-  ghost:   [["Haunt", 40, "Dark"], ["Soul Drain", 45, "elem", "drain"], ["Curse", 52, "elem"]],
-  serpent: [["Constrict", 40, "Normal"], ["Breath", 60, "elem"], ["Venom Fang", 48, "elem"]],
-};
-const BOSS_MOVE = { slime: "Royal Deluge", bug: "Titan Crush", beast: "Alpha Frenzy", bird: "Sky Cataclysm", golem: "Earthshatter", ghost: "Requiem", serpent: "Cataclysm Breath" };
 
 /* Basic skills: 2 per class. Always ready: no cooldown, no MP, no daily limit.
    Weaker than class skills, but each class gets two elements to play with. */
@@ -2418,12 +2398,12 @@ Object.assign(MATS, {
   sscale: { name: "Serpent Scale", icon: "🐍" }, crystal: { name: "Mana Crystal", icon: "💎", rarity: "rare" },
   essence: { name: "Shadow Essence", icon: "🔮", rarity: "epic" }, dscale: { name: "Drake Scale", icon: "🐲", rarity: "epic" },
   relic: { name: "Tower Relic", icon: "🏺", rarity: "legendary" },
+  horn: { name: "Demon Horn", icon: "🦴" }, bone: { name: "Old Bone", icon: "💀" }, pelt: { name: "Frost Pelt", icon: "🧊" },
 });
 const MAT_VALUE = { gel: 4, shell: 6, hide: 6, meat: 4, fang: 10, core: 25, herb: 3, shroom: 4, ore: 8, reed: 3,
-  feather: 6, ecto: 6, sscale: 10, crystal: 45, essence: 70, dscale: 90, relic: 350 };
+  feather: 6, ecto: 6, sscale: 10, horn: 12, bone: 5, pelt: 9, crystal: 45, essence: 70, dscale: 90, relic: 350 };
 RECIPES.push({ id: "hiPot", cat: "Potion", name: "Hi-Potion", icon: "💖", use: "hp", amount: 250, value: 90, shopOnly: true, needs: {} });
 R.hiPot = RECIPES[RECIPES.length - 1];
-const COMMON_DROPS = { slime: ["gel"], bug: ["shell"], beast: ["hide", "meat"], bird: ["feather"], golem: ["ore", "core"], ghost: ["ecto"], serpent: ["sscale"] };
 const RARITY_COLOR = { common: "var(--muted)", rare: "#4da3ff", epic: "#b06bff", legendary: "#ffb020" };
 const buyDiscount = () => player.jobId === "merchant" ? 0.9 : 1;
 const buyPrice = id => Math.round((R[id] ? R[id].value * 1.8 : MAT_VALUE[id] * 2.5) * buyDiscount());
@@ -2445,60 +2425,6 @@ const PAL = {
   Wind: ["#45cc85", "#c8ffe0", "#1d5a3a"], Light: ["#ffd84d", "#fff6c2", "#8a6a10"], Dark: ["#7a4dff", "#c9b3ff", "#22104a"],
   Normal: ["#9aa3ad", "#e2e7ec", "#3a4048"],
 };
-const HEAD = { slime: [60, 34], bug: [24, 54], beast: [34, 38], bird: [60, 26], golem: [60, 20], ghost: [60, 28], serpent: [94, 26] };
-function eyesSVG(x1, x2, y, r, glow) {
-  const iris = glow || "#1a1a1a";
-  return [x1, x2].map(x => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/><circle cx="${x + r * 0.2}" cy="${y + r * 0.1}" r="${r * 0.55}" fill="${iris}"/><circle cx="${x - r * 0.25}" cy="${y - r * 0.3}" r="${r * 0.22}" fill="#fff"/>`).join("");
-}
-function monsterSVG(sp, tier, boss) {
-  const [name, body, elem] = sp, [c0, c1, c2] = PAL[elem];
-  const glow = elem === "Dark" || boss ? "#ff3b5c" : elem === "Light" ? "#ffb020" : null;
-  const st = `stroke="${c2}" stroke-width="3" stroke-linejoin="round"`;
-  let s = "";
-  if (body === "slime") s = `<path d="M18 102 Q12 58 60 30 Q108 58 102 102 Z" fill="${c0}" ${st}/>
-    <ellipse cx="40" cy="58" rx="8" ry="13" fill="${c1}" opacity=".7"/>${eyesSVG(48, 72, 72, 8, glow)}
-    <path d="M52 88 Q60 94 68 88" stroke="${c2}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-  if (body === "bug") s = `${[0, 1, 2].map(i => `<line x1="${48 + i * 18}" y1="88" x2="${42 + i * 18}" y2="106" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`).join("")}
-    <ellipse cx="66" cy="72" rx="40" ry="26" fill="${c0}" ${st}/><path d="M66 46 L66 98" stroke="${c2}" stroke-width="3"/>
-    <ellipse cx="54" cy="62" rx="10" ry="6" fill="${c1}" opacity=".6"/>
-    <circle cx="26" cy="70" r="16" fill="${c0}" ${st}/><path d="M18 58 L8 34 L26 54 Z" fill="${c1}" ${st}/>${eyesSVG(20, 32, 68, 5, glow)}`;
-  if (body === "beast") s = `<path d="M96 70 Q116 58 110 44" stroke="${c2}" stroke-width="8" fill="none" stroke-linecap="round"/>
-    <rect x="44" y="82" width="10" height="22" rx="4" fill="${c0}" ${st}/><rect x="80" y="82" width="10" height="22" rx="4" fill="${c0}" ${st}/>
-    <ellipse cx="68" cy="74" rx="36" ry="20" fill="${c0}" ${st}/><ellipse cx="72" cy="80" rx="20" ry="8" fill="${c1}" opacity=".5"/>
-    <path d="M20 40 L22 14 L36 30 Z" fill="${c0}" ${st}/><path d="M38 30 L50 12 L52 34 Z" fill="${c0}" ${st}/>
-    <circle cx="34" cy="50" r="20" fill="${c0}" ${st}/><ellipse cx="22" cy="60" rx="11" ry="8" fill="${c1}" ${st}/>
-    <circle cx="14" cy="58" r="3" fill="${c2}"/>${eyesSVG(28, 42, 46, 5, glow)}
-    <path d="M16 66 L20 72 L24 66" fill="#fff" stroke="${c2}" stroke-width="1.5"/>`;
-  if (body === "bird") s = `<path d="M40 62 L4 36 L18 70 L36 80 Z" fill="${c1}" ${st}/><path d="M80 62 L116 36 L102 70 L84 80 Z" fill="${c1}" ${st}/>
-    <ellipse cx="60" cy="68" rx="26" ry="24" fill="${c0}" ${st}/><ellipse cx="60" cy="76" rx="14" ry="12" fill="${c1}" opacity=".7"/>
-    <line x1="52" y1="92" x2="48" y2="106" stroke="${c2}" stroke-width="4" stroke-linecap="round"/><line x1="68" y1="92" x2="72" y2="106" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="60" cy="36" r="16" fill="${c0}" ${st}/><path d="M56 42 L60 54 L64 42 Z" fill="#ffb020" stroke="${c2}" stroke-width="2"/>
-    <path d="M54 20 L60 6 L66 20" fill="${c1}" ${st}/>${eyesSVG(53, 67, 34, 5, glow)}`;
-  if (body === "golem") s = `<rect x="38" y="86" width="16" height="20" rx="4" fill="${c0}" ${st}/><rect x="66" y="86" width="16" height="20" rx="4" fill="${c0}" ${st}/>
-    <rect x="12" y="46" width="18" height="40" rx="7" fill="${c0}" ${st}/><rect x="90" y="46" width="18" height="40" rx="7" fill="${c0}" ${st}/>
-    <rect x="28" y="40" width="64" height="50" rx="10" fill="${c0}" ${st}/><circle cx="60" cy="64" r="9" fill="${c1}" stroke="${c2}" stroke-width="2"/>
-    <path d="M38 50 L46 56 M82 50 L74 58 M44 80 L52 76" stroke="${c2}" stroke-width="2"/>
-    <rect x="40" y="12" width="40" height="30" rx="7" fill="${c0}" ${st}/>
-    <rect x="47" y="22" width="9" height="6" rx="2" fill="${glow || c1}"/><rect x="64" y="22" width="9" height="6" rx="2" fill="${glow || c1}"/>`;
-  if (body === "ghost") s = `<path d="M28 102 Q26 30 60 22 Q94 30 92 102 L84 94 L76 104 L68 94 L60 104 L52 94 L44 104 L36 94 Z" fill="${c0}" opacity=".88" ${st}/>
-    <path d="M28 60 Q12 66 14 82" stroke="${c0}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".8"/>
-    <path d="M92 60 Q108 66 106 82" stroke="${c0}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".8"/>
-    <ellipse cx="48" cy="52" rx="7" ry="10" fill="#140a26"/><ellipse cx="72" cy="52" rx="7" ry="10" fill="#140a26"/>
-    <circle cx="48" cy="54" r="3" fill="${glow || c1}"/><circle cx="72" cy="54" r="3" fill="${glow || c1}"/>
-    <ellipse cx="60" cy="76" rx="8" ry="6" fill="#140a26"/>`;
-  if (body === "serpent") s = `<path d="M14 100 C 40 114, 74 104, 72 84 C 70 64, 38 68, 44 50 C 50 32, 80 30, 90 38" stroke="${c2}" stroke-width="24" fill="none" stroke-linecap="round"/>
-    <path d="M14 100 C 40 114, 74 104, 72 84 C 70 64, 38 68, 44 50 C 50 32, 80 30, 90 38" stroke="${c0}" stroke-width="18" fill="none" stroke-linecap="round"/>
-    <path d="M24 102 C 44 110, 66 102, 66 88" stroke="${c1}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
-    <ellipse cx="96" cy="36" rx="18" ry="14" fill="${c0}" ${st}/><path d="M110 42 L120 46 L114 44 L120 50" stroke="#ff3b5c" stroke-width="2" fill="none"/>
-    <path d="M86 24 L82 12 L94 22 Z" fill="${c1}" ${st}/>${eyesSVG(92, 104, 32, 4.5, glow)}`;
-  const [hx, hy] = HEAD[body];
-  let extra = "";
-  if (tier >= 3 && !boss) extra += `<path d="M${hx - 14} ${hy - 6} L${hx - 18} ${hy - 22} L${hx - 6} ${hy - 10} Z M${hx + 14} ${hy - 6} L${hx + 18} ${hy - 22} L${hx + 6} ${hy - 10} Z" fill="${c2}" stroke="${c1}" stroke-width="1.5"/>`;
-  if (boss) extra += `<path d="M${hx - 16} ${hy - 8} L${hx - 18} ${hy - 26} L${hx - 8} ${hy - 16} L${hx} ${hy - 30} L${hx + 8} ${hy - 16} L${hx + 18} ${hy - 26} L${hx + 16} ${hy - 8} Z" fill="#ffd34d" stroke="#8a6a10" stroke-width="2"/><circle cx="${hx}" cy="${hy - 18}" r="3" fill="#ff3b5c"/>`;
-  const aura = boss || tier >= 6 ? `<circle cx="60" cy="64" r="56" fill="${c0}" opacity=".18"/>` : "";
-  return `<svg viewBox="-6 -10 132 124" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name}">${aura}${s}${extra}</svg>`;
-}
-
 /* =========================================================
    BATTLE ENGINE (turn-based, both sides attack)
    ========================================================= */
@@ -2508,20 +2434,6 @@ const MON_POWER = 1.8;   // raise to make monsters hit harder
 const sleep = ms => new Promise(r => setTimeout(r, ms * BATTLE_SPEED));
 let towerView = "floors", selFloor = 1;
 
-function makeMonster(floor) {
-  const br = BRACKETS[bracketOf(floor)], boss = isBossFloor(floor);
-  const sp = boss ? br.boss : pick(br.mobs);
-  const [name, body, elem, mult, spdM] = sp, L = floor;
-  const m = boss ? mult * 1.2 : mult;
-  const moves = BODY_MOVES[body].map(([n, p, e, fxx]) => ({ name: n, power: p, elem: e === "elem" ? elem : e, fx: fxx }));
-  if (boss) moves.push({ name: BOSS_MOVE[body], power: 90, elem, boss: true });
-  const maxHp = Math.floor((36 + L * 14) * m * (boss ? 2.2 : 1));
-  return {
-    sp, name: boss ? name : name, body, elem, boss, level: L, tier: bracketOf(floor),
-    hp: maxHp, maxHp, atk: Math.floor(10 + 0.7 * L * m), def: Math.floor(8 + 0.58 * L * m), spd: Math.floor(8 + 0.6 * L * spdM),
-    moves, atkStage: 0, defStage: 0,
-  };
-}
 const stageMult = s => 1 + 0.3 * s;
 // Stat effects used in battle (also shown in the stat descriptions)
 const agiDodge = () => Math.min(0.20, eff("AGI") / 400);    // AGI 40 = 10% dodge, 80+ = 20%
@@ -2697,14 +2609,14 @@ async function monsterTurn() {
     m.hp = Math.max(0, m.hp - c); bars(); anim("bMon", "hit"); floater("mon", "-" + c, "crit"); Sound.play("crit");
     return say(`⚔️ Rift Parry! You deflected the attack and struck back for ${c}!`, 900);
   }
-  const magic = ["Dark", "Light", "Fire", "Water", "Wind"].includes(mv.elem) && m.body !== "beast";
+  const magic = ["Dark", "Light", "Fire", "Water", "Wind"].includes(mv.elem) && !["beast", "giant", "insect"].includes(m.body);
   // VIT defends against physical hits. RES defends against magic.
   const D = (magic ? (eff("VIT") + eff("RES") * 2) / 3 : eff("VIT")) * stageMult(B.defStage);
   const inEm = elemMult(mv.elem, player.elem);
   let dmg = calcDamage(m.level, mv.power, m.atk * stageMult(m.atkStage), D, inEm) * MON_POWER * damageMult();
   if (B.guard) dmg *= 0.5;
   if (mv.elem !== "Normal") dmg *= 1 - Math.min(0.35, eff("RES") / 400) - fx("elemResist");
-  if (fx("resistDark") && (mv.elem === "Dark" || m.body === "ghost")) dmg *= 1 - fx("resistDark");
+  if (fx("resistDark") && (mv.elem === "Dark" || m.body === "spectre" || m.body === "undead")) dmg *= 1 - fx("resistDark");
   let shielded = false;
   if (fx("elemShield") && mv.elem !== "Normal" && player.mp >= 3) { dmg *= 1 - fx("elemShield"); player.mp -= 3; shielded = true; }
   if (fx("lowHpGuard") && player.hp < player.maxHp * 0.25) dmg *= 1 - fx("lowHpGuard");
@@ -2760,8 +2672,9 @@ function rollLoot(m) {
     if (summonType() && player.armyMode === "gather") n += Math.round(0.2 * armyPower());
     add(id, n);
   });
-  if (m.name.includes("Wolf") || m.name.includes("Hound")) add("fang", rnd(1, 2));
-  if (m.name.includes("Boar") && Math.random() < 0.5) add("fang", 1);   // boar tusks count as fangs
+  if (m.body === "beast" && /Wolf|Dog|Hound/.test(m.name)) add("fang", rnd(1, 2));
+  if (m.body === "beast" && /Boar/.test(m.name) && Math.random() < 0.5) add("fang", 1);   // boar tusks count as fangs
+  if (ELEM_DROP[m.elem] && Math.random() < 0.45) add(ELEM_DROP[m.elem], 1);
   const bossBoost = m.boss ? 3 : 1;
   if (Math.random() < Math.min(0.9, (0.08 + luck * 0.004 + m.level * 0.001) * bossBoost)) add("crystal", rnd(1, 1 + Math.floor(m.level / 30)));
   if (Math.random() < Math.min(0.6, (0.02 + luck * 0.002 + m.level * 0.0005) * bossBoost)) add(pick(["essence", "dscale"]), 1);
@@ -2789,7 +2702,7 @@ async function victory() {
   xp = Math.floor(xp);
   let ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
   if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
-  let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1));
+  let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   const loot = rollLoot(m);
   Object.entries(loot).forEach(([id, n]) => addMat(id, n));
@@ -2918,14 +2831,14 @@ function renderTower() {
   const el = $("towerBody");
   if (towerView === "floors") {
     const br = BRACKETS[bracketOf(selFloor)], boss = isBossFloor(selFloor);
-    const species = boss ? [br.boss] : br.mobs;
+    const species = boss ? [br.boss] : floorPreview(selFloor);
     const diff = selFloor - player.level;
     const diffTxt = diff > 2 ? `<span class="warn-txt">Dangerous (+${diff} levels)</span>` : diff > 0 ? `<span class="points">Challenging (+${diff})</span>` : `<span class="good">Safe</span>`;
     el.innerHTML = `
       <div class="tower-stats"><span>Highest floor: <b>${player.towerBest}</b></span><span>Open floors: <b>1 to ${mf}</b></span></div>
       <div class="floor-card">
         <div class="fc-top"><div><div class="r-name">Floor ${selFloor}${boss ? " 👑" : ""}</div><div class="small muted">${br.name} · Monster Lv. ${selFloor}</div></div><div class="small">${diffTxt}</div></div>
-        <div class="fc-mons">${species.map(sp => `<div class="fc-mon">${monsterSVG(sp, bracketOf(selFloor), boss)}<span class="small">${sp[0]}<br>${ELEM_ICON[sp[2]]} ${sp[2]}</span></div>`).join("")}</div>
+        <div class="fc-mons">${species.map(sp => `<div class="fc-mon">${monsterSVG(sp, bracketOf(selFloor), boss)}<span class="small">${sp[0]}<br>${MON_TYPES[sp[1]].icon} ${MON_TYPES[sp[1]].label} · ${ELEM_ICON[sp[2]]} ${sp[2]}</span></div>`).join("")}</div>
         <div class="small muted" style="text-align:center;margin-top:6px">${ELEM_CHART}<br>Your element: ${ELEM_ICON[player.elem]} ${player.elem}</div>
         <button class="btn wide" data-enter="${selFloor}" ${player.fatigue >= 100 || player.hp <= 0 ? "disabled" : ""}>⚔️ Enter Floor ${selFloor}</button>
         ${player.fatigue >= 100 || player.hp <= 0 ? `<div class="small warn-txt" style="text-align:center;margin-top:6px">Rest before entering.</div>` : ""}
@@ -2996,6 +2909,267 @@ $("panel").addEventListener("click", e => {
   if (t.dataset.sellmatall) sellMat(t.dataset.sellmatall, true);
   if (t.hasAttribute("data-sellcommon")) sellAllCommon();
 });
+
+
+/* =========================================================
+   MONSTERS: 9 types x 7 elements. A monster's name mixes its
+   element and species ("Mud Dog", "Frost Bear", "Darkness
+   Beetle"). Higher floors bring stronger species and prefixes.
+   ========================================================= */
+// species: [name, power multiplier, speed multiplier]  (weakest first)
+const MON_TYPES = {
+  beast:    { label: "Beast", icon: "🐺", species: [["Dog", 0.9, 1.1], ["Boar", 1.0, 0.95], ["Wolf", 1.0, 1.15], ["Bear", 1.15, 0.85], ["Panther", 1.05, 1.3], ["Behemoth", 1.25, 0.9]],
+    moves: [["Bite", 40, "Normal"], ["Claw Rush", 55, "elem"], ["Savage Roar", 0, "Normal", "atkup"]], boss: "Alpha Frenzy", drops: ["hide", "meat"] },
+  demon:    { label: "Demon", icon: "😈", species: [["Imp", 0.9, 1.2], ["Fiend", 1.05, 1.05], ["Hellhound", 1.05, 1.2], ["Ravager", 1.2, 0.9], ["Archfiend", 1.25, 1.1]],
+    moves: [["Rend", 45, "Normal"], ["Hex Flame", 55, "elem"], ["Soul Leech", 45, "Dark", "drain"]], boss: "Infernal Pact", drops: ["horn"] },
+  dragon:   { label: "Dragon", icon: "🐉", species: [["Wyrmling", 0.95, 1.0], ["Drake", 1.05, 1.05], ["Wyvern", 1.1, 1.25], ["Dragon", 1.2, 1.05], ["Elder Dragon", 1.3, 1.0]],
+    moves: [["Tail Swipe", 45, "Normal"], ["Breath", 62, "elem"], ["Scale Guard", 0, "Normal", "defup"]], boss: "Cataclysm Breath", drops: ["sscale"] },
+  giant:    { label: "Giant", icon: "🗿", species: [["Ogre", 1.05, 0.75], ["Troll", 1.1, 0.8], ["Golem", 1.15, 0.7], ["Stone Giant", 1.2, 0.75], ["Titan", 1.3, 0.8]],
+    moves: [["Stomp", 48, "Normal"], ["Boulder Toss", 60, "Earth"], ["Harden", 0, "Normal", "defup"]], boss: "Earthshatter", drops: ["ore", "core"] },
+  humanoid: { label: "Humanoid", icon: "🪓", species: [["Goblin", 0.85, 1.15], ["Bandit", 0.95, 1.1], ["Orc", 1.05, 0.95], ["Knight", 1.15, 0.95], ["Warlock", 1.1, 1.05]],
+    moves: [["Strike", 40, "Normal"], ["Charged Blade", 52, "elem"], ["War Cry", 0, "Normal", "atkup"]], boss: "Warlord's Decree", drops: ["ore", "herb"] },
+  insect:   { label: "Insect", icon: "🪲", species: [["Beetle", 0.95, 0.9], ["Spider", 0.95, 1.15], ["Mantis", 1.05, 1.25], ["Wasp", 1.0, 1.35], ["Scorpion", 1.15, 1.0]],
+    moves: [["Pinch", 35, "Normal"], ["Horn Charge", 55, "elem"], ["Shell Bash", 45, "Earth"]], boss: "Titan Crush", drops: ["shell", "gel"] },
+  snowfolk: { label: "Snow Folk", icon: "❄️", species: [["Snowling", 0.9, 1.05], ["Yeti", 1.1, 0.9], ["Hunter", 1.0, 1.15], ["Shaman", 1.05, 1.0], ["Chieftain", 1.2, 1.0]],
+    moves: [["Club", 42, "Normal"], ["Ice Lance", 55, "elem"], ["Chill Hide", 0, "Normal", "defup"]], boss: "Avalanche", drops: ["pelt"] },
+  undead:   { label: "Undead", icon: "💀", species: [["Skeleton", 0.9, 1.0], ["Zombie", 0.95, 0.75], ["Ghoul", 1.05, 1.15], ["Death Knight", 1.2, 0.95], ["Lich", 1.2, 1.05]],
+    moves: [["Bone Rake", 40, "Normal"], ["Grave Bolt", 52, "elem"], ["Life Drain", 45, "Dark", "drain"]], boss: "Death Knell", drops: ["bone"] },
+  spectre:  { label: "Demonic Spectre", icon: "👻", species: [["Wisp", 0.9, 1.15], ["Specter", 1.0, 1.1], ["Wraith", 1.1, 1.1], ["Banshee", 1.1, 1.2], ["Dread Phantom", 1.25, 1.1]],
+    moves: [["Haunt", 40, "Dark"], ["Soul Drain", 45, "elem", "drain"], ["Curse", 52, "elem"]], boss: "Requiem", drops: ["ecto"] },
+};
+// Element prefixes, weakest to strongest
+const ELEM_PREFIX = {
+  Fire: ["Ember", "Flame", "Blaze", "Cinder", "Inferno"], Water: ["Mire", "Tide", "Frost", "Ice", "Abyssal"],
+  Wind: ["Breeze", "Gale", "Storm", "Thunder", "Tempest"], Earth: ["Mud", "Stone", "Thorn", "Iron", "Quake"],
+  Light: ["Gleam", "Dawn", "Radiant", "Holy", "Celestial"], Dark: ["Dusk", "Shadow", "Darkness", "Night", "Void"],
+  Normal: ["Wild", "Feral", "Savage", "Elder", "Ancient"],
+};
+// Every element also leaves something behind sometimes
+const ELEM_DROP = { Fire: "shroom", Water: "gel", Wind: "feather", Earth: "ore", Dark: "ecto", Light: "herb", Normal: "meat" };
+const COMMON_DROPS = Object.fromEntries(Object.entries(MON_TYPES).map(([k, t]) => [k, t.drops]));
+COMMON_DROPS.dragon = ["sscale"];
+
+// Stronger species and prefixes appear higher up. Seeded so floor previews stay the same.
+function rollSpecies(floor, rand = Math.random) {
+  const tier = bracketOf(floor), br = BRACKETS[tier];
+  const type = br.types[Math.floor(rand() * br.types.length)], T = MON_TYPES[type];
+  const elem = br.elems[Math.floor(rand() * br.elems.length)];
+  const top = Math.min(T.species.length - 1, Math.floor((tier + 1) * T.species.length / 10));
+  const sIdx = Math.max(0, Math.min(T.species.length - 1, top - Math.floor(rand() * 2)));
+  const pIdx = Math.max(0, Math.min(4, Math.floor(tier / 2) - (rand() < 0.3 ? 1 : 0)));
+  const [spName, pm, sm] = T.species[sIdx];
+  return [`${ELEM_PREFIX[elem][pIdx]} ${spName}`, type, elem, pm, sm, spName];
+}
+function seeded(seed) { let s = seed * 9301 + 49297; return () => ((s = (s * 9301 + 49297) % 233280) / 233280); }
+function floorPreview(floor) {
+  const rand = seeded(floor * 7 + 3), seen = new Set(), out = [];
+  for (let i = 0; i < 12 && out.length < 3; i++) { const sp = rollSpecies(floor, rand); if (!seen.has(sp[1])) { seen.add(sp[1]); out.push(sp); } }
+  return out;
+}
+function makeMonster(floor) {
+  const br = BRACKETS[bracketOf(floor)], boss = isBossFloor(floor);
+  const sp = boss ? br.boss : rollSpecies(floor);
+  const [name, type, elem, mult, spdM] = sp, L = floor, T = MON_TYPES[type];
+  const m = boss ? mult * 1.2 : mult;
+  const moves = T.moves.map(([n, p, e, fxx]) => ({ name: n, power: p, elem: e === "elem" ? elem : e, fx: fxx }));
+  if (boss) moves.push({ name: T.boss, power: 90, elem, boss: true });
+  const maxHp = Math.floor((36 + L * 14) * m * (boss ? 2.2 : 1));
+  return {
+    sp, name, body: type, elem, boss, level: L, tier: bracketOf(floor),
+    hp: maxHp, maxHp, atk: Math.floor(10 + 0.7 * L * m), def: Math.floor(8 + 0.58 * L * m), spd: Math.floor(8 + 0.6 * L * spdM),
+    moves, atkStage: 0, defStage: 0,
+  };
+}
+
+/* ---------- Monster art ---------- */
+function eyesSVG(x1, x2, y, r, glow) {
+  const iris = glow || "#1a1a1a";
+  return [x1, x2].map(x => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/><circle cx="${x + r * 0.2}" cy="${y + r * 0.1}" r="${r * 0.55}" fill="${iris}"/><circle cx="${x - r * 0.25}" cy="${y - r * 0.3}" r="${r * 0.22}" fill="#fff"/>`).join("");
+}
+const glowEyes = (pts, r, c) => pts.map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.7}" fill="${c}"/><ellipse cx="${x}" cy="${y}" rx="${r * 2}" ry="${r * 1.4}" fill="${c}" opacity=".25"/>`).join("");
+function elemFx(elem, c0, c1) {
+  const f = { Fire: `<path d="M20 100 q4 -14 0 -24 q-6 10 0 24z M104 96 q4 -12 0 -20 q-6 8 0 20z" fill="${c0}" opacity=".8"><animate attributeName="opacity" values=".9;.3;.9" dur="1.2s" repeatCount="indefinite"/></path>`,
+    Water: `<circle cx="18" cy="40" r="4" fill="none" stroke="${c1}" stroke-width="1.5"/><circle cx="104" cy="30" r="3" fill="none" stroke="${c1}" stroke-width="1.5"/>`,
+    Wind: `<path d="M4 30 q10 -6 20 0 M96 20 q10 -6 20 0" stroke="${c1}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    Earth: `<path d="M8 104 l6 -6 l5 6z M104 104 l5 -7 l6 7z" fill="${c0}"/>`,
+    Light: `<path d="M14 26 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2z M106 46 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5z" fill="${c1}"/>`,
+    Dark: `<ellipse cx="60" cy="104" rx="54" ry="8" fill="#14082a" opacity=".55"/><path d="M14 90 q-4 -14 6 -22 M106 86 q4 -14 -6 -22" stroke="${c0}" stroke-width="3" fill="none" opacity=".6"/>` };
+  return f[elem] || "";
+}
+function monsterSVG(sp, tier, boss) {
+  const [name, type, elem] = sp, spc = sp[5] || "", [c0, c1, c2] = PAL[elem] || PAL.Normal;
+  const red = "#ff3b3b", glow = elem === "Dark" || boss || tier >= 4 ? red : elem === "Light" ? "#ffb020" : c1;
+  const st = `stroke="${c2}" stroke-width="3" stroke-linejoin="round"`;
+  const fur = shade(c0, -0.15);
+  let s = "", head = [60, 24];
+  switch (type) {
+    case "beast": {
+      const bear = spc === "Bear" || spc === "Behemoth", cat = spc === "Panther", boar = spc === "Boar";
+      const bw = bear ? 44 : 36, bh = bear ? 26 : 20;
+      s += `<path d="M96 66 Q${cat ? 122 : 114} ${cat ? 74 : 54} ${cat ? 118 : 108} ${cat ? 100 : 42}" stroke="${c2}" stroke-width="${bear ? 6 : 9}" fill="none" stroke-linecap="round"/>`;
+      s += [40, 54, 78, 92].map(x => `<rect x="${x - 5}" y="80" width="11" height="24" rx="4" fill="${fur}" ${st}/>`).join("");
+      s += `<ellipse cx="68" cy="72" rx="${bw}" ry="${bh}" fill="${c0}" ${st}/>`;
+      if (spc === "Wolf" || spc === "Behemoth") s += `<path d="M44 56 l6 -16 l6 12 l6 -16 l6 14 l6 -14 l4 16" fill="${fur}" ${st}/>`;
+      if (spc === "Behemoth") s += `<path d="M24 34 q-14 -18 -2 -30 q0 14 10 22z M42 32 q8 -22 22 -24 q-12 10 -12 26z" fill="${c1}" ${st}/>`;
+      s += bear ? `<circle cx="18" cy="36" r="8" fill="${c0}" ${st}/><circle cx="46" cy="34" r="8" fill="${c0}" ${st}/>`
+        : boar ? `<path d="M22 36 l2 -10 l10 8z M42 34 l6 -10 l4 12z" fill="${c0}" ${st}/>`
+        : `<path d="M18 42 L20 ${cat ? 22 : 12} L34 32 Z" fill="${c0}" ${st}/><path d="M38 32 L50 ${cat ? 16 : 8} L52 36 Z" fill="${c0}" ${st}/>`;
+      s += `<circle cx="34" cy="52" r="${bear ? 22 : 20}" fill="${c0}" ${st}/><ellipse cx="${boar ? 16 : 20}" cy="62" rx="${boar ? 13 : 12}" ry="9" fill="${c1}" ${st}/><circle cx="${boar ? 9 : 12}" cy="60" r="3.2" fill="${c2}"/>`;
+      if (boar) s += `<path d="M12 66 q-6 -2 -6 -10 M22 68 q-4 -2 -2 -10" stroke="#fff6e0" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      s += `<path d="M14 70 l3 7 l3 -6 l3 6 l3 -7" fill="#fff" stroke="${c2}" stroke-width="1.5"/>`;
+      s += glow === red ? glowEyes([[28, 46], [42, 46]], 3.5, red) : eyesSVG(28, 42, 47, 5, null);
+      head = [34, 34]; break;
+    }
+    case "demon": {
+      const hound = spc === "Hellhound", winged = spc === "Imp" || spc === "Archfiend", big = spc === "Ravager" || spc === "Archfiend";
+      if (hound) {
+        s += [40, 54, 78, 92].map(x => `<rect x="${x - 5}" y="80" width="11" height="24" rx="4" fill="${c2}" ${st}/>`).join("");
+        s += `<ellipse cx="68" cy="72" rx="38" ry="21" fill="${c2}" stroke="${c0}" stroke-width="3"/><path d="M40 56 q10 -26 20 -6 q8 -22 18 0 q10 -20 16 6" fill="${c0}" opacity=".85"><animate attributeName="opacity" values=".9;.5;.9" dur="1s" repeatCount="indefinite"/></path>`;
+        s += `<circle cx="34" cy="52" r="20" fill="${c2}" stroke="${c0}" stroke-width="3"/><path d="M24 36 q-10 -16 0 -28 q2 14 8 22z M42 34 q6 -18 18 -22 q-8 10 -10 24z" fill="#2a1d1d" stroke="${c0}" stroke-width="1.5"/>`;
+        s += `<path d="M12 62 l4 10 l4 -8 l4 8 l4 -10" fill="#fff" stroke="${c0}" stroke-width="1.5"/>` + glowEyes([[28, 48], [42, 48]], 3.5, red);
+        head = [34, 34]; break;
+      }
+      const sc = big ? 1.12 : spc === "Imp" ? 0.8 : 1;
+      s += `<g transform="translate(60 104) scale(${sc}) translate(-60 -104)">`;
+      if (winged) s += `<path d="M44 52 q-36 -30 -42 4 q12 -4 14 8 q10 -8 14 4 q6 -8 14 -2z M76 52 q36 -30 42 4 q-12 -4 -14 8 q-10 -8 -14 4 q-6 -8 -14 -2z" fill="#2a1830" stroke="${c0}" stroke-width="2"/>`;
+      s += `<path d="M78 92 q24 4 30 -16 l4 -6 l-10 2" fill="none" stroke="${c2}" stroke-width="4"/>`;
+      s += `<rect x="46" y="80" width="12" height="24" rx="4" fill="${c2}"/><rect x="62" y="80" width="12" height="24" rx="4" fill="${c2}"/>`;
+      s += `<path d="M38 50 q22 -10 44 0 l-4 38 q-18 6 -36 0z" fill="${c0}" ${st}/><path d="M50 60 q10 6 20 0 M50 70 q10 6 20 0" stroke="${c2}" stroke-width="2" fill="none"/>`;
+      s += `<path d="M38 54 q-14 12 -16 28 l-6 6 l8 0 l2 -6 M82 54 q14 12 16 28 l6 6 l-8 0 l-2 -6" stroke="${c0}" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+      s += `<circle cx="60" cy="36" r="18" fill="${c0}" ${st}/><path d="M46 26 q-12 -20 -2 -30 q2 14 8 22z M74 26 q12 -20 2 -30 q-2 14 -8 22z" fill="#2a1d1d" stroke="${c1}" stroke-width="1.5"/>`;
+      s += glowEyes([[53, 36], [67, 36]], 3.2, red) + `<path d="M50 46 l4 6 l3 -5 l3 5 l3 -5 l3 5 l4 -6" fill="#fff" stroke="${c2}" stroke-width="1.2"/></g>`;
+      head = [60, 22]; break;
+    }
+    case "dragon": {
+      const wings = spc !== "Wyrmling", big = spc === "Dragon" || spc === "Elder Dragon", elder = spc === "Elder Dragon";
+      if (wings) s += `<path d="M64 52 Q${big ? 96 : 88} ${big ? -6 : 6} 118 22 Q106 30 110 46 Q98 42 96 56 Q86 50 80 62z" fill="${c1}" ${st}/>`;
+      s += `<path d="M90 82 Q118 90 116 66 Q112 80 96 74" fill="${c0}" ${st}/>`;
+      s += `<rect x="50" y="80" width="12" height="24" rx="4" fill="${fur}" ${st}/><rect x="80" y="80" width="12" height="24" rx="4" fill="${fur}" ${st}/>`;
+      s += `<ellipse cx="70" cy="72" rx="${big ? 34 : 28}" ry="${big ? 22 : 18}" fill="${c0}" ${st}/><path d="M48 80 q22 8 44 0" stroke="${c1}" stroke-width="6" fill="none" opacity=".7"/>`;
+      s += `<path d="M58 60 Q40 50 36 36" stroke="${c2}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M58 60 Q40 50 36 36" stroke="${c0}" stroke-width="14" fill="none" stroke-linecap="round"/>`;
+      s += `<path d="M44 26 q-20 0 -30 8 q0 8 8 10 q14 2 26 -4z" fill="${c0}" ${st}/><circle cx="18" cy="35" r="1.8" fill="${c2}"/>`;
+      s += `<path d="M40 22 q4 -${elder ? 20 : 14} ${elder ? 18 : 12} -${elder ? 22 : 16} q-6 10 -4 18z" fill="${c1}" ${st}/>${elder ? `<path d="M48 26 q10 -10 22 -10 q-8 6 -12 14z" fill="${c1}" ${st}/>` : ""}`;
+      s += glowEyes([[32, 29]], 3, glow === c1 ? "#ffcf40" : glow) + `<path d="M14 40 l3 5 l3 -4 l3 4 l3 -5" fill="#fff" stroke="${c2}" stroke-width="1"/>`;
+      head = [32, 20]; break;
+    }
+    case "giant": {
+      const golem = spc === "Golem" || spc === "Stone Giant", titan = spc === "Titan", troll = spc === "Troll";
+      const skin = golem ? shade(c0, -0.2) : c0;
+      s += `<rect x="36" y="78" width="18" height="26" rx="6" fill="${skin}" ${st}/><rect x="66" y="78" width="18" height="26" rx="6" fill="${skin}" ${st}/>`;
+      s += `<path d="M28 40 q32 -14 64 0 l2 44 q-34 10 -68 0z" fill="${skin}" ${st}/>`;
+      if (titan) s += `<path d="M32 44 q28 -10 56 0 v18 q-28 8 -56 0z" fill="#d9c28a" stroke="${c2}" stroke-width="2"/><path d="M60 46 v16" stroke="${c0}" stroke-width="3"/>`;
+      else if (golem) s += `<path d="M38 50 l10 8 M80 48 l-8 12 M44 74 l12 -4" stroke="${c2}" stroke-width="2.5"/><circle cx="60" cy="60" r="7" fill="${c1}"/>`;
+      else s += `<ellipse cx="60" cy="66" rx="22" ry="14" fill="${c1}" opacity=".5"/><rect x="30" y="72" width="60" height="8" fill="#6a4a2a"/>`;
+      const armY = troll ? 100 : 88;
+      s += `<path d="M30 46 q-16 14 -18 ${armY - 50}" stroke="${skin}" stroke-width="16" fill="none" stroke-linecap="round"/><path d="M90 46 q16 14 18 ${armY - 50}" stroke="${skin}" stroke-width="16" fill="none" stroke-linecap="round"/>`;
+      if (!golem && !titan) s += `<path d="M106 ${armY - 6} l14 -40 q6 -4 8 4 l-12 40z" fill="#7a5534" ${st}/>`;
+      if (titan) s += `<path d="M106 ${armY - 4} l6 -60 l6 0 l-2 60z" fill="#c9d2de" ${st}/>`;
+      s += `<rect x="42" y="${troll ? 18 : 10}" width="36" height="32" rx="${golem ? 5 : 14}" fill="${skin}" ${st}/>`;
+      if (titan) s += `<path d="M40 16 l6 -14 l8 10 l6 -14 l6 14 l8 -10 l6 14z" fill="#e6b94a" stroke="${c2}" stroke-width="1.5"/>`;
+      if (spc === "Ogre" || troll) s += `<path d="M50 44 l2 -6 l2 6 M66 44 l2 -6 l2 6" fill="#fff" stroke="${c2}" stroke-width="1"/>`;
+      s += glowEyes([[52, troll ? 30 : 24], [68, troll ? 30 : 24]], 3, golem ? c1 : glow);
+      head = [60, troll ? 16 : 8]; break;
+    }
+    case "humanoid": {
+      const gob = spc === "Goblin", orc = spc === "Orc", knight = spc === "Knight", lock = spc === "Warlock";
+      const skinC = gob || orc ? (orc ? "#7a9a5a" : "#8ec05c") : "#e8c29a";
+      const sc = gob ? 0.82 : orc ? 1.08 : 1;
+      s += `<g transform="translate(60 104) scale(${sc}) translate(-60 -104)">`;
+      if (lock) s += `<path d="M38 44 q22 -6 44 0 l10 60 h-64z" fill="${c0}" ${st}/><path d="M60 46 v58" stroke="${c1}" stroke-width="3"/>`;
+      else s += `<rect x="46" y="80" width="12" height="24" rx="3" fill="${c2}"/><rect x="62" y="80" width="12" height="24" rx="3" fill="${c2}"/><path d="M40 46 q20 -8 40 0 l2 38 q-22 6 -44 0z" fill="${knight ? "#b8c2d0" : c0}" ${st}/>`;
+      s += `<path d="M40 52 q-12 14 -12 30 M80 52 q12 14 14 30" stroke="${knight ? "#b8c2d0" : c0}" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+      s += `<circle cx="28" cy="84" r="5" fill="${skinC}"/><circle cx="94" cy="84" r="5" fill="${skinC}"/>`;
+      // weapon in the right hand, shield or flame in the left
+      s += lock ? `<path d="M96 104 l-4 -78" stroke="#5a3a1e" stroke-width="4"/><circle cx="92" cy="24" r="8" fill="${c1}"><animate attributeName="r" values="7;9;7" dur="1.6s" repeatCount="indefinite"/></circle>`
+        : orc ? `<path d="M94 92 l4 -50" stroke="#5a3a1e" stroke-width="5"/><path d="M96 46 q18 -4 18 14 q-10 2 -18 -2z" fill="#c9d2de" ${st}/>`
+        : `<path d="M94 86 l10 -44 l5 2 l-9 44z" fill="#c9d2de" ${st}/><path d="M90 84 l12 4" stroke="${c1}" stroke-width="3"/>`;
+      if (knight) s += `<path d="M14 66 h24 v18 q-12 12 -24 0z" fill="${c0}" ${st}/><path d="M26 70 v14" stroke="${c1}" stroke-width="3"/>`;
+      if (gob) s += `<path d="M42 30 l-18 -6 l16 14z M78 30 l18 -6 l-16 14z" fill="${skinC}" ${st}/>`;
+      s += `<circle cx="60" cy="32" r="16" fill="${skinC}" ${st}/>`;
+      if (knight) s += `<path d="M42 34 q0 -22 18 -22 q18 0 18 22 v6 h-36z" fill="#b8c2d0" ${st}/><rect x="46" y="28" width="28" height="5" fill="#1a1d26"/><path d="M60 12 q4 -10 12 -10 q-4 6 -6 12" fill="${c0}"/>`;
+      else if (spc === "Bandit" || lock) s += `<path d="M40 34 q2 -26 20 -26 q18 0 20 26 q-6 -8 -20 -10 q-14 2 -20 10z" fill="${lock ? shade(c0, -0.3) : "#3a3428"}" ${st}/>`;
+      if (spc === "Bandit") s += `<rect x="46" y="34" width="28" height="8" rx="3" fill="#3a3428"/>`;
+      if (orc) s += `<path d="M52 42 l1 -6 l3 5 M68 42 l-1 -6 l-3 5" stroke="#fff6e0" stroke-width="2.5" fill="none"/>`;
+      if (!knight) s += glow === red ? glowEyes([[54, 30], [66, 30]], 2.6, red) : eyesSVG(54, 66, 30, 3.6, null);
+      s += `</g>`;
+      head = [60, 14]; break;
+    }
+    case "insect": {
+      if (spc === "Spider") {
+        s += [0, 1, 2, 3].map(i => `<path d="M60 70 q-${24 + i * 6} -${20 - i * 10} -${34 + i * 4} ${14 + i * 6} M60 70 q${24 + i * 6} -${20 - i * 10} ${34 + i * 4} ${14 + i * 6}" stroke="${c2}" stroke-width="4" fill="none"/>`).join("");
+        s += `<ellipse cx="60" cy="62" rx="26" ry="22" fill="${c0}" ${st}/><path d="M48 52 l12 10 l12 -10 M52 70 l8 -8 l8 8" stroke="${c1}" stroke-width="2.5" fill="none"/><circle cx="60" cy="84" r="12" fill="${c0}" ${st}/>`;
+        s += glowEyes([[54, 82], [66, 82], [57, 88], [63, 88]], 2.2, glow === c1 ? red : glow);
+        head = [60, 72]; break;
+      }
+      if (spc === "Wasp") {
+        s += `<ellipse cx="54" cy="34" rx="22" ry="12" fill="${c1}" opacity=".55" ${st} transform="rotate(-20 54 34)"><animateTransform attributeName="transform" type="rotate" values="-20 54 34;-35 54 34;-20 54 34" dur=".25s" repeatCount="indefinite"/></ellipse><ellipse cx="74" cy="34" rx="22" ry="12" fill="${c1}" opacity=".55" ${st} transform="rotate(20 74 34)"/>`;
+        s += `<ellipse cx="82" cy="66" rx="24" ry="16" fill="${c0}" ${st}/><path d="M72 54 v24 M84 52 v28 M96 56 v20" stroke="${c2}" stroke-width="5"/><path d="M104 70 l14 6 l-14 2z" fill="${c2}"/>`;
+        s += `<ellipse cx="52" cy="60" rx="12" ry="10" fill="${c0}" ${st}/><circle cx="32" cy="56" r="13" fill="${c0}" ${st}/>` + glowEyes([[26, 52], [36, 52]], 3, glow === c1 ? red : glow);
+        s += [40, 52, 64].map(x => `<path d="M${x} 68 l-4 22" stroke="${c2}" stroke-width="3"/>`).join("");
+        head = [32, 42]; break;
+      }
+      const mantis = spc === "Mantis", scorp = spc === "Scorpion";
+      s += [0, 1, 2].map(i => `<line x1="${48 + i * 18}" y1="86" x2="${42 + i * 18}" y2="104" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`).join("");
+      if (scorp) s += `<path d="M96 76 q26 -6 22 -34 q-4 -14 -16 -10" stroke="${c0}" stroke-width="9" fill="none" stroke-linecap="round" ${st}/><path d="M100 30 l-10 -4 l6 10z" fill="${c2}"/>`;
+      s += `<ellipse cx="66" cy="72" rx="${mantis ? 30 : 40}" ry="${mantis ? 16 : 24}" fill="${c0}" ${st}/>${mantis ? "" : `<path d="M66 48 L66 96" stroke="${c2}" stroke-width="3"/><ellipse cx="54" cy="62" rx="10" ry="6" fill="${c1}" opacity=".6"/>`}`;
+      if (mantis) s += `<path d="M40 64 q-6 -30 -2 -40 M40 64 q-22 -20 -26 -6 l10 10" stroke="${c0}" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M14 58 l-6 -10 l12 4z" fill="${c1}"/>`;
+      if (scorp) s += `<path d="M30 64 q-20 -6 -22 6 q10 0 12 8 M30 80 q-20 6 -22 -4" stroke="${c0}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+      s += `<circle cx="${mantis ? 38 : 28}" cy="${mantis ? 26 : 70}" r="${mantis ? 12 : 16}" fill="${c0}" ${st}/>`;
+      if (!mantis && !scorp) s += `<path d="M20 58 L8 30 L28 52 Z" fill="${c1}" ${st}/>`;
+      s += glowEyes(mantis ? [[32, 24], [44, 24]] : [[22, 68], [34, 68]], 3, glow === c1 ? red : glow);
+      head = mantis ? [38, 12] : [28, 54]; break;
+    }
+    case "snowfolk": {
+      const yeti = spc === "Yeti" || spc === "Chieftain", furC = shade(c1, 0.6), furD = shade(c0, 0.35);   // snowy fur tinted by element
+      s += `<rect x="42" y="80" width="16" height="24" rx="6" fill="${furD}" stroke="${c2}" stroke-width="2.5"/><rect x="64" y="80" width="16" height="24" rx="6" fill="${furD}" stroke="${c2}" stroke-width="2.5"/>`;
+      s += `<path d="M${yeti ? 24 : 34} 46 q${yeti ? 36 : 26} -18 ${yeti ? 72 : 52} 0 l4 40 q-${yeti ? 40 : 30} 12 -${yeti ? 80 : 60} 0z" fill="${furC}" stroke="${c2}" stroke-width="3"/>`;
+      s += `<path d="M36 60 l6 6 l6 -6 l6 6 l6 -6 l6 6 l6 -6 l6 6" stroke="${furD}" stroke-width="2" fill="none"/>`;
+      s += `<path d="M${yeti ? 26 : 36} 50 q-${yeti ? 16 : 10} 16 -14 36 M${yeti ? 94 : 84} 50 q${yeti ? 16 : 10} 16 14 36" stroke="${furC}" stroke-width="${yeti ? 16 : 11}" fill="none" stroke-linecap="round"/>`;
+      if (spc === "Hunter") s += `<path d="M100 104 l4 -86" stroke="#7a5534" stroke-width="4"/><path d="M104 18 l-5 10 l10 0z" fill="${c1}" stroke="${c2}"/>`;
+      if (spc === "Shaman") s += `<path d="M100 104 l2 -70" stroke="#7a5534" stroke-width="4"/><path d="M102 34 l-6 -10 l6 -8 l6 8z" fill="${c0}" stroke="#fff" stroke-width="1.5"/>`;
+      s += `<circle cx="60" cy="34" r="${yeti ? 20 : 16}" fill="${furC}" stroke="${c2}" stroke-width="3"/><ellipse cx="60" cy="40" rx="11" ry="8" fill="${shade(c2, 0.2)}"/>`;
+      if (spc === "Chieftain") s += `<path d="M40 22 l6 -16 l6 10 l8 -14 l8 14 l6 -10 l6 16z" fill="${c1}" stroke="${c2}" stroke-width="1.5"/>`;
+      s += `<path d="M30 92 l4 -10 l4 10z M88 90 l4 -12 l4 12z" fill="${c1}" stroke="${c2}" stroke-width="1"/>`;   // ice shards in your element color
+      s += glowEyes([[54, 32], [66, 32]], 3, glow === c1 ? c0 : glow) + `<path d="M54 44 l2 4 l2 -4 M62 44 l2 4 l2 -4" fill="#fff"/>`;
+      head = [60, 14]; break;
+    }
+    case "undead": {
+      const bone = "#ece4d0", zombie = spc === "Zombie" || spc === "Ghoul", dk = spc === "Death Knight", lich = spc === "Lich";
+      const skinU = zombie ? (spc === "Ghoul" ? "#8a9a8a" : "#9ab08a") : bone;
+      if (lich) s += `<path d="M38 44 q22 -8 44 0 l12 60 h-68z" fill="${c2}" stroke="${c0}" stroke-width="2.5"/><path d="M96 104 l-4 -82" stroke="#5a4a3a" stroke-width="4"/><circle cx="92" cy="20" r="8" fill="${c0}"><animate attributeName="opacity" values="1;.5;1" dur="1.4s" repeatCount="indefinite"/></circle>`;
+      else s += `<path d="M50 80 v24 M70 80 v24" stroke="${skinU}" stroke-width="${zombie ? 10 : 5}" stroke-linecap="round"/>`;
+      if (!lich) s += dk ? `<path d="M38 46 q22 -8 44 0 l2 38 q-24 6 -48 0z" fill="#4a4f5c" stroke="${c0}" stroke-width="2.5"/><path d="M60 48 v34" stroke="${c0}" stroke-width="2"/>`
+        : zombie ? `<path d="M40 46 q20 -8 40 0 l2 38 q-22 6 -44 0z" fill="${shade(c0, -0.4)}" ${st}/><path d="M46 70 l8 6 l6 -8" stroke="${skinU}" stroke-width="5" fill="none"/>`
+        : `<path d="M60 46 v36" stroke="${bone}" stroke-width="5"/>${[52, 60, 68].map(y => `<path d="M46 ${y} q14 6 28 0" stroke="${bone}" stroke-width="4" fill="none"/>`).join("")}`;
+      s += `<path d="M42 52 q-12 14 -${zombie ? 22 : 12} ${zombie ? 20 : 30} M78 52 q12 14 ${zombie ? 22 : 12} ${zombie ? 20 : 30}" stroke="${dk ? "#4a4f5c" : skinU}" stroke-width="${zombie || dk ? 10 : 5}" fill="none" stroke-linecap="round"/>`;
+      if (dk) s += `<path d="M94 92 l10 -64 l6 1 l-10 64z" fill="#2a2d36" stroke="${c0}" stroke-width="2"/><path d="M98 76 l8 -42" stroke="${c1}" stroke-width="1.5"/>`;
+      if (dk) s += `<path d="M42 36 q0 -24 18 -24 q18 0 18 24 v6 h-36z" fill="#4a4f5c" stroke="${c0}" stroke-width="2"/><path d="M44 18 l-10 -12 l14 6 M76 18 l10 -12 l-14 6" stroke="#4a4f5c" stroke-width="4" fill="none"/>`;
+      else {
+        s += `<path d="M44 34 q0 -20 16 -20 q16 0 16 20 q0 8 -6 12 v6 h-20 v-6 q-6 -4 -6 -12z" fill="${skinU}" stroke="${shade(skinU, -0.35)}" stroke-width="2.5"/>`;
+        if (lich) s += `<path d="M42 20 l4 -14 l6 8 l8 -12 l8 12 l6 -8 l4 14z" fill="#e6b94a" stroke="${c2}" stroke-width="1.5"/>`;
+        s += `<path d="M54 46 h12 M56 44 v4 M60 44 v4 M64 44 v4" stroke="#1a1626" stroke-width="1.5"/>`;
+      }
+      s += glowEyes([[54, 32], [66, 32]], 3, glow === c1 ? c0 : glow);
+      head = [60, 8]; break;
+    }
+    case "spectre": {
+      const horned = spc !== "Wisp", big = spc === "Dread Phantom", wail = spc === "Banshee";
+      const w = spc === "Wisp" ? 22 : big ? 38 : 30;
+      s += `<path d="M${60 - w} 104 Q${58 - w} 30 60 20 Q${62 + w} 30 ${60 + w} 104 L${60 + w * 0.6} 92 L${60 + w * 0.2} 106 L${60 - w * 0.2} 92 L${60 - w * 0.6} 106 Z" fill="${c2}" fill-opacity=".85" stroke="${c0}" stroke-width="3"><animate attributeName="d" dur="2.4s" repeatCount="indefinite" values="M${60 - w} 104 Q${58 - w} 30 60 20 Q${62 + w} 30 ${60 + w} 104 L${60 + w * 0.6} 92 L${60 + w * 0.2} 106 L${60 - w * 0.2} 92 L${60 - w * 0.6} 106 Z;M${60 - w} 102 Q${56 - w} 30 60 20 Q${64 + w} 30 ${60 + w} 102 L${60 + w * 0.6} 96 L${60 + w * 0.2} 100 L${60 - w * 0.2} 96 L${60 - w * 0.6} 100 Z;M${60 - w} 104 Q${58 - w} 30 60 20 Q${62 + w} 30 ${60 + w} 104 L${60 + w * 0.6} 92 L${60 + w * 0.2} 106 L${60 - w * 0.2} 92 L${60 - w * 0.6} 106 Z"/></path>`;
+      if (spc !== "Wisp") s += `<path d="M${62 - w} 56 q-16 4 -18 22 l-6 6 M${58 + w} 56 q16 4 18 22 l6 6" stroke="${c0}" stroke-width="6" fill="none" stroke-linecap="round" opacity=".9"/>`;
+      if (horned) s += `<path d="M46 30 q-10 -18 -2 -28 q0 12 8 20z M74 30 q10 -18 2 -28 q0 12 -8 20z" fill="#1a0f22" stroke="${c0}" stroke-width="1.5"/>`;
+      if (big) s += `<path d="M30 40 q30 -20 60 0" stroke="${c1}" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`;
+      s += glowEyes([[50, 46], [70, 46]], 4, glow === c1 ? red : glow);
+      s += wail ? `<ellipse cx="60" cy="66" rx="7" ry="11" fill="#0d0614"/>` : `<path d="M48 62 q12 8 24 0" stroke="#0d0614" stroke-width="3" fill="none"/>`;
+      head = [60, 12]; break;
+    }
+  }
+  const [hx, hy] = head;
+  let extra = "";
+  if (boss) extra += `<path d="M${hx - 16} ${hy - 2} L${hx - 18} ${hy - 20} L${hx - 8} ${hy - 10} L${hx} ${hy - 24} L${hx + 8} ${hy - 10} L${hx + 18} ${hy - 20} L${hx + 16} ${hy - 2} Z" fill="#ffd34d" stroke="#8a6a10" stroke-width="2"/><circle cx="${hx}" cy="${hy - 12}" r="3" fill="#ff3b5c"/>`;
+  const aura = boss || tier >= 6 ? `<circle cx="60" cy="60" r="58" fill="${c0}" opacity=".16"/>` : "";
+  return `<svg viewBox="-6 -14 132 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name}">${aura}${elemFx(elem, c0, c1)}${s}${extra}</svg>`;
+}
 
 
 /* =========================================================
@@ -3356,9 +3530,10 @@ function mainHandSVG(id, e) {
     case "dagger": return g + `<path d="M150 172 l14 -34 l5 2 l-12 34z" fill="#d6dde6" stroke="#4a4f5a" stroke-width="1.5"/><path d="M162 142 l6 -8 l1 9z" fill="#fff"/><rect x="144" y="168" width="14" height="5" rx="2" fill="#7a5534" transform="rotate(20 151 170)"/>`;
     case "crystalEdge": return g + `<path d="M150 174 l14 -80 l9 4 l-15 78z" fill="#9fe6ff" fill-opacity=".85" stroke="#3aa0ff" stroke-width="1.5"/><path d="M158 150 l9 -46" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="138" y="170" width="28" height="6" rx="3" fill="#7fd6ff" transform="rotate(10 152 173)"/>`;
     case "shadowBlade": return g + `<path d="M150 176 l12 -90 l8 3 l-13 89z" fill="#2a2238" stroke="#b06bff" stroke-width="2"/><path d="M160 130 l6 -40" stroke="#d6b3ff" stroke-width="1.5"/><path d="M136 172 l30 6" stroke="#b06bff" stroke-width="5" stroke-linecap="round"/>`;
+    case "hornblade": return `<path d="M150 174 q10 -40 22 -60 q-2 24 -14 62z" fill="#3a2a2a" stroke="#ff6a2b" stroke-width="2"/><rect x="142" y="170" width="18" height="6" rx="2" fill="#7a5534"/>`;
     case "spireBreaker": return g + gearGlow(id, 168, 108) + `<path d="M150 192 l10 -98" stroke="#5a3a1e" stroke-width="7" stroke-linecap="round"/><path d="M158 100 q30 -10 34 18 q-16 6 -32 2z M156 104 q-26 -8 -30 14 q14 4 28 0z" fill="#ffd36a" stroke="#a07a20" stroke-width="2"/><circle cx="158" cy="104" r="5" fill="${e}"/>`;
+    default: return `<path d="M151 176 l12 -80 l6 2 l-12 80z" fill="#c9d2de" stroke="#3a3f4a" stroke-width="2"/>`;
   }
-  return "";
 }
 function offHandSVG(id, e) {
   const g = gearGlow(id, 50, 150);
@@ -3381,6 +3556,7 @@ function armorSVG(id, e) {
     case "armor": return `<path d="M76 124 q24 -8 48 0 l-2 32 q-22 8 -44 0z" fill="#e9d8b4" stroke="#8a7350" stroke-width="2"/><path d="M80 134 q20 6 40 0 M80 144 q20 6 40 0" stroke="#b89a6a" stroke-width="2" fill="none"/>`;
     case "serpentMail": return `<path d="M74 122 q26 -10 52 0 l2 46 q-28 8 -56 0z" fill="#3f9a6a" stroke="#1e5a3c" stroke-width="2"/>` +
       [0, 1, 2, 3].map(r => [0, 1, 2, 3, 4].map(c => `<path d="M${78 + c * 9 + (r % 2) * 4} ${130 + r * 9} q4 6 8 0" fill="none" stroke="#8fe0b0" stroke-width="1.5"/>`).join("")).join("");
+    case "frostCloak": return `<path d="M68 120 q32 -12 64 0 l4 56 q-36 8 -72 0z" fill="#e8f2fb" stroke="#7a8ea6" stroke-width="2"/><path d="M70 124 q30 10 60 0" stroke="#ffffff" stroke-width="7" fill="none"/><path d="M76 150 l4 8 l4 -8 M116 150 l4 8 l4 -8" stroke="#9fd2ff" stroke-width="2" fill="none"/>`;
     case "drakePlate": return `<path d="M72 122 q28 -12 56 0 l2 48 q-30 8 -60 0z" fill="#a8282e" stroke="#4a0e12" stroke-width="2.5"/><path d="M84 130 l16 10 l16 -10 M84 148 l16 10 l16 -10" stroke="#ffb36a" stroke-width="2" fill="none"/>
       <path d="M58 124 l-10 -16 l18 6z M142 124 l10 -16 l-18 6z" fill="#efe0c0" stroke="#4a0e12" stroke-width="1.5"/>`;
   }
@@ -3388,6 +3564,7 @@ function armorSVG(id, e) {
 }
 function accessorySVG(id, e, legBottom) {
   switch (id) {
+    case "boneCharm": return `<path d="M88 118 q12 14 24 0" fill="none" stroke="#7a6a50" stroke-width="2"/><path d="M95 126 h10 M94 124 v4 M106 124 v4" stroke="#efe9dc" stroke-width="3" stroke-linecap="round"/>`;
     case "amulet": return `<path d="M88 118 q12 14 24 0" fill="none" stroke="#c9a14a" stroke-width="2"/><circle cx="100" cy="128" r="5" fill="#ff8a3a" stroke="#7a3a10" stroke-width="1.5"/>`;
     case "towerHeart": return `<path d="M86 116 q14 16 28 0" fill="none" stroke="#e6b94a" stroke-width="2.5"/><path d="M94 124 h12 l2 6 q-8 10 -16 0z" fill="#ffd36a" stroke="#a07a20"/><circle cx="100" cy="129" r="3" fill="${e}"><animate attributeName="r" values="2.5;4;2.5" dur="1.6s" repeatCount="indefinite"/></circle>
       <circle cx="100" cy="128" r="70" fill="none" stroke="#ffb020" stroke-width="1.5" stroke-dasharray="3 9" opacity=".6"><animateTransform attributeName="transform" type="rotate" from="0 100 128" to="-360 100 128" dur="18s" repeatCount="indefinite"/></circle>`;
@@ -3556,15 +3733,24 @@ const UNIT_PERK = {
   golem:   { name: "Stone Skin",  icon: "🗿", kind: "stat", stat: "VIT", base: 3, text: v => `+${v} Vitality` },
   ghost:   { name: "Soul Siphon", icon: "👻", kind: "mp",   base: 4,  text: v => `Restores ${v} MP after each win` },
   serpent: { name: "Keen Eyes",   icon: "🐍", kind: "stat", stat: "SEN", base: 2, text: v => `+${v} Sense` },
+  // Current monster types
+  insect:   { name: "Carapace",      icon: "🪲", kind: "stat", stat: "RES", base: 2, text: v => `+${v} Resistance` },
+  demon:    { name: "Hellfire Will", icon: "😈", kind: "stat", stat: "INT", base: 2, text: v => `+${v} Intelligence` },
+  dragon:   { name: "Draconic Vigor",icon: "🐉", kind: "heal", base: 3, text: v => `Heals you ${v}% max HP after each win` },
+  giant:    { name: "Stone Skin",    icon: "🗿", kind: "stat", stat: "VIT", base: 3, text: v => `+${v} Vitality` },
+  humanoid: { name: "Lucky Find",    icon: "🪓", kind: "stat", stat: "LUK", base: 2, text: v => `+${v} Luck` },
+  snowfolk: { name: "Snowstride",    icon: "❄️", kind: "stat", stat: "AGI", base: 2, text: v => `+${v} Agility` },
+  undead:   { name: "Deathsight",    icon: "💀", kind: "stat", stat: "SEN", base: 2, text: v => `+${v} Sense` },
+  spectre:  { name: "Soul Siphon",   icon: "👻", kind: "mp",   base: 4, text: v => `Restores ${v} MP after each win` },
 };
 // Old saves didn't store what a unit used to be: look it up by name.
 function unitBody(u) {
-  if (u.body) return u.body;
-  for (const br of BRACKETS) {
-    const hit = br.mobs.find(([n]) => n === u.name) || (br.boss[0] === u.name ? br.boss : null);
-    if (hit) { u.body = hit[1]; if (br.boss[0] === u.name) u.boss = true; return u.body; }
-  }
-  return u.body = "beast";
+  if (u.body && UNIT_PERK[u.body]) return u.body;
+  // Old saves: guess the type from the name
+  const n = u.name || "";
+  const guess = Object.entries(MON_TYPES).find(([, t]) => t.species.some(([sp]) => n.endsWith(sp)));
+  return u.body = guess ? guess[0] : /Slime|Ooze|Maw/.test(n) ? "slime" : /Beetle/.test(n) ? "bug" : /Bat|Hawk|Harpy|Roc|Griffin|Seraph|Wyvern/.test(n) ? "bird"
+    : /Golem|Treant|Colossus|Warden|Sovereign/.test(n) ? "golem" : /Wisp|Wraith|Phantom|Herald/.test(n) ? "ghost" : /Serpent|Salamander|Drake|Hydra|Wyrmling/.test(n) ? "serpent" : "beast";
 }
 // Level 1 = base value, +10% per level. Former bosses are twice as strong.
 const unitScale = u => (1 + (u.lv - 1) * 0.1) * (u.boss ? 2 : 1);
@@ -3622,6 +3808,12 @@ function armySummary() {
   { id: "serpentSushi", cat: "Meal", rarity: "rare", name: "Serpent Sushi", icon: "🍣", buff: { AGI: 5, SEN: 5 }, needs: { sscale: 2, herb: 1 }, value: 60 },
   { id: "crystalBroth", cat: "Meal", rarity: "rare", name: "Crystal Broth", icon: "🥣", buff: { INT: 6, RES: 4 }, needs: { crystal: 1, shroom: 2, herb: 1 }, value: 80 },
   { id: "drakeSteak",   cat: "Meal", rarity: "epic", name: "Drake Steak",   icon: "🥩", buff: { STR: 8, VIT: 6 }, needs: { dscale: 1, meat: 3 }, value: 120 },
+  // ---- From the new monster types ----
+  { id: "hornblade",  cat: "Gear", name: "Hornblade",      icon: "🗡️", slot: "Main Hand", bonus: { STR: 5, INT: 2 }, needs: { horn: 3, ore: 2 }, value: 120 },
+  { id: "boneCharm",  cat: "Gear", name: "Bone Charm",     icon: "🦴", slot: "Accessory", bonus: { VIT: 2, RES: 2, SEN: 1 }, needs: { bone: 4, reed: 1 }, value: 90 },
+  { id: "frostCloak", cat: "Gear", name: "Frostfur Cloak", icon: "🧥", slot: "Armor", bonus: { VIT: 5, AGI: 2, RES: 2 }, needs: { pelt: 4, hide: 2 }, value: 140 },
+  { id: "boneBroth",  cat: "Meal", name: "Bone Broth",     icon: "🍲", buff: { VIT: 4, RES: 2 }, needs: { bone: 2, herb: 1 }, value: 30 },
+  { id: "hellTonic",  cat: "Potion", name: "Hellfire Tonic", icon: "🔥", use: "mp", amount: 80, needs: { horn: 1, shroom: 2 }, value: 40 },
 ].forEach(r => { RECIPES.push(r); R[r.id] = r; });
 
 const usedIn = id => RECIPES.filter(r => !r.shopOnly && r.needs[id]).map(r => r.name);
@@ -4647,17 +4839,17 @@ const STORY = [
     outro: [["sys", "Seal integrity: 12%. The floor guardian is awakening."], ["lyra", "Rest first. Then we end this."]],
     reward: { gold: 120, xp: 450, ap: 50 } },
 
-  { title: "The Slime King", npc: "sys",
+  { title: "The Mud King", npc: "sys",
     intro: [
-      ["sys", "BOSS QUEST: The Slime King on Floor 10 has absorbed the Hollow Choir's corruption."],
-      ["kit", "That's what made the tracks. It's huge."],
+      ["sys", "BOSS QUEST: The Mud King on Floor 10 has absorbed the Hollow Choir's corruption."],
+      ["kit", "That's what made the tracks. A giant made of living mud."],
       { choice: [
         { text: "Everyone stay behind me. I'll take the hits.", al: 1, reply: "", },
         { text: "Its core is mine. Nobody else touches it.", al: -1, reply: "" },
         { text: "Stick to the plan. We win together.", al: 0, reply: "" } ] },
-      ["sys", "Defeat the Slime King on Floor 10."],
+      ["sys", "Defeat the Mud King on Floor 10."],
     ],
-    goals: [{ type: "floor", n: 10, label: "Defeat the Slime King (Floor 10)" }],
+    goals: [{ type: "floor", n: 10, label: "Defeat the Mud King (Floor 10)" }],
     outro: [
       ["sys", "The floor guardian has fallen. Seal restored. Act I complete."],
       ["orin", "Forty years, and I've never seen a climber clear the Depths this fast."],
@@ -4785,7 +4977,7 @@ function renderStory() {
   if (!c) {
     el.innerHTML = `<div class="story-card done"><div class="sq-act">ACT I · THE MOSSY DEPTHS</div>
       <div class="sq-title">✔ Act I complete</div>
-      <div class="small muted">The Slime King has fallen. Act II, the Echo Caves, is coming soon.</div></div>`;
+      <div class="small muted">The Mud King has fallen. Act II, the Echo Caves, is coming soon.</div></div>`;
     return;
   }
   const n = NPC[c.npc];
@@ -4822,13 +5014,14 @@ const guideOpen = new Set();
 function matSources(id) {
   const out = [];
   if (GATHER.some(([g]) => g === id)) out.push("Gather (hub)");
-  const bodies = Object.entries(COMMON_DROPS).filter(([, ids]) => ids.includes(id)).map(([b]) => b);
-  if (bodies.length) {
-    const mons = [];
-    BRACKETS.forEach((br, i) => br.mobs.forEach(([n, body]) => { if (bodies.includes(body) && mons.length < 3) mons.push(`${n} (F${i * 10 + 1} to ${i * 10 + 10})`); }));
-    out.push(mons.join(", "));
-  }
-  if (id === "fang") out.push("Thornback Boar tusks (F1 to 10, 50% chance), Ash Wolf (F11 to 20), Bone Hound (F51 to 60)");
+  const types = Object.entries(COMMON_DROPS).filter(([, ids]) => ids.includes(id)).map(([t]) => t);
+  types.forEach(t => {
+    const floors = BRACKETS.map((br, i) => br.types.includes(t) ? i : -1).filter(i => i >= 0);
+    if (floors.length) out.push(`${MON_TYPES[t].icon} ${MON_TYPES[t].label} monsters (from F${floors[0] * 10 + 1})`);
+  });
+  const el = Object.entries(ELEM_DROP).filter(([, d]) => d === id).map(([e]) => e);
+  if (el.length) out.push(`any ${el.map(e => `${ELEM_ICON[e]} ${e}`).join(" or ")} monster (45%)`);
+  if (id === "fang") out.push("Dogs and Wolves, plus Boar tusks (50%)");
   if (id === "crystal") out.push("Rare drop from any fight. Luck, higher floors and bosses help");
   if (id === "essence" || id === "dscale") out.push("Very rare drop from any fight. Bosses triple the odds");
   if (id === "relic") out.push("Legendary drop. Mostly from bosses with high Luck");
