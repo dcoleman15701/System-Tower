@@ -770,6 +770,53 @@ body {
 .res-btns > * { min-width: 0; white-space: normal; }
 .squad-box { margin-bottom: 12px; } .hero-mini { display: flex; gap: 8px; align-items: center; padding: 6px; border: 1px solid var(--sc); border-radius: 10px; margin-bottom: 6px; }
 .hm-fig { flex: none; width: 48px; height: 58px; }
+
+/* ===== Battle screen cleanup ===== */
+.arena.e7.clean { height: 360px; }
+.arena.clean .b-turns { position: absolute; left: 8px; top: 8px; flex-direction: row; gap: 4px; align-items: center; z-index: 6; padding: 3px 6px; border-radius: 16px; background: rgba(0,0,0,.35); }
+.arena.clean .t-head { font-size: 9px; letter-spacing: 1px; color: #fff; opacity: .8; margin-right: 2px; }
+.arena.clean .t-face { width: 24px; height: 24px; font-size: 13px; border-width: 2px; }
+.arena.clean .t-face.army { width: 20px; height: 20px; font-size: 11px; }
+.arena.clean .t-face.now { transform: none; }
+.arena.clean .b-top { top: 8px; right: 8px; left: auto; width: min(58%, 340px); padding: 6px 10px; }
+.b-top-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.b-top-row b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arena.clean .b-hpbar { height: 9px; margin: 0; border-radius: 6px; }
+.pp-num { font-size: 11px; font-weight: 800; min-width: 54px; text-align: right; }
+.b-sub { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 3px; font-size: 10.5px; opacity: .9; min-height: 18px; }
+.arena.clean .b-icons { display: inline-flex; gap: 3px; margin: 0; min-height: 0; flex-wrap: nowrap; }
+.arena.clean .b-chip { width: 18px; height: 18px; font-size: 11px; border-radius: 4px; }
+.arena.clean .b-chip sup { top: auto; bottom: -3px; left: auto; right: -3px; font-size: 8px; background: #2b3245; color: #fff; border-radius: 6px; padding: 0 2px; text-shadow: none; line-height: 1.2; }
+.arena.clean .pl-plate { bottom: 8px; left: 8px; width: min(60%, 340px); padding: 6px 10px; }
+.arena.clean .pl-plate .d-num { margin: 0; font-size: 11px; white-space: nowrap; }
+.b-company { margin-top: 3px; padding-top: 3px; border-top: 1px dashed #c3c9d6; font-size: 10.5px; color: #4a5268; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arena.clean .b-foe { right: 3%; top: 92px; bottom: auto; width: 44%; height: 150px; }
+.arena.clean .b-party { left: 3%; bottom: 104px; width: 50%; height: 150px; }
+.b-pad { position: absolute; left: 50%; bottom: 0; width: 86%; height: 26px; transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,.22), rgba(0,0,0,.25) 70%); box-shadow: inset 0 -3px 6px rgba(0,0,0,.25); }
+.arena.clean .b-foe .sprite.mon { bottom: 10px; }
+.arena.clean .b-foe .sprite.mon svg { width: 185px; height: 172px; }
+.arena.clean .b-foe .sprite.mon.boss svg { width: 210px; height: 196px; }
+.arena.clean .b-foe { height: 190px; top: 74px; }
+.arena.clean .b-party .sprite.pl.art { left: 64%; bottom: 6px; width: 104px; height: 125px; z-index: 2; }
+.arena.clean .b-hero { left: calc(6% + var(--i) * 20%); bottom: calc(14px + var(--i) * 10px); width: 64px; height: 77px; z-index: 1; opacity: .95; }
+.dock { gap: 8px; }
+.dock .b-msg { min-height: 0; font-size: 14px; padding: 10px 12px; }
+.d-util { grid-template-columns: 1fr 1fr 1.3fr; }
+.d-util .d-use { font-weight: 900; letter-spacing: 1px; margin: 0; width: auto; }
+.d-skills { justify-content: center; }
+@media (max-width: 520px) {
+  .arena.e7.clean { height: 340px; }
+  .arena.clean .b-top { width: 62%; }
+  .arena.clean .pl-plate { width: 66%; }
+  .arena.clean .b-foe { top: 86px; width: 42%; height: 140px; }
+  .arena.clean .b-foe .sprite.mon svg { width: 132px; height: 123px; } .arena.clean .b-foe .sprite.mon.boss svg { width: 150px; height: 140px; }
+  .arena.clean .b-party { left: 2%; bottom: 108px; width: 56%; height: 130px; }
+  .arena.clean .b-party .sprite.pl.art { left: 68%; width: 86px; height: 103px; }
+  .arena.clean .b-hero { width: 50px; height: 60px; left: calc(2% + var(--i) * 22%); }
+  .dock .b-msg { font-size: 13.5px; }
+  .c4 { padding: 11px 10px; font-size: 17px; } .c4 i { font-size: 22px; }
+}
 </style>
 </head>
 <body data-theme="holo">
@@ -3270,35 +3317,32 @@ function moveUltOut(m) { return m.idx === ULT_SLOT && dailyUlt().used >= ultUses
 function moveReady(m) { return m && player.mp >= m.mp && !moveWait(m) && !moveUltOut(m); }
 
 function battleLayout(mon, br, floor) {
-  const allies = ALLIES.filter(a => a.inParty);
-  const army = summonType() ? player.army : [];
+  const st = summonType(), army = st ? player.army : [], allies = ALLIES.filter(a => a.inParty);
+  const company = [...allies.map(a => `${a.icon} ${a.name}`), ...(army.length ? [`${SUMMON[st].icon} x${army.length}`] : [])];
   return `
-  <div class="arena e7" style="background:${br.bg}">
+  <div class="arena e7 clean" style="background:${br.bg}">
+    <div class="b-turns" id="bTurns"></div>
     <div class="b-top">
       <div class="b-top-row"><b>${mon.boss ? "👑 " : ""}${mon.name}</b><span class="b-lv">${ELEM_ICON[mon.elem]} Lv. ${mon.level}</span></div>
-      <div class="b-hpbar"><div class="hp" id="bMonHp"></div><span id="bMonHpTxt"></span></div>
-      <div class="b-icons" id="bMonIcons"></div>
-    </div>
-    <div class="b-floor2">🗼 F${floor} · ${br.name}</div>
-    <div class="b-turns" id="bTurns"></div>
-    <div class="b-party">
-      ${army.slice(0, 4).map((u, i) => `<div class="b-unit" style="--i:${i};--r:${i % 2}" title="${u.name}">${u.icon}</div>`).join("")}${army.length > 4 ? `<div class="b-unit more" style="--i:4;--r:0">+${army.length - 4}</div>` : ""}
-      ${allies.map((a, i) => `<div class="b-ally" style="--i:${i}"><span>${a.icon}</span><small>${a.name}</small></div>`).join("")}
-      ${squadHeroes().map((h, i) => `<div class="b-hero" style="--i:${i}" title="${h.name}">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>`).join("")}
-      <div class="b-icons pl-icons" id="bPlIcons"></div>
-      <div class="sprite pl art" id="bPl">${charSVG()}</div>
-      <div class="b-shadow pl-sh"></div>
+      <div class="pp-bar"><span class="pp-tag">HP</span><div class="b-hpbar"><div class="hp" id="bMonHp"></div></div><span class="pp-num" id="bMonHpTxt"></span></div>
+      <div class="b-sub"><span>🗼 F${floor} · ${br.name}</span><span class="b-icons" id="bMonIcons"></span></div>
     </div>
     <div class="b-foe">
+      <div class="b-pad"></div>
       <div class="sprite mon ${mon.boss ? "boss" : ""}" id="bMon">${monsterSVG(mon.sp, mon.tier, mon.boss)}</div>
-      <div class="b-shadow"></div>
+    </div>
+    <div class="b-party">
+      <div class="b-pad"></div>
+      ${squadHeroes().map((h, i) => `<div class="b-hero" style="--i:${i}" title="${h.name}">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>`).join("")}
+      <div class="sprite pl art" id="bPl">${charSVG()}</div>
     </div>
     <div id="floaters"></div>
     <div class="pl-plate">
       <div class="b-top-row"><b>${player.name}</b><span class="b-lv">Lv. ${player.level}</span></div>
       <div class="pp-bar"><span class="pp-tag">HP</span><div class="b-hpbar"><div class="hp" id="bPlHp"></div></div></div>
       <div class="pp-bar"><span class="pp-tag mp">MP</span><div class="b-hpbar mpbar"><div class="mp" id="bPlMp"></div></div></div>
-      <div class="d-num" id="bPlHpTxt"></div>
+      <div class="b-sub"><span class="b-icons" id="bPlIcons"></span><span class="d-num" id="bPlHpTxt"></span></div>
+      ${company.length ? `<div class="b-company">${company.join(" · ")}</div>` : ""}
     </div>
   </div>
   <div class="dock">
@@ -3341,14 +3385,14 @@ function renderBStatus() {
   if (weak.length) mo.push(chip("🎯", `Weak to ${weak.join(", ")}`, 0, "info"));
   $("bPlIcons").innerHTML = pl.join("");
   $("bMonIcons").innerHTML = mo.join("");
-  $("bTurns").innerHTML = `<div class="t-head">TURN</div>` + turnOrder().map((t, i) => `<div class="t-face ${t.cls} ${i === 0 ? "now" : ""}" data-tip="${i + 1}. ${t.label}">${t.icon}</div>`).join("");
+  $("bTurns").innerHTML = `<span class="t-head">NEXT</span>` + turnOrder().map((t, i) => `<div class="t-face ${t.cls} ${i === 0 ? "now" : ""}" data-tip="${i + 1}. ${t.label}">${t.icon}</div>`).join("");
 }
 
 function bars() {
   if (!B) return;
   const m = B.mon;
   $("bMonHp").style.width = Math.max(0, m.hp / m.maxHp * 100) + "%";
-  $("bMonHpTxt").textContent = `${Math.max(0, m.hp)} / ${m.maxHp}`;
+  $("bMonHpTxt").textContent = `${Math.max(0, m.hp)}/${m.maxHp}`;
   $("bPlHp").style.width = Math.max(0, player.hp / player.maxHp * 100) + "%";
   $("bPlMp").style.width = Math.max(0, player.mp / player.maxMp * 100) + "%";
   $("bPlHpTxt").innerHTML = `<span class="hp-t">${player.hp}/${player.maxHp}</span> <span class="mp-t">${player.mp} MP</span>`;
@@ -3381,16 +3425,16 @@ function menuSkills() {
   if (!B || B.over) return;
   const moves = playerMoves(), sel = B.sel !== null && B.sel !== undefined ? moves[B.sel] : null;
   $("bMsg").classList.remove("result");
-  $("bMsg").classList.remove("empty"); $("bMsg").innerHTML = "Pick a skill, then tap it again to use it.";
+  $("bMsg").classList.remove("empty");
+  $("bMsg").innerHTML = sel ? moveInfo(sel) : `Pick a skill to see what it does, then tap it again to use it.<br><span class="small muted">Drag skills to change their order.</span>`;
   $("bMenu").innerHTML = `
-    <div class="d-info">${sel ? `${moveInfo(sel)}<button class="btn d-use" data-move="${B.sel}" ${moveReady(sel) ? "" : "disabled"}>${moveReady(sel) ? "USE ▸" : "Not ready"}</button>`
-      : `<div class="small muted">Tap a skill to see what it does. Tap it again to use it. Drag skills to change their order.</div>`}</div>
     <div class="d-skills">${dockOrder(moves).map(({ m, i }) => {
       const wait = moveWait(m), ready = moveReady(m);
       return `<button class="sk ${B.sel === i ? "sel" : ""} ${ready ? "" : "off"} ${m.basic ? "basic" : ""} ${m.idx === ULT_SLOT ? "ult" : ""}" data-sk="${i}" aria-label="${m.name}">
         <span class="sk-i">${moveIcon(m)}</span>${wait ? `<span class="sk-cd">${wait}</span>` : ""}<span class="sk-mp">${m.mp ? m.mp : ""}</span></button>`;
     }).join("")}</div>
-    <div class="d-util"><button class="btn" data-b="back">◀ Back</button><button class="btn" data-b="guard">🧱 Guard</button></div>`;
+    <div class="d-util"><button class="btn" data-b="back">◀ Back</button><button class="btn" data-b="guard">🧱 Guard</button>
+      <button class="btn d-use" ${sel ? `data-move="${B.sel}"` : ""} ${sel && moveReady(sel) ? "" : "disabled"}>${sel && !moveReady(sel) ? "Not ready" : "USE ▸"}</button></div>`;
   renderBStatus();
 }
 const menuFight = menuSkills;
@@ -3424,8 +3468,8 @@ function menuParty() {
 }
 function menuItems() {
   const usable = RECIPES.filter(r => player.items[r.id] && (r.use || r.scroll));
-  $("bMenu").innerHTML = `<div class="d-info"><b>🎒 Items</b> <span class="small muted">Using an item takes your turn.</span></div>`
-    + (usable.length ? `<div class="move-grid">${usable.map(r =>
+  $("bMsg").innerHTML = `<b>🎒 Bag</b><br><span class="small">Using an item takes your turn.</span>`;
+  $("bMenu").innerHTML = (usable.length ? `<div class="move-grid">${usable.map(r =>
       `<button class="move" data-item="${r.id}"><b>${r.icon} ${r.name}</b><span class="small">${effectText(r)}</span><span class="small">x${player.items[r.id]}</span></button>`).join("")}</div>`
       : `<div class="small muted" style="text-align:center;padding:10px">No usable items. Buy potions at the Tower Shop or craft them.</div>`)
     + `<button class="btn back-btn" data-b="back">◀ Back</button>`;
