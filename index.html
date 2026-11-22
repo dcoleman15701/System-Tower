@@ -941,40 +941,138 @@ body {
 .st-step.on .st-dot { background: var(--bc); color: #111; }
 .st-perk { color: var(--muted); } .st-perk.got { color: var(--bc); font-weight: 700; }
 @media (max-width: 560px) { .st-grid { grid-template-columns: 1fr; } .et-node { min-width: 0; } }
+
+/* ===== Home screen (idea #13) ===== */
+body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
+.hud { gap: 6px; }
+.gear-btn { background: none; border: 1px solid var(--panel-border); color: inherit; border-radius: 10px; font-size: 18px; width: 38px; height: 34px; cursor: pointer; }
+.home-stage { display: grid; grid-template-columns: 64px 1fr 64px; align-items: center; gap: 6px; margin: 4px 0 8px; }
+.side-col { display: grid; gap: 10px; }
+.side-ic { position: relative; display: grid; justify-items: center; gap: 2px; padding: 8px 2px; border-radius: 14px; cursor: pointer; color: inherit; font: inherit; font-size: 11px; font-weight: 700;
+  background: var(--panel-bg); border: 1px solid var(--panel-border); box-shadow: var(--panel-glow); }
+.side-ic .si { font-size: 24px; line-height: 1; }
+.side-ic.has-dot::after { content: ""; position: absolute; top: 4px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #ff5c7a; box-shadow: 0 0 8px #ff5c7a; }
+.side-ic .mini-fat { width: 44px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+.side-ic .mini-fat i { display: block; height: 100%; background: linear-gradient(90deg, #f3b24a, #ffd977); }
+.hero-center { display: grid; justify-items: center; text-align: center; min-width: 0; }
+.hero-fig { width: min(220px, 56vw); aspect-ratio: 1; background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%); border: none; cursor: pointer; padding: 0; animation: heroBob 3s ease-in-out infinite; }
+.hero-fig svg { width: 100%; height: 100%; }
+@keyframes heroBob { 50% { transform: translateY(-5px); } }
+.hero-name { font-family: var(--font-head, inherit); font-size: 22px; font-weight: 800; color: var(--accent-2); }
+.hero-sub { font-size: 12px; color: var(--muted); }
+.hero-rank { margin-top: 2px; font-size: 11px; color: var(--accent); font-weight: 700; }
+#hubCard .hc-bars { margin: 0; }
+.battle-btn { display: block; width: 100%; margin: 10px 0; padding: 16px; border-radius: 16px; cursor: pointer; font: inherit; font-size: 20px; font-weight: 900; letter-spacing: .04em; color: #fff;
+  background: linear-gradient(135deg, #ff7a45, #e0344f); border: 2px solid #ffb08a; box-shadow: 0 0 22px rgba(255,122,69,.55); }
+.battle-btn small { display: block; font-size: 12px; font-weight: 600; opacity: .9; letter-spacing: 0; }
+.battle-btn:active { transform: scale(.98); }
+.tab-sheet { display: none; }
+.tab-sheet.show { display: block; }
+.sheet-group { display: none; }
+.sheet-group.show { display: block; }
+.sheet-title { font-weight: 800; letter-spacing: .12em; color: var(--accent); margin: 4px 0 8px; font-size: 13px; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); max-width: 560px; margin: 0 auto;
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: rgba(5,12,28,.94); border-top: 1px solid var(--panel-border); backdrop-filter: blur(8px); }
+.tabbar button { position: relative; display: grid; justify-items: center; gap: 2px; background: none; border: none; color: var(--muted); font: inherit; font-size: 11px; font-weight: 700; padding: 4px 0; cursor: pointer; border-radius: 10px; }
+.tabbar button span { font-size: 22px; line-height: 1; }
+.tabbar button.active { color: var(--accent-2); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.tabbar button.has-dot::after { content: ""; position: absolute; top: 2px; right: 22%; width: 9px; height: 9px; border-radius: 50%; background: #ff5c7a; }
+.settings-ov .settings-win { max-width: 440px; }
+.set-body { padding: 12px; display: grid; gap: 10px; }
+.set-body .toolbar { margin: 0; justify-content: flex-start; }
+/* Mail */
+.mail-item { border: 1px solid var(--panel-border); border-radius: 12px; padding: 10px; margin-bottom: 8px; display: grid; gap: 4px; }
+.mail-item.claimed { opacity: .5; }
+.mail-gifts { display: flex; flex-wrap: wrap; gap: 8px; font-weight: 700; }
+/* Parameter (idea #14) */
+.param-box { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+.param-box svg { width: 150px; height: 150px; }
+.param-prev { display: grid; gap: 3px; font-size: 13px; }
+.param-prev .up { color: #5fe0a8; font-weight: 700; }
+.param-actions { display: flex; gap: 6px; margin-top: 6px; }
+.param-actions .btn { flex: 1; }
+.ok-btn { font-weight: 900; letter-spacing: .1em; background: var(--accent) !important; color: #04121f !important; }
+.stat .pm { display: flex; gap: 4px; }
+.stat .minus { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,.2); color: inherit; font-size: 18px; cursor: pointer; }
+.stat .minus:disabled { opacity: .3; }
+.s-pend { color: #5fe0a8; font-weight: 800; margin-left: 4px; }
+@media (max-width: 380px) { .param-box { grid-template-columns: 1fr; justify-items: center; } }
+/* Tutorial spotlight */
+.tut-ov { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+.tut-hole { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.62), 0 0 0 3px #5fe0ff, 0 0 24px #5fe0ff; transition: all .25s; pointer-events: none; }
+.tut-tip { position: fixed; left: 12px; right: 12px; max-width: 480px; margin: 0 auto; pointer-events: auto; padding: 12px 14px; border-radius: 14px;
+  background: rgba(6,18,40,.97); border: 1px solid #5fe0ff; box-shadow: 0 0 18px rgba(95,224,255,.5); color: #e8f6ff; font-size: 14px; }
+.tut-tip .tt-head { font-weight: 800; letter-spacing: .12em; color: #5fe0ff; font-size: 12px; margin-bottom: 4px; }
+.tut-tip .tt-btns { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.tut-block { position: fixed; inset: 0; pointer-events: auto; background: transparent; }
 </style>
 </head>
 <body data-theme="holo">
 
-<div class="toolbar" id="themeBar">
-  <button data-t="holo" class="active">Holographic</button>
-  <button data-t="pixel">Pixel</button>
-  <button data-t="fantasy">Fantasy</button>
-  <button data-t="modern">Modern</button>
-  <button id="soundBtn">🔊 Sound On</button>
-  <button id="newCharBtn">💾 Save Files</button>
+<!-- Settings (gear icon): themes, sound, saves, account, tutorial -->
+<div class="overlay settings-ov" id="settingsOv">
+  <div class="win sys-win settings-win">
+    <div class="win-head"><span>⚙️</span><span class="wt">SETTINGS</span><button class="btn win-x" id="settingsClose" aria-label="Close settings">✕</button></div>
+    <div class="set-body">
+      <div class="sd-title">THEME</div>
+      <div class="toolbar" id="themeBar">
+        <button data-t="holo" class="active">Holographic</button>
+        <button data-t="pixel">Pixel</button>
+        <button data-t="fantasy">Fantasy</button>
+        <button data-t="modern">Modern</button>
+        <button id="soundBtn">🔊 Sound On</button>
+        <button id="newCharBtn">💾 Save Files</button>
+      </div>
+      <div class="sd-title">HELP</div>
+      <button class="btn wide" id="tutReplay">🎓 Replay the tutorial</button>
+    </div>
+  </div>
 </div>
 
 <div class="wrap" id="wrap">
-  <div class="hud" id="hud"><span id="goldHud">💰 0 Gold</span><span id="gemHud">💎 0</span><span id="hudFloor">🗼 Floor 0</span></div>
-  <div class="hub-card sys-win" id="hubCard"></div>
-  <div class="hub" id="hub">
-    <button class="tile sys" data-open="status"><span class="ti">📊</span>Status</button>
-    <button class="tile" data-open="sheet" style="--tc:#c08bff"><span class="ti">🧙</span>Character</button>
-    <button class="tile" data-open="summon" style="--tc:#ff5fd2"><span class="ti">🔮</span>Summon</button>
-    <button class="tile" data-open="evo" style="--tc:#5fe0a8"><span class="ti">🌳</span>Evolution</button>
-    <button class="tile" data-open="tower" style="--tc:#ff7a45"><span class="ti">🗼</span>Tower</button>
-    <button class="tile" data-open="shop" style="--tc:#3ddc84"><span class="ti">🏪</span>Shop</button>
-    <button class="tile" data-open="quest" style="--tc:#ffc94d"><span class="ti">📜</span>Quest</button>
-    <button class="tile" data-open="skills" style="--tc:#b37bff"><span class="ti">✨</span>Skills</button>
-    <button class="tile" data-open="bag" style="--tc:#e0a060"><span class="ti">🎒</span>Bag</button>
-    <button class="tile" data-open="craft" style="--tc:#ff9a3d"><span class="ti">⚒️</span>Craft</button>
-    <button class="tile" data-open="party" style="--tc:#3dd6c6"><span class="ti">👥</span>Party</button>
-    <button class="tile" id="btnGather" style="--tc:#3ddc84"><span class="ti">🌿</span>Gather</button>
-    <button class="tile" id="btnWork" style="--tc:#ffc94d"><span class="ti">💼</span>Work</button>
-    <button class="tile" id="btnRest" style="--tc:#9d8cff"><span class="ti">🛏️</span>Rest</button>
-    <button class="tile sys" id="btnSaves"><span class="ti">💾</span>Saves</button>
+  <div class="hud" id="hud"><span id="goldHud">💰 0 Gold</span><span id="gemHud">💎 0</span><span id="hudFloor">🗼 Floor 0</span><button class="gear-btn" id="gearBtn" aria-label="Settings">⚙️</button></div>
+  <div id="hub">
+    <div class="home-stage" id="homeStage"></div>
+    <div class="hub-card sys-win" id="hubCard"></div>
+    <button class="battle-btn" data-open="tower" id="battleBtn">⚔️ Battle</button>
+    <div class="tab-sheet" id="tabSheet">
+      <div class="sheet-group" data-group="hero">
+        <div class="sheet-title">🧙 HERO</div>
+        <div class="hub">
+          <button class="tile sys" data-open="status"><span class="ti">📊</span>Status</button>
+          <button class="tile" data-open="sheet" style="--tc:#c08bff"><span class="ti">🧙</span>Character</button>
+          <button class="tile" data-open="evo" style="--tc:#5fe0a8"><span class="ti">🌳</span>Evolution</button>
+          <button class="tile" data-open="skills" style="--tc:#b37bff"><span class="ti">✨</span>Skills</button>
+        </div>
+      </div>
+      <div class="sheet-group" data-group="battle">
+        <div class="sheet-title">⚔️ BATTLE</div>
+        <div class="hub">
+          <button class="tile" data-open="tower" style="--tc:#ff7a45"><span class="ti">🗼</span>Tower</button>
+          <button class="tile" data-open="party" style="--tc:#3dd6c6"><span class="ti">👥</span>Party</button>
+        </div>
+      </div>
+      <div class="sheet-group" data-group="more">
+        <div class="sheet-title">☰ MORE</div>
+        <div class="hub">
+          <button class="tile" data-open="bag" style="--tc:#e0a060"><span class="ti">🎒</span>Bag</button>
+          <button class="tile" data-open="craft" style="--tc:#ff9a3d"><span class="ti">⚒️</span>Craft</button>
+          <button class="tile" id="btnGather" style="--tc:#3ddc84"><span class="ti">🌿</span>Gather</button>
+          <button class="tile" id="btnWork" style="--tc:#ffc94d"><span class="ti">💼</span>Work</button>
+          <button class="tile" id="btnRest" style="--tc:#9d8cff"><span class="ti">🛏️</span>Rest</button>
+          <button class="tile sys" id="btnSaves"><span class="ti">💾</span>Saves</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<nav class="tabbar" id="tabBar">
+  <button data-tab="home" class="active"><span>🏠</span>Home</button>
+  <button data-tab="hero"><span>🧙</span>Hero</button>
+  <button data-tab="battle"><span>⚔️</span>Battle</button>
+  <button data-tab="summon"><span>🔮</span>Summon</button>
+  <button data-tab="more"><span>☰</span>More</button>
+</nav>
 
 <!-- Every screen opens in its own pop-up window -->
 <div class="overlay win-ov" id="winOverlay">
@@ -982,6 +1080,8 @@ body {
     <div class="win-head"><span id="winIcon"></span><span class="wt" id="winTitle"></span><button class="btn win-x" id="winClose" aria-label="Close window">✕</button></div>
     <div class="panel" id="panel">
   
+      <!-- ================= MAIL ================= -->
+      <section class="page" data-page="mail"><div id="mailBody"></div></section>
       <!-- ================= STATUS ================= -->
       <section class="page active" data-page="status">
         <div class="header" data-title="status"></div>
@@ -995,8 +1095,9 @@ body {
         <div class="bar-row" data-info="fatigue"><div class="bar-label"><b>FATIGUE</b><span id="fatText"></span></div><div class="bar"><div class="fat" id="fatBar"></div></div></div>
         <div class="bar-row" data-info="exp"><div class="bar-label"><b>EXP</b><span id="xpText"></span></div><div class="bar"><div class="xp" id="xpBar"></div></div></div>
   
-        <div class="section-title"><span>STATS</span><span>Points: <span class="points" id="pPoints"></span></span></div>
-        <div class="small muted" style="margin:-4px 0 6px">Tap a stat to see where it comes from and what it does.</div>
+        <div class="section-title"><span>PARAMETER</span><span>Points: <span class="points" id="pPoints"></span></span></div>
+        <div class="param-box" id="paramBox"></div>
+        <div class="small muted" style="margin:4px 0 6px">Use + and − to plan your points, then press OK. Tap a stat name for details.</div>
         <div class="stats" id="statsGrid"></div>
         <div id="statDetail"></div>
         <div class="small muted" id="buffLine" style="margin-top:8px"></div>
@@ -1106,7 +1207,7 @@ body {
 <!-- Gather / Work / Rest results -->
 <div class="overlay win-ov" id="resultOverlay"><div class="win res-win" id="resultWin"></div></div>
 
-<div class="hint">Tap a tile to open its window. On a keyboard: 1 to 8 open windows, S opens Status, Esc closes.</div>
+<div class="hint">Use the tabs at the bottom to find everything. On a keyboard: 1 to 8 open windows, S opens Status, Esc closes.</div>
 
 <!-- Character creation: questions, suggestion, rolls, paywall -->
 <div class="overlay sys-win" id="createOverlay"><div class="panel" id="createBody"></div></div>
@@ -2164,6 +2265,8 @@ function startGame() {
   render();
   notify("AWAKENING", `${player.name}, you were born a ${RACES[player.raceId].name}. Class: ${CLASSES[player.classId].name}. Element: ${ELEM_ICON[player.elem]} ${player.elem}. Job: ${JOBS[player.jobId].name}.`, "levelUp");
   setTimeout(() => notify("MAIN STORY", "Orin, the Gatekeeper wants to talk. Open Quests to begin Chapter 1.", "unlock"), 3000);
+  player.tutDone = false;   // new characters get the guided tutorial
+  setTimeout(() => { if (player && player.tutDone === false && typeof startTutorial === "function") startTutorial(false); }, 1600);
 }
 $("createBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -2230,18 +2333,19 @@ function render() {
   $("mpBar").style.width = (player.mp / player.maxMp * 100) + "%";
   $("xpBar").style.width = (player.xp / need * 100) + "%";
   $("fatBar").style.width = player.fatigue + "%";
-  $("pPoints").textContent = player.points;
+  $("pPoints").textContent = pendTotal() ? `${player.points - pendTotal()} left (${pendTotal()} planned)` : player.points;
   $("pPoints").classList.toggle("pulse", player.points > 0);
 
   $("statsGrid").innerHTML = STAT_KEYS.map(k => {
     const b = bonusOf(k);
     return `<div class="stat ${openStat === k ? "sel" : ""}" data-statcard="${k}" role="button" tabindex="0" aria-expanded="${openStat === k}" title="Tap for details">
       <span class="s-name">${STAT_NAME[k]}</span>
-      <span class="s-val">${eff(k)}${b ? `<span class="s-bonus ${b < 0 ? "neg" : ""}">(${b > 0 ? "+" : ""}${b})</span>` : ""}</span>
-      <button class="plus" data-stat="${k}" ${player.points ? "" : "disabled"} aria-label="Add a point to ${STAT_NAME[k]}">+</button>
+      <span class="s-val">${eff(k)}${b ? `<span class="s-bonus ${b < 0 ? "neg" : ""}">(${b > 0 ? "+" : ""}${b})</span>` : ""}${statPlan[k] ? `<span class="s-pend">+${statPlan[k]}</span>` : ""}</span>
+      <span class="pm"><button class="minus" data-mstat="${k}" ${statPlan[k] ? "" : "disabled"} aria-label="Take a planned point back from ${STAT_NAME[k]}">−</button>
+      <button class="plus" data-pstat="${k}" ${player.points - pendTotal() > 0 ? "" : "disabled"} aria-label="Plan a point for ${STAT_NAME[k]}">+</button></span>
     </div>`;
   }).join("");
-  renderStatDetail();
+  renderStatDetail(); renderParam();
   const active = [];
   if (player.buff) active.push(`🍽️ <span class="good">${player.buff.name}:</span> ${fmtBonus(player.buff.stats)} until you rest`);
   RECIPES.filter(r => r.scroll && player.scrolls[r.scroll]).forEach(r => active.push(`${r.icon} <span class="good">${r.name}:</span> ${r.note.toLowerCase()}`));
@@ -2395,6 +2499,7 @@ function save() {
   Cloud.queue(currentSlot, JSON.parse(JSON.stringify(obj)));   // also back up online when signed in
 }
 function load() {
+  if (typeof statPlan !== "undefined") statPlan = {};
   try {
     const s = JSON.parse(localStorage.getItem(slotKey(currentSlot)));
     if (!s || !s.player || !RACES[s.player.raceId] || !CLASSES[s.player.classId] || !JOBS[s.player.jobId]) return false;
@@ -5377,12 +5482,12 @@ function renderStatDetail() {
       <li class="sd-sum"><span>Total</span><b>${total}</b></li></ul>
     <div class="sd-title">WHAT IT DOES NOW</div>
     <ul class="sd-effects">${out.map(o => `<li>${o}</li>`).join("")}</ul>
-    <div class="sd-next">${player.points ? "⬆️ " : ""}${next}${player.points ? ` <button class="btn" data-stat="${k}">+1 ${STAT_NAME[k]} (${player.points} left)</button>` : ""}</div>
+    <div class="sd-next">${player.points ? "⬆️ " : ""}${next}${player.points - pendTotal() > 0 ? ` <button class="btn" data-pstat="${k}">Plan +1 ${STAT_NAME[k]} (${player.points - pendTotal()} left)</button>` : ""}</div>
   </div>`;
 }
 $("panel").addEventListener("click", e => {
   const card = e.target.closest("[data-statcard]");
-  if (!card || !player || e.target.closest("[data-stat]")) return;
+  if (!card || !player || e.target.closest("[data-stat],[data-pstat],[data-mstat]")) return;
   openStat = openStat === card.dataset.statcard ? null : card.dataset.statcard; openInfo = null;
   Sound.play("click");
   render();
@@ -5738,6 +5843,287 @@ $("hub").addEventListener("click", e => {
 });
 
 document.addEventListener("click", e => { if (e.target.closest("[data-open-sheet]")) openWindow("sheet"); });
+
+/* =========================================================
+   HOME SCREEN (idea #13): big character, Battle button,
+   side icons, bottom tab bar, Settings gear and Mail.
+   ========================================================= */
+WIN.mail = { title: "Mail", icon: "📬", color: "#5fd0ff" };
+let homeTab = "home";
+
+function renderHub() {
+  if (!player) return;
+  const rk = rankOf(player.level), cls = CLASSES[player.classId];
+  const els = player.elems || [player.elem], sub = subOf();
+  if ($("statusArt")) $("statusArt").innerHTML = `<button class="st-art-fig" data-open-sheet aria-label="Open character sheet">${charSVG()}</button>
+    <div class="st-art-info"><div class="st-art-name">${player.name}</div>
+      <div class="small">${formLabel("race")} · ${formLabel("class")}${sub ? ` · <b>${sub.name}</b>` : ""}</div>
+      <div class="small">${els.map(x => `${ELEM_ICON[x]} ${x}`).join(" ")}</div>
+      <div class="small muted">Lv. ${player.level} · ${rk.text}</div>
+      <button class="btn small-btn" data-open-sheet>🧙 Character sheet</button></div>`;
+  ensureMail();
+  const unread = player.mail.filter(m => !m.claimed).length;
+  $("homeStage").innerHTML = `
+    <div class="side-col">
+      <button class="side-ic" data-open="quest" id="sideQuest"><span class="si">📜</span>Quest</button>
+      <button class="side-ic" data-open="shop" id="sideShop"><span class="si">🏪</span>Shop</button>
+    </div>
+    <div class="hero-center">
+      <button class="hero-fig" data-open-sheet aria-label="Open character sheet">${charSVG()}</button>
+      <div class="hero-name">${player.name}</div>
+      <div class="hero-sub">Lv. ${player.level} · ${formLabel("race")} · ${cls.icon} ${formLabel("class")}${sub ? ` · ${sub.name}` : ""}</div>
+      <div class="hero-rank">${els.map(x => ELEM_ICON[x]).join("")} ${rk.text}</div>
+    </div>
+    <div class="side-col">
+      <button class="side-ic" data-homerest id="sideRest"><span class="si">🛏️</span>Rest<span class="mini-fat"><i style="width:${player.fatigue}%"></i></span></button>
+      <button class="side-ic ${unread ? "has-dot" : ""}" data-open="mail" id="sideMail"><span class="si">📬</span>Mail${unread ? ` (${unread})` : ""}</button>
+    </div>`;
+  $("hubCard").innerHTML = `<div class="hc-bars">
+      <div><span class="small">HP ${player.hp}/${player.maxHp}</span>${bar("hp", player.hp, player.maxHp)}</div>
+      <div><span class="small">MP ${player.mp}/${player.maxMp}</span>${bar("mp", player.mp, player.maxMp)}</div>
+      <div><span class="small">Fatigue ${player.fatigue}/100</span>${bar("fat", player.fatigue, 100)}</div>
+      <div><span class="small">EXP ${player.xp}/${xpToNext(player.level)}</span>${bar("xp", player.xp, xpToNext(player.level))}</div>
+    </div>`;
+  const nextF = Math.min(maxFloor(), (player.towerBest || 0) + 1);
+  $("battleBtn").innerHTML = `⚔️ BATTLE<small>Enter the Tower · next floor ${nextF}</small>`;
+  renderTabs();
+  renderMail();
+}
+function renderTabs() {
+  document.querySelectorAll("#tabBar [data-tab]").forEach(b => b.classList.toggle("active", b.dataset.tab === homeTab));
+  const sheet = $("tabSheet");
+  sheet.classList.toggle("show", ["hero", "battle", "more"].includes(homeTab));
+  sheet.querySelectorAll(".sheet-group").forEach(g => g.classList.toggle("show", g.dataset.group === homeTab));
+  $("homeStage").style.display = homeTab === "home" ? "" : "none";
+  $("hubCard").style.display = homeTab === "home" ? "" : "none";
+  $("battleBtn").style.display = homeTab === "home" || homeTab === "battle" ? "" : "none";
+  // A tab gets a red dot when something inside it needs attention
+  ["hero", "battle", "more"].forEach(t => {
+    const any = !!document.querySelector(`.sheet-group[data-group="${t}"] .has-dot`);
+    const btn = document.querySelector(`#tabBar [data-tab="${t}"]`); if (btn) btn.classList.toggle("has-dot", any);
+  });
+}
+function setHomeTab(t) {
+  if (t === "summon") { openWindow("summon"); return; }
+  homeTab = t; Sound.play("click"); renderTabs();
+  try { window.scrollTo(0, 0); } catch (e) {}
+}
+$("tabBar").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b && player) setHomeTab(b.dataset.tab); });
+// Dots go on every matching button (tile and side icon)
+function setTileDot(key, on) { document.querySelectorAll(`#hub [data-open="${key}"]`).forEach(t => t.classList.toggle("has-dot", !!on)); }
+$("hub").addEventListener("click", e => { if (e.target.closest("[data-homerest]")) rest(); });
+
+/* ---------- Settings gear ---------- */
+function openSettings() { $("settingsOv").classList.add("show"); Sound.play("open"); }
+function closeSettings() { $("settingsOv").classList.remove("show"); Sound.play("close"); }
+$("gearBtn").addEventListener("click", openSettings);
+$("settingsClose").addEventListener("click", closeSettings);
+$("settingsOv").addEventListener("click", e => { if (e.target.id === "settingsOv") closeSettings(); });
+$("newCharBtn").addEventListener("click", () => $("settingsOv").classList.remove("show"));
+$("tutReplay").addEventListener("click", () => { $("settingsOv").classList.remove("show"); if (player) startTutorial(true); });
+
+/* ---------- Mail: gifts and rewards inbox ---------- */
+const todayKey = () => new Date().toDateString();
+function sendMail(m) { player.mail.unshift({ id: Date.now() + Math.random(), claimed: false, ...m }); }
+function ensureMail() {
+  if (!player.mail) player.mail = [];
+  if (!player.mailInit) {
+    player.mailInit = true;
+    sendMail({ icon: "🎁", title: "Welcome to the Tower", body: "The System welcomes a new climber. Here's something to get you started.", gems: 50, gold: 100 });
+  }
+  if (player.mailDay !== todayKey()) {
+    player.mailDay = todayKey();
+    sendMail({ icon: "📅", title: "Daily login gift", body: "Thanks for climbing today. Come back tomorrow for another gift.", gems: 20, gold: 30 * player.level });
+  }
+  const lv = Math.floor(player.level / 10) * 10;
+  if (player.mailLv === undefined) player.mailLv = lv;   // older saves start from their current level
+  while (player.mailLv < lv) {
+    player.mailLv += 10;
+    sendMail({ icon: "⭐", title: `Level ${player.mailLv} reached`, body: "The System rewards your growth.", gems: 50, gold: 50 * player.mailLv });
+  }
+  if (player.mail.length > 30) player.mail = player.mail.filter((m, i) => !m.claimed || i < 30);
+}
+function claimMail(id) {
+  const m = player.mail.find(x => x.id === id); if (!m || m.claimed) return;
+  m.claimed = true;
+  if (m.gems) { heroState(); player.gems += m.gems; }
+  if (m.gold) player.gold += m.gold;
+  Sound.play("coin");
+  notify("MAIL", `${m.icon} ${m.title}: ${[m.gems ? `💎 +${m.gems}` : "", m.gold ? `💰 +${m.gold}` : ""].filter(Boolean).join(" · ")}`, "unlock", true);
+  render();
+}
+function renderMail() {
+  const el = $("mailBody"); if (!el || !player) return;
+  const open = player.mail.filter(m => !m.claimed);
+  el.innerHTML = `${open.length > 1 ? `<button class="btn wide glow-btn" data-mailall>Claim all (${open.length})</button>` : ""}
+    ${player.mail.length ? player.mail.map(m => `<div class="mail-item ${m.claimed ? "claimed" : ""}">
+      <div><b>${m.icon} ${m.title}</b></div><div class="small muted">${m.body}</div>
+      <div class="mail-gifts">${m.gems ? `<span>💎 ${m.gems}</span>` : ""}${m.gold ? `<span>💰 ${m.gold}</span>` : ""}</div>
+      ${m.claimed ? `<div class="small muted">Claimed</div>` : `<button class="btn" data-mail="${m.id}">Claim</button>`}</div>`).join("")
+    : `<div class="small muted" style="text-align:center;padding:20px">No mail yet.</div>`}`;
+}
+$("mailBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-mail]"); if (b) return claimMail(+b.dataset.mail);
+  if (e.target.closest("[data-mailall]")) player.mail.filter(m => !m.claimed).forEach(m => claimMail(m.id));
+});
+
+/* =========================================================
+   PARAMETER (idea #14): radar chart, + and −, OK to confirm,
+   and a live preview of what the points will do.
+   ========================================================= */
+let statPlan = {};
+const pendTotal = () => Object.values(statPlan).reduce((a, b) => a + b, 0);
+function pendAdd(k, d) {
+  const cur = statPlan[k] || 0;
+  if (d > 0 && pendTotal() >= player.points) return;
+  if (d < 0 && cur <= 0) return;
+  statPlan[k] = cur + d; if (!statPlan[k]) delete statPlan[k];
+  Sound.play("click"); render();
+}
+// Apply pending points for a moment to measure the result, then put everything back
+function previewWith(p) {
+  const keep = { ...player.stats }, hp = player.hp, mp = player.mp, mh = player.maxHp, mm = player.maxMp;
+  Object.entries(p).forEach(([k, n]) => player.stats[k] += n);
+  const out = { stats: Object.fromEntries(STAT_KEYS.map(k => [k, eff(k)])) };
+  recalc(); out.maxHp = player.maxHp; out.maxMp = player.maxMp;
+  player.stats = keep; player.hp = hp; player.mp = mp; player.maxHp = mh; player.maxMp = mm;
+  return out;
+}
+function radarSVG(vals, ghost) {
+  const keys = STAT_KEYS, n = keys.length, cx = 75, cy = 78, R0 = 60;
+  const top = Math.max(20, ...keys.map(k => ghost ? ghost[k] : vals[k]));
+  const scale = Math.ceil(top / 50) * 50;
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
+  const ring = f => keys.map((_, i) => pt(i, R0 * f).join(",")).join(" ");
+  const shape = v => keys.map((k, i) => pt(i, R0 * Math.min(1, v[k] / scale)).join(",")).join(" ");
+  const short = { STR: "STR", AGI: "AGI", SEN: "SEN", VIT: "VIT", INT: "INT", RES: "RES", LUK: "LUK" };
+  return `<svg viewBox="0 0 150 156" role="img" aria-label="Stat chart">
+    ${[1, .75, .5, .25].map(f => `<polygon points="${ring(f)}" fill="none" stroke="var(--panel-border)" stroke-opacity=".5"/>`).join("")}
+    ${keys.map((_, i) => `<line x1="${cx}" y1="${cy}" x2="${pt(i, R0)[0]}" y2="${pt(i, R0)[1]}" stroke="var(--panel-border)" stroke-opacity=".35"/>`).join("")}
+    ${ghost ? `<polygon points="${shape(ghost)}" fill="#5fe0a8" fill-opacity=".25" stroke="#5fe0a8" stroke-dasharray="3 2"/>` : ""}
+    <polygon points="${shape(vals)}" fill="var(--accent)" fill-opacity=".35" stroke="var(--accent)" stroke-width="1.5"/>
+    ${keys.map((k, i) => { const [x, y] = pt(i, R0 + 10); return `<text x="${x}" y="${y + 3}" text-anchor="middle" font-size="8" font-weight="700" fill="${statPlan[k] ? "#5fe0a8" : "currentColor"}">${short[k]}</text>`; }).join("")}
+    <text x="${cx}" y="153" text-anchor="middle" font-size="7" fill="currentColor" opacity=".6">outer ring = ${scale}</text>
+  </svg>`;
+}
+function renderParam() {
+  const el = $("paramBox"); if (!el || !player) return;
+  if (pendTotal() > player.points) statPlan = {};
+  const now = Object.fromEntries(STAT_KEYS.map(k => [k, eff(k)]));
+  const has = pendTotal() > 0, pv = has ? previewWith(statPlan) : null, base = has ? previewWith({}) : player;
+  const atkNow = Math.max(now.STR, now.INT);
+  const line = (label, a, b) => `<div>${label}: <b>${a}</b>${b != null && b !== a ? ` → <span class="up">${b}</span>` : ""}</div>`;
+  el.innerHTML = `${radarSVG(now, pv && pv.stats)}
+    <div class="param-prev">
+      <div class="small muted">${has ? "Preview before you press OK:" : player.points ? `You have <b>${player.points}</b> points to spend.` : "No points to spend right now. You get more each level."}</div>
+      ${line("Max HP", base.maxHp, pv && pv.maxHp)}
+      ${line("Max MP", base.maxMp, pv && pv.maxMp)}
+      ${line("Physical power (STR)", now.STR, pv && pv.stats.STR)}
+      ${line("Magic power (INT)", now.INT, pv && pv.stats.INT)}
+      ${has ? `<div class="small">Planned: ${Object.entries(statPlan).map(([k, n]) => `+${n} ${STAT_NAME[k]}`).join(", ")}</div>` : ""}
+      <div class="param-actions"><button class="btn" data-preset ${has ? "" : "disabled"}>Reset</button><button class="btn ok-btn" data-pok ${has ? "" : "disabled"}>OK</button></div>
+    </div>`;
+}
+function confirmParam() {
+  const n = pendTotal(); if (!n || n > player.points) return;
+  Object.entries(statPlan).forEach(([k, v]) => player.stats[k] += v);
+  player.points -= n;
+  const txt = Object.entries(statPlan).map(([k, v]) => `+${v} ${STAT_NAME[k]}`).join(", ");
+  statPlan = {}; recalc(); Sound.play("levelup");
+  notify("STATUS", `Points locked in: ${txt}`, "unlock", true);
+  render();
+}
+$("panel").addEventListener("click", e => {
+  const p = e.target.closest("[data-pstat]"); if (p) { e.stopPropagation(); return pendAdd(p.dataset.pstat, 1); }
+  const m = e.target.closest("[data-mstat]"); if (m) { e.stopPropagation(); return pendAdd(m.dataset.mstat, -1); }
+  if (e.target.closest("[data-pok]")) return confirmParam();
+  if (e.target.closest("[data-preset]")) { statPlan = {}; Sound.play("click"); render(); }
+}, true);
+
+/* =========================================================
+   GUIDED TUTORIAL (idea #14): the System lights up one thing
+   at a time. Runs on new characters, can be skipped, and can
+   be replayed from Settings.
+   ========================================================= */
+const TUT_STEPS = [
+  { text: "Welcome, climber. I am the <b>System</b>. Let me show you around. It only takes a minute." },
+  { target: "#homeStage .hero-fig", text: "This is <b>you</b>. Tap your character any time to open your Character sheet." },
+  { target: "#hubCard", text: "<b>HP</b>, <b>MP</b>, <b>Fatigue</b> and <b>EXP</b>. Fatigue rises as you fight and work. Resting brings it down." },
+  { target: '#tabBar [data-tab="hero"]', text: "Tap <b>Hero</b>. It holds your Status, Character, Evolution and Skills.", tap: true },
+  { target: '#tabSheet [data-open="status"]', text: "Open your <b>Status</b> window.", tap: true },
+  { target: "#paramBox", text: "This is your <b>Parameter</b>. Plan points with <b>+</b> and <b>−</b> next to each stat, check the preview, then press <b>OK</b>. Nothing is spent until you press OK.", scroll: true },
+  { target: "#winClose", text: "Close the window to go back.", tap: true },
+  { target: '#tabBar [data-tab="home"]', text: "Tap <b>Home</b>.", tap: true },
+  { target: "#battleBtn", text: "<b>BATTLE</b> takes you into the Tower. Every floor is harder, and higher floors need more <b>Luck</b> for good drops.", tap: true },
+  { target: "[data-enter]", text: "Tap <b>Enter</b> to fight on this floor.", tap: true, scroll: true },
+  { target: "#bMenu", wait: () => B && !B.busy, text: "<b>Fight</b> picks a skill. <b>Party</b> calls a hero. <b>Bag</b> uses items. <b>Run</b> escapes. Win this fight! I'll be here after." },
+  { target: "#sideRest", wait: () => !B, prep: () => { if (currentWin) closeWindow(); if (homeTab !== "home") { homeTab = "home"; renderTabs(); } }, text: "Hurt or tired? <b>Rest</b> restores HP and MP and lowers Fatigue." },
+  { target: "#sideQuest", text: "<b>Quests</b> give rewards and the main story. A red dot means something is ready." },
+  { target: '#tabBar [data-tab="more"]', text: "<b>More</b> has your Bag, Crafting, Gather, Work and Saves." },
+  { target: '#tabBar [data-tab="summon"]', text: "<b>Summon</b> heroes with gems. You earn gems from bosses, quests and your <b>Mail</b>." },
+  { target: "#gearBtn", text: "<b>Settings</b> has themes, sound, save files, and this tutorial if you want it again. Good luck, climber!", last: true },
+];
+let tut = null;
+
+function startTutorial(replay) {
+  if (!player) return;
+  endTutorial(true);
+  if (replay) { homeTab = "home"; renderTabs(); }
+  tut = { i: 0, timer: null };
+  const ov = document.createElement("div");
+  ov.className = "tut-ov"; ov.id = "tutOv";
+  ov.innerHTML = `<div class="tut-hole" id="tutHole"></div><div class="tut-tip" id="tutTip"></div>`;
+  document.body.appendChild(ov);
+  showTutStep();
+  tut.timer = setInterval(placeTut, 250);
+}
+function endTutorial(silent) {
+  if (tut && tut.timer) clearInterval(tut.timer);
+  tut = null;
+  const ov = $("tutOv"); if (ov) ov.remove();
+  if (!silent && player) { player.tutDone = true; save(); }
+}
+function tutEl(step) {
+  if (!step.target) return null;
+  const all = [...document.querySelectorAll(step.target)];
+  return all.find(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }) || null;
+}
+function showTutStep() {
+  if (!tut) return;
+  const st = TUT_STEPS[tut.i];
+  $("tutTip").innerHTML = `<div class="tt-head">SYSTEM · TUTORIAL ${tut.i + 1}/${TUT_STEPS.length}</div><div>${st.text}</div>
+    <div class="tt-btns"><button class="btn" data-tutskip>Skip tutorial</button>${st.tap ? `<span class="small muted">Tap the glowing spot</span>` : `<button class="btn glow-btn" data-tutnext>${st.last ? "Finish" : "Next"}</button>`}</div>`;
+  tut.scrolled = false; tut.prepped = false;
+  placeTut();
+}
+function placeTut() {
+  if (!tut) return;
+  const st = TUT_STEPS[tut.i], hole = $("tutHole"), tip = $("tutTip");
+  if (!hole || !tip) return;
+  const ready = !st.wait || st.wait();
+  if (ready && st.prep && !tut.prepped) { tut.prepped = true; st.prep(); }
+  const el = ready ? tutEl(st) : null;
+  tip.style.display = ready ? "" : "none";
+  if (!el) { hole.style.display = "none"; tip.style.top = "35%"; tip.style.bottom = "auto"; return; }
+  if (st.scroll && !tut.scrolled) { tut.scrolled = true; el.scrollIntoView && el.scrollIntoView({ block: "center" }); }
+  const r = el.getBoundingClientRect(), pad = 6;
+  Object.assign(hole.style, { display: "", left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + pad * 2 + "px", height: r.height + pad * 2 + "px" });
+  const h = window.innerHeight || 800;
+  if (r.top + r.height / 2 > h / 2) { tip.style.top = "auto"; tip.style.bottom = Math.max(10, h - r.top + 14) + "px"; }
+  else { tip.style.bottom = "auto"; tip.style.top = Math.min(h - 160, r.bottom + 14) + "px"; }
+}
+function nextTut() {
+  if (!tut) return;
+  if (TUT_STEPS[tut.i].last) { endTutorial(); notify("SYSTEM", "Tutorial complete. You can replay it from ⚙️ Settings.", "levelUp"); return; }
+  tut.i++; Sound.play("click"); showTutStep();
+}
+document.addEventListener("click", e => {
+  if (!tut) return;
+  if (e.target.closest("[data-tutskip]")) { endTutorial(); Sound.play("close"); notify("SYSTEM", "Tutorial skipped. Replay it any time from ⚙️ Settings.", "notify"); return; }
+  if (e.target.closest("[data-tutnext]")) return nextTut();
+  const st = TUT_STEPS[tut.i];
+  if (st.tap && e.target.closest(st.target)) setTimeout(nextTut, 120);
+}, true);
 
 
 /* =========================================================
