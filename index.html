@@ -897,7 +897,19 @@ body {
 .evo-card.fuse { background: linear-gradient(135deg, rgba(176,107,255,.12), transparent); }
 .br-tag { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--bc); color: var(--bc); }
 .reroll-btn { width: 100%; margin-top: 4px; white-space: normal; }
+.slot-actions { display: flex; gap: 6px; margin-top: 8px; }
+.slot-go { flex: 1 1 auto !important; font-size: 16px; font-weight: 800; padding: 12px; }
+.slot-more { flex: 0 0 52px !important; width: 52px !important; font-size: 18px; font-weight: 800; }
+.slot-menu { margin-top: 6px; display: flex; justify-content: flex-end; }
+.danger-btn { color: #ff8a8a !important; border-color: #ff6b6b !important; }
+.del-box { margin-top: 8px; padding: 10px; border: 1px dashed #ff6b6b; border-radius: 10px; display: grid; gap: 8px; }
+.del-box input { width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,.3); color: inherit; font: inherit; font-size: 16px; }
+.hc-sell { display: flex; gap: 6px; margin-top: 6px; }
+.hc-sell .btn { flex: 1; font-size: 12px; }
+.lock-btn.on { color: #ffd84a; border-color: #ffd84a; }
+.bulk-sell { display: grid; gap: 6px; margin-bottom: 10px; padding: 8px; border: 1px solid var(--panel-border); border-radius: 10px; }
 .et-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+.et-tabs.two { grid-template-columns: repeat(2, 1fr); }
 .et-tabs button { font: inherit; font-size: 13px; font-weight: 700; padding: 8px 4px; border-radius: 10px; cursor: pointer; color: var(--muted); background: rgba(8,30,70,.45); border: 1px solid var(--panel-border); }
 .et-tabs button.active { color: #04150e; background: #5fe0a8; border-color: #5fe0a8; box-shadow: 0 0 12px rgba(95,224,168,.5); }
 .et-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 8px 0 4px; font-size: 16px; }
@@ -1657,7 +1669,7 @@ function fx(k) {
 function bonusOf(k) {
   let b = 0;
   const gm = fx("gearMult") || 1;
-  Object.values(player.equipped).forEach(id => { if (id && R[id].bonus[k]) b += Math.round(R[id].bonus[k] * gm); });
+  Object.values(player.equipped).forEach(id => { if (id && R[id].bonus[k]) b += Math.round(R[id].bonus[k] * gm * qualityMult(id)); });
   if (player.buff && player.buff.stats[k]) b += player.buff.stats[k];
   b += (GRADE_BONUS[k] || 0) * player.grade;
   b += (LAYER_BONUS[k] || 0) * player.layer;
@@ -2671,9 +2683,9 @@ let towerView = "floors", selFloor = 1;
 
 const stageMult = s => 1 + 0.3 * s;
 // Stat effects used in battle (also shown in the stat descriptions)
-const agiDodge = () => Math.min(0.20, eff("AGI") / 400);    // AGI 40 = 10% dodge, 80+ = 20%
-const senExp   = () => Math.min(0.50, eff("SEN") / 300);    // SEN 30 = +10% EXP, 150+ = +50%
-const senCrit  = () => Math.min(0.25, eff("SEN") * 0.003);  // SEN 50 = +15% crit on super-effective hits
+const agiDodge = () => soft(eff("AGI") / 400, 0.20);    // AGI 40 = 10% dodge, 80+ = 20%
+const senExp   = () => soft(eff("SEN") / 300, 0.50);    // SEN 30 = +10% EXP, 150+ = +50%
+const senCrit  = () => soft(eff("SEN") * 0.003, 0.25);  // SEN 50 = +15% crit on super-effective hits
 function calcDamage(lv, power, A, D, emult) {
   const base = (power / 8) * (2 + lv * 0.2) * Math.pow(Math.max(1, A) / Math.max(1, D), 0.7) * (0.85 + Math.random() * 0.15);
   return base * emult;
@@ -2687,6 +2699,10 @@ function startBattle(floor) {
   addFatigue(6);
   player.location = `${BRACKETS[bracketOf(floor)].name} · Floor ${floor}`;
   const mon = makeMonster(floor);
+  if (!mon.boss && Math.random() < luckRare(luckAt(floor))) {
+    mon.rare = true; mon.name = "✦ Rare " + mon.name;
+    mon.maxHp = mon.hp = Math.floor(mon.maxHp * 1.3); mon.atk = Math.floor(mon.atk * 1.1);
+  }
   B = { floor, mon, cd: {}, atkStage: 0, defStage: 0, evade: false, guard: false, busy: true, over: false };
   const br = BRACKETS[bracketOf(floor)];
   B.sel = null;
@@ -2696,7 +2712,7 @@ function startBattle(floor) {
   Sound.play("encounter");
   (async () => {
     $("bMon").classList.add("enter");
-    await say(mon.boss ? `👑 The floor guardian <b>${mon.name}</b> blocks your way!` : `A wild <b>${mon.name}</b> appeared!`, 1100);
+    await say(mon.boss ? `👑 The floor guardian <b>${mon.name}</b> blocks your way!` : (mon.rare ? `🍀 A rare <b>${mon.name.replace("✦ Rare ", "")}</b> appeared! (double loot, x2 EXP, x3 gold)` : `A wild <b>${mon.name}</b> appeared!`), 1100);
     B.busy = false; menuMain();
   })();
 }
@@ -2798,7 +2814,7 @@ async function doPlayer(action) {
   dmg *= 1 + fx("dmgMult") + (mv.kind === "phys" ? fx("physMult") : 0);
   if (player.fatigue >= 80) dmg *= 0.8;
   // SEN spots weak points: extra crit chance when your attack is super effective
-  const crit = Math.random() < 0.06 + eff("LUK") * 0.002 + fx("critPlus") + (em > 1 ? senCrit() : 0);
+  const crit = Math.random() < 0.06 + luckCrit(curLuck()) + fx("critPlus") + (em > 1 ? senCrit() : 0);
   if (crit) dmg *= 1.5;
   dmg = Math.max(1, Math.floor(dmg));
   await sleep(220);
@@ -2841,7 +2857,7 @@ async function monsterTurn() {
   if (player.scrolls.ward) { player.scrolls.ward = false; Sound.play("unlock"); return say("🔰 Your Scroll of Warding blocked the hit!", 800); }
   const s1 = skillTier(1);
   // AGI dodge: +1% per 4 AGI, up to +20%. Total dodge chance is capped at 60%.
-  const dodge = Math.min(0.6, agiDodge() + fx("dodge") + (s1 >= 0 ? 0.03 + s1 * 0.03 : 0));
+  const dodge = Math.min(0.75, agiDodge() + fx("dodge") + (s1 >= 0 ? 0.03 + s1 * 0.03 : 0));
   if (Math.random() < dodge) { Sound.play("weak"); return say("You dodged the attack!", 700); }
   if (fx("parry") && Math.random() < fx("parry")) {
     const c = Math.max(1, Math.floor(calcDamage(player.level, 80, (eff("STR") + eff("VIT")) / 2, m.def, 1)));
@@ -2854,7 +2870,7 @@ async function monsterTurn() {
   const inEm = elemMult(mv.elem, player.elem);
   let dmg = calcDamage(m.level, mv.power, m.atk * stageMult(m.atkStage), D, inEm) * MON_POWER * damageMult();
   if (B.guard) dmg *= 0.5;
-  if (mv.elem !== "Normal") dmg *= 1 - Math.min(0.35, eff("RES") / 400) - fx("elemResist");
+  if (mv.elem !== "Normal") dmg *= 1 - Math.min(0.8, RES_ELEM() + fx("elemResist"));
   if (fx("resistDark") && (mv.elem === "Dark" || m.body === "spectre" || m.body === "undead")) dmg *= 1 - fx("resistDark");
   let shielded = false;
   if (fx("elemShield") && mv.elem !== "Normal" && player.mp >= 3) { dmg *= 1 - fx("elemShield"); player.mp -= 3; shielded = true; }
@@ -2871,6 +2887,7 @@ async function monsterTurn() {
   if (drained) { const h = Math.floor(dmg / 2); m.hp = Math.min(m.maxHp, m.hp + h); bars(); floater("mon", "+" + h, "heal"); }
   await sleep(500);
   if (shielded) await say("🔷 Your mana shield absorbed half the blast.", 600);
+  if (player.hp <= 0 && !B.luckSaved && Math.random() < luckSurvive(curLuck())) { B.luckSaved = true; player.hp = 1; bars(); Sound.play("unlock"); await say("🍀 Lucky! You survived the blow with 1 HP!", 900); }
   if (player.hp <= 0 && fx("undying") && !B.undyingUsed) { B.undyingUsed = true; player.hp = 1; bars(); Sound.play("evolve"); await say("💀 Your body refuses to fall! (1 HP)", 900); }
   if (player.hp > 0 && player.hp <= player.maxHp * 0.1 && !B.nearDeath) { B.nearDeath = true; player.tstats.nearDeath++; }
   if (fx("rage")) B.rage = (B.rage || 0) + dmg;
@@ -2899,12 +2916,12 @@ async function armyStrike() {
 
 /* ===================== VICTORY / LOOT ===================== */
 function rollLoot(m) {
-  const luck = eff("LUK"), loot = {};
+  const luck = curLuck(), loot = {};
   const add = (id, n) => { if (n > 0) loot[id] = (loot[id] || 0) + n; };
   const qtyMult = 1 + m.level / 25;
   COMMON_DROPS[m.body].forEach(id => {
     let n = Math.round(rnd(1, 2) * qtyMult);
-    if (Math.random() < luck / 100) n++;
+    n += extraMats(luck);
     if (inParty("kit")) n++;
     if (fx("extraDrops") && Math.random() < fx("extraDrops")) n++;
     const s3 = skillTier(3); if (s3 >= 0 && Math.random() < 0.2 + s3 * 0.2) n++;
@@ -2919,6 +2936,7 @@ function rollLoot(m) {
   if (Math.random() < Math.min(0.6, (0.02 + luck * 0.002 + m.level * 0.0005) * bossBoost)) add(pick(["essence", "dscale"]), 1);
   if (Math.random() < Math.min(0.25, (0.003 + luck * 0.0008) * bossBoost)) add("relic", 1);
   if (player.scrolls.loot) { Object.keys(loot).forEach(k => loot[k] *= 2); player.scrolls.loot = false; }
+  if (m.rare) Object.keys(loot).forEach(k => loot[k] *= 2);   // rare monsters drop double
   return loot;
 }
 async function victory() {
@@ -2939,12 +2957,18 @@ async function victory() {
   if (player.scrolls.xp) { xp *= 1.5; player.scrolls.xp = false; }
   if (player.scrolls.xp2) { xp *= 3; player.scrolls.xp2 = false; }
   const crit = fx("crit") && Math.random() < fx("crit"); if (crit) xp *= 2;
+  if (m.rare) xp *= 2;
+  const lucky = rollLuckyEvent();
+  if (lucky && lucky.id === "xp") xp *= 2;
   xp = Math.floor(xp);
   let ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
   if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
-  let gold = Math.floor(rnd(5, 10) * m.level * (1 + eff("LUK") / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
+  let gold = Math.floor(rnd(5, 10) * m.level * (1 + curLuck() / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   gold = Math.floor(gold * (1 + heroPct("gold")));
+  if (m.rare) gold *= 3;
+  if (lucky && lucky.id === "goblin") gold *= 5;
+  if (lucky && lucky.id === "rest") { player.hp = player.maxHp; player.mp = player.maxMp; player.fatigue = Math.max(0, player.fatigue - 15); }
   const loot = rollLoot(m);
   Object.entries(loot).forEach(([id, n]) => addMat(id, n));
   player.gold += gold; player.ap += ap;
@@ -2980,6 +3004,8 @@ async function victory() {
     <div class="v-row"><span>EXP</span><b>+${xp}${crit ? " 💥 x2" : ""}</b></div>
     <div class="v-row"><span>Gold</span><b>+${gold}</b></div>
     <div class="v-row"><span>Ability Points</span><b>+${ap}</b></div>
+    ${m.rare ? `<div class="v-row good"><span>🍀 Rare monster</span><b>x2 EXP · x3 gold · x2 loot</b></div>` : ""}
+    ${lucky ? `<div class="v-row good"><span>🍀 Lucky event</span><b>${lucky.icon} ${lucky.text}</b></div>` : ""}
     ${gems ? `<div class="v-row good"><span>Gems</span><b>💎 +${gems}</b></div>` : ""}
     ${firstClear ? `<div class="v-row good"><span>New highest floor</span><b>${B.floor}</b></div>` : ""}
     ${bound ? `<div class="v-row good"><span>${SUMMON[st].head}</span><b>${m.name}</b></div>` : ""}
@@ -3083,7 +3109,7 @@ function renderTower() {
     el.innerHTML = `
       <div class="tower-stats"><span>Highest floor: <b>${player.towerBest}</b></span><span>Open floors: <b>1 to ${mf}</b></span></div>
       <div class="floor-card">
-        <div class="fc-top"><div><div class="r-name">Floor ${selFloor}${boss ? " 👑" : ""}</div><div class="small muted">${br.name} · Monster Lv. ${selFloor}</div></div><div class="small">${diffTxt}</div></div>
+        <div class="fc-top"><div><div class="r-name">Floor ${selFloor}${boss ? " 👑" : ""}</div><div class="small muted">${br.name} · Monster Lv. ${selFloor}</div></div><div class="small" style="text-align:right">${diffTxt}<br>${luckNeedTag(selFloor)}</div></div>
         <div class="fc-mons">${species.map(sp => `<div class="fc-mon">${monsterSVG(sp, bracketOf(selFloor), boss)}<span class="small">${sp[0]}<br>${MON_TYPES[sp[1]].icon} ${MON_TYPES[sp[1]].label} · ${ELEM_ICON[sp[2]]} ${sp[2]}</span></div>`).join("")}</div>
         <div class="small muted" style="text-align:center;margin-top:6px">${ELEM_CHART}<br>Your element: ${ELEM_ICON[player.elem]} ${player.elem}</div>
         <button class="btn wide" data-enter="${selFloor}" ${player.fatigue >= 100 || player.hp <= 0 ? "disabled" : ""}>⚔️ Enter Floor ${selFloor}</button>
@@ -3094,7 +3120,7 @@ function renderTower() {
         const f = i + 1, locked = f > mf;
         return `<button class="fl ${locked ? "locked" : ""} ${isBossFloor(f) ? "boss" : ""} ${f <= player.towerBest ? "cleared" : ""} ${f === selFloor ? "sel" : ""}" data-floor="${f}" ${locked ? "disabled" : ""}>${f}</button>`;
       }).join("")}</div>
-      <div class="small muted" style="text-align:center;margin-top:8px">You can enter floors up to ${LEVEL_GAP} levels above your own. Higher Luck means better drops.</div>`;
+      <div class="small muted" style="text-align:center;margin-top:8px">You can enter floors up to ${LEVEL_GAP} levels above your own. Higher floors need more Luck: below the Luck needed, your lucky chances shrink.</div>`;
   } else {
     const buyRows = Object.entries(SHOP_STOCK).map(([group, ids]) => `
       <div class="section-title"><span>${group.toUpperCase()}</span></div>
@@ -4079,6 +4105,7 @@ const starsTxt = n => "★".repeat(n);
 function heroState() {
   if (!player.heroes) player.heroes = {};
   if (!player.squad) player.squad = [];
+  if (!player.heroLocks) player.heroLocks = {};
   if (player.gems === undefined) player.gems = 0;
   if (player.pity === undefined) player.pity = 0;
   if (!player.gemGift) { player.gemGift = true; player.gems += 1000; setTimeout(() => notify("GIFT", "Welcome gift: 💎 1000 gems! Open Summon on the hub to call your first heroes.", "unlock"), 2500); }
@@ -4205,7 +4232,7 @@ function renderSummon() {
   const owned = HEROES.filter(h => ownedHero(h.id));
   const featured = HEROES.filter(h => h.stars === 5);
   el.innerHTML = `
-    <div class="filters"><button class="${summonTab === "banner" ? "active" : ""}" data-stab="banner">🔮 Summon</button><button class="${summonTab === "heroes" ? "active" : ""}" data-stab="heroes">🦸 Heroes (${owned.length}/${HEROES.length})</button></div>
+    <div class="et-tabs two"><button class="${summonTab === "banner" ? "active" : ""}" data-stab="banner">🔮 Summon</button><button class="${summonTab === "heroes" ? "active" : ""}" data-stab="heroes">🦸 Heroes (${owned.length}/${HEROES.length})</button></div>
     <div class="gem-bar">💎 <b>${player.gems}</b> gems <span class="small muted">· Pity: ${player.pity}/${PITY} (a 5★ is guaranteed by pull ${PITY})</span></div>
     ${summonTab === "banner" ? `
       <div class="banner">
@@ -4217,11 +4244,12 @@ function renderSummon() {
         <button class="btn glow-btn" data-sum="10" ${player.gems < TEN_COST ? "disabled" : ""}>Summon x10<br><small>💎 ${TEN_COST} · one 4★ or better guaranteed</small></button></div>
       <details class="guide-box"><summary>❓ Rates and how summoning works</summary><ul class="sd-effects guide">
         <li><b>Rates:</b> <span style="color:${STAR_COLOR[5]}">5★ 3%</span>, <span style="color:${STAR_COLOR[4]}">4★ 17%</span>, <span style="color:${STAR_COLOR[3]}">3★ 80%</span>.</li>
+        <li><b>Luck bonus:</b> +${Math.round(luckSummon(summonLuck()) * 10000) / 100}% to the 5★ rate, based on your Luck vs the Luck needed for your highest floor (${luckNeed(Math.max(1, player.towerBest || 1))}).</li>
         <li><b>Pity:</b> if you go ${PITY - 1} pulls without a 5★, the next one is a 5★.</li>
         <li><b>Duplicates</b> awaken a hero (up to ${MAX_AWAKEN} times): +15% perk and +10% damage each. Past that, you get gems back.</li>
         <li><b>Earn gems:</b> first boss clear +100, every boss win +30, story chapters +80, the daily quest +50, each level up +10. No real money.</li>
         <li><b>Heroes in battle:</b> bring 2. They sometimes attack on their own, their perk is always on, and you can call their special once per fight from the Party button.</li></ul></details>`
-    : owned.length ? `<div class="hero-list">${owned.map(h0 => { const h = { ...h0, aw: player.heroes[h0.id].aw }, on = player.squad.includes(h.id);
+    : owned.length ? `${bulkSellBar()}<div class="hero-list">${owned.map(h0 => { const h = { ...h0, aw: player.heroes[h0.id].aw }, on = player.squad.includes(h.id);
         return `<div class="hero-card s${h.stars} ${on ? "on" : ""}" style="--sc:${STAR_COLOR[h.stars]}">
           <div class="hc-fig">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>
           <div class="hc-info"><div class="sum-stars">${starsTxt(h.stars)} ${h.aw ? `<span class="aw">+${h.aw}</span>` : ""}</div>
@@ -4229,14 +4257,52 @@ function renderSummon() {
             <div class="small">${RACES[h.race].name} ${CLASSES[h.cls].name} · ${ELEM_ICON[h.elem]} ${h.elem}</div>
             <div class="small good">Perk: ${perkText(h)}</div><div class="small">🌟 ${h.special.name}: ${specialText(h)}</div>
             <div class="small muted" style="margin-top:3px">${h.bio}</div>
-            <button class="btn ${on ? "" : "glow-btn"}" data-squad="${h.id}">${on ? "Remove from squad" : "Add to squad"}</button></div></div>`; }).join("")}</div>`
+            <button class="btn ${on ? "" : "glow-btn"}" data-squad="${h.id}">${on ? "Remove from squad" : "Add to squad"}</button>
+            <div class="hc-sell"><button class="btn lock-btn ${heroLocked(h.id) ? "on" : ""}" data-hlock="${h.id}">${heroLocked(h.id) ? "🔒 Locked" : "🔓 Lock"}</button>
+              <button class="btn ${sellArm === h.id ? "danger-btn" : ""}" data-hsell="${h.id}" ${on || heroLocked(h.id) ? "disabled" : ""}>${sellArm === h.id ? `Tap again: sell for 💎 ${heroSellPrice(h)}` : `💎 Sell (${heroSellPrice(h)})`}</button></div>
+            ${on ? `<div class="small muted">In your squad, so it can't be sold.</div>` : ""}</div></div>`; }).join("")}</div>`
       : `<div class="small muted" style="text-align:center;padding:20px">No heroes yet. Summon some!</div>`}`;
 }
 $("summonBody").addEventListener("click", e => {
   const t = e.target.closest("[data-stab]"); if (t) { summonTab = t.dataset.stab; renderSummon(); return; }
   const s = e.target.closest("[data-sum]"); if (s) { summon(+s.dataset.sum); return; }
   const q = e.target.closest("[data-squad]"); if (q) toggleSquad(q.dataset.squad);
+  const lk = e.target.closest("[data-hlock]"); if (lk) { heroState(); player.heroLocks[lk.dataset.hlock] = !heroLocked(lk.dataset.hlock); sellArm = null; Sound.play("click"); save(); renderSummon(); return; }
+  const sl = e.target.closest("[data-hsell]"); if (sl) { sellHero(sl.dataset.hsell); return; }
+  const bk = e.target.closest("[data-hbulk]"); if (bk) { bulkSell3(); return; }
 });
+
+/* ---------- Selling heroes for gems (idea #12) ---------- */
+const HERO_SELL = { 3: 10, 4: 30, 5: 100 };
+let sellArm = null;
+const heroLocked = id => !!(player.heroLocks && player.heroLocks[id]);
+const heroSellPrice = h => HERO_SELL[h.stars] * (1 + ((player.heroes[h.id] || {}).aw || 0));
+const canSellHero = id => ownedHero(id) && !player.squad.includes(id) && !heroLocked(id);
+function removeHero(id) { delete player.heroes[id]; if (player.heroLocks) delete player.heroLocks[id]; }
+function sellHero(id) {
+  heroState();
+  if (!canSellHero(id)) return notify("SELL", "Heroes that are locked or in your squad can't be sold.", "warn");
+  const h = { ...H[id] }, price = heroSellPrice(h);
+  if (h.stars >= 4 && sellArm !== id) { sellArm = id; Sound.play("warn"); return renderSummon(); }
+  sellArm = null; removeHero(id); player.gems += price;
+  Sound.play("coin"); notify("SOLD", `${h.name} (${starsTxt(h.stars)}) left your roster. 💎 +${price} gems`, "unlock");
+  save(); render();
+}
+function bulkSell3() {
+  heroState();
+  const ids = HEROES.filter(h => h.stars === 3 && canSellHero(h.id)).map(h => h.id);
+  if (!ids.length) return notify("SELL", "No 3★ heroes to sell (locked and squad heroes are kept).", "warn");
+  const total = ids.reduce((s, id) => s + heroSellPrice(H[id]), 0);
+  ids.forEach(removeHero); player.gems += total; sellArm = null;
+  Sound.play("coin"); notify("SOLD", `Sold ${ids.length} 3★ hero${ids.length > 1 ? "es" : ""}. 💎 +${total} gems`, "unlock");
+  save(); render();
+}
+function bulkSellBar() {
+  const ids = HEROES.filter(h => h.stars === 3 && canSellHero(h.id));
+  const total = ids.reduce((s, h) => s + heroSellPrice(h), 0);
+  return `<div class="bulk-sell"><span class="small muted">Sell price: 3★ 10 · 4★ 30 · 5★ 100 gems, times (1 + awakening). Lock heroes to protect them.</span>
+    <button class="btn" data-hbulk ${ids.length ? "" : "disabled"}>💎 Sell all 3★ (${ids.length}) for ${total}</button></div>`;
+}
 
 function renderSquadBox() {
   const el = $("squadBox"); if (!el || !player) return;
@@ -4399,6 +4465,82 @@ $("evoTreeBody").addEventListener("click", e => {
 });
 
 document.addEventListener("click", e => { const b = e.target.closest("[data-open-evotree]"); if (b) { evoTab = b.dataset.openEvotree || "race"; openWindow("evo"); } });
+
+/* =========================================================
+   SOFT CAPS + LUCK (ideas #17 and #18)
+   Soft cap: grows normally up to the old cap ("knee"), then keeps
+   growing forever but slower (log curve). No more "maxed".
+   ========================================================= */
+function soft(raw, knee) { return raw <= knee ? raw : knee + knee * 0.5 * Math.log(1 + (raw - knee) / knee); }
+const RES_ELEM = () => soft(eff("RES") / 400, 0.35);
+
+/* ---------- Luck needed: harder floors need more Luck ---------- */
+function luckNeed(floor) { return Math.round(20 + Math.max(1, floor) * 1.5); }
+// Below the Luck needed, your Luck counts for less (the further below, the less)
+function luckAt(floor) {
+  const L = Math.max(0, eff("LUK")), n = luckNeed(floor);
+  return L >= n ? L : Math.round(L * L / n);
+}
+const luckHere = () => (B && B.floor) ? B.floor : (selFloor || 1);
+const curLuck = () => luckAt(luckHere());
+const summonLuck = () => luckAt(Math.max(1, player.towerBest || 1));
+
+/* ---------- Luck effects (all soft-capped) ---------- */
+const luckCrit    = L => soft(L * 0.002, 0.30);           // crit chance from Luck
+const luckMats    = L => soft(L / 100, 1);                 // extra materials per drop (whole part guaranteed)
+const luckRare    = L => soft(L * 0.0003, 0.05);           // rare monster chance
+const luckEvent   = L => soft(L * 0.0004, 0.08);           // lucky event after a win
+const luckSurvive = L => soft(L * 0.0008, 0.15);           // survive a killing blow (once per fight)
+const luckCraft   = L => soft(L * 0.0015, 0.25);           // craft Fine gear (+25%)
+const luckSummon  = L => soft(L * 0.00004, 0.01);          // extra 5★ rate
+function extraMats(L) { const e = luckMats(L); return Math.floor(e) + (Math.random() < e % 1 ? 1 : 0); }
+
+/* ---------- Gear quality from lucky crafting ---------- */
+const FINE_MULT = 1.25;
+const qualityMult = id => (player.quality && player.quality[id]) ? FINE_MULT : 1;
+
+/* ---------- Summon: small Luck bonus to 5★ (pity unchanged) ---------- */
+function rollStar(guarantee4) {
+  if (player.pity >= PITY - 1) return 5;
+  const r = Math.random(), b5 = luckSummon(summonLuck());
+  if (r < STAR_RATE[5] + b5) return 5;
+  if (r < STAR_RATE[5] + b5 + STAR_RATE[4] || guarantee4) return 4;
+  return 3;
+}
+
+/* ---------- Crafting: lucky crafts make Fine gear ---------- */
+function craft(id) {
+  const r = R[id]; if (!canCraft(r)) return;
+  Object.entries(r.needs).forEach(([m, n]) => player.mats[m] -= n);
+  let made = 1;
+  if (isMyCraft(r) && Math.random() < 0.15 + jobRank() * 0.1) made = 2;
+  player.items[id] = (player.items[id] || 0) + made;
+  let msg = `${r.icon} ${r.name} x${made} added to your bag`;
+  let fine = false;
+  if (r.cat === "Gear" && !(player.quality && player.quality[id]) && Math.random() < luckCraft(eff("LUK"))) {
+    player.quality = player.quality || {}; player.quality[id] = 1; fine = true;
+  }
+  if (r.cat === "Gear" && !player.equipped[r.slot]) { player.equipped[r.slot] = id; msg += " and equipped"; }
+  if (fine) msg += `<br>🍀 Lucky craft! It's <b>Fine</b> quality: +25% to its stats.`;
+  if (isMyCraft(r)) { msg += `<br>${JOBS[player.jobId].name} skill${made > 1 ? ": made an extra one!" : ""}`; addJobXp(10); }
+  recalc();
+  notify("CRAFTED", msg, "craft");
+  gainXp(10); questEvent("craft"); render();
+}
+
+/* ---------- Lucky events after a win ---------- */
+const LUCKY_EVENTS = [
+  { id: "xp", icon: "✨", text: "Double EXP from this fight!" },
+  { id: "goblin", icon: "💰", text: "A treasure goblin dropped a pile of gold! (x5 gold)" },
+  { id: "rest", icon: "🛏️", text: "You found a safe spot and rested. HP and MP full, Fatigue -15." },
+];
+function rollLuckyEvent() { return Math.random() < luckEvent(curLuck()) ? pick(LUCKY_EVENTS) : null; }
+
+/* ---------- Text used in the Status window and Tower ---------- */
+function luckNeedTag(floor) {
+  const n = luckNeed(floor), ok = eff("LUK") >= n;
+  return `<span class="${ok ? "good" : "warn-txt"}">🍀 Luck needed: ${n}</span>`;
+}
 
 
 /* =========================================================
@@ -5025,7 +5167,7 @@ let currentSlot = 1;
 try { currentSlot = +localStorage.getItem("sysGame_slot") || 1; } catch (e) {}
 function setSlot(n) { currentSlot = n; try { localStorage.setItem("sysGame_slot", n); } catch (e) {} }
 function slotData(n) { try { return JSON.parse(localStorage.getItem(slotKey(n))); } catch (e) { return null; } }
-let deleteArm = null;
+let deleteArm = null, slotMenu = null, deleteErr = "";
 function openSlots() {
   if (player) save();
   const cards = Array.from({ length: SAVE_SLOTS }, (_, i) => {
@@ -5040,9 +5182,20 @@ function openSlots() {
       <div class="ec-name">${p.name} <span class="small muted">Lv. ${p.level}</span></div>
       <div class="small" style="margin-top:4px">${RACES[p.raceId].icon} ${RACES[p.raceId].name} · ${CLASSES[p.classId].icon} ${CLASSES[p.classId].name}${sub ? ` / ${sub.name}` : ""}</div>
       <div class="small muted">📍 ${p.location || "Starting Town"} · 💰 ${p.gold} · 🗼 Floor ${p.towerBest || 0}</div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        ${n === currentSlot && player ? `<button class="btn" style="flex:1" data-slotclose>Continue</button>` : `<button class="btn" style="flex:1" data-slotload="${n}">Load</button>`}
-        <button class="btn" data-slotdel="${n}">${deleteArm === n ? "Tap again to delete" : "Delete"}</button></div></div>`;
+      <div class="slot-actions">
+        ${n === currentSlot && player ? `<button class="btn slot-go" data-slotclose>▶ Continue</button>` : `<button class="btn slot-go" data-slotload="${n}">▶ Load</button>`}
+        <button class="btn slot-more" data-slotmenu="${n}" aria-label="More options">⋯</button></div>
+      ${slotMenu === n && deleteArm !== n ? `<div class="slot-menu"><button class="btn danger-btn" data-slotdel="${n}">🗑 Delete this save…</button></div>` : ""}
+      ${deleteArm === n ? `<div class="del-box">
+        <div class="small warn-txt"><b>⚠ Delete ${p.name} forever?</b> This can't be undone.</div>
+        <label class="small">Type the character's name: <b>${p.name}</b>
+          <input id="delName" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${p.name}"></label>
+        ${Cloud.user ? `<label class="small">Your account password
+          <input id="delPass" type="password" autocomplete="current-password"></label>` : ""}
+        ${deleteErr ? `<div class="small warn-txt">${deleteErr}</div>` : ""}
+        <div style="display:flex;gap:6px"><button class="btn" style="flex:1" data-delcancel>Cancel</button>
+          <button class="btn danger-btn" style="flex:1" data-delconfirm="${n}">Delete forever</button></div>
+      </div>` : ""}</div>`;
   }).join("");
   const anyCloud = Array.from({ length: SAVE_SLOTS }, (_, i) => slotData(i + 1)).some(Boolean);
   $("evoBody").innerHTML = `<div class="header">[ SAVE FILES ]</div>
@@ -5058,7 +5211,10 @@ function resetWorld() {
 $("evoBody").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.hasAttribute("data-importguest")) { b.disabled = true; importGuestSaves(); return; }
-  if (b.hasAttribute("data-slotclose")) { deleteArm = null; $("evoOverlay").classList.remove("show"); Sound.play("close"); return; }
+  if (b.dataset.slotmenu) { const n = +b.dataset.slotmenu; slotMenu = slotMenu === n ? null : n; deleteArm = null; deleteErr = ""; Sound.play("click"); return openSlots(); }
+  if (b.hasAttribute("data-delcancel")) { deleteArm = null; slotMenu = null; deleteErr = ""; Sound.play("close"); return openSlots(); }
+  if (b.dataset.delconfirm) { confirmDelete(+b.dataset.delconfirm, b); return; }
+  if (b.hasAttribute("data-slotclose")) { deleteArm = null; slotMenu = null; $("evoOverlay").classList.remove("show"); Sound.play("close"); return; }
   if (b.dataset.slotload) {
     const n = +b.dataset.slotload;
     if (player) save();
@@ -5074,16 +5230,34 @@ $("evoBody").addEventListener("click", e => {
     return;
   }
   if (b.dataset.slotdel) {
-    const n = +b.dataset.slotdel;
-    if (deleteArm !== n) { deleteArm = n; Sound.play("warn"); return openSlots(); }
-    deleteArm = null;
+    deleteArm = +b.dataset.slotdel; deleteErr = ""; Sound.play("warn"); openSlots();
+    const i = $("delName"); if (i) i.focus();
+  }
+});
+// Deleting needs the exact character name, plus the account password when signed in
+async function confirmDelete(n, btn) {
+  const s = slotData(n), p = s && s.player; if (!p) return;
+  const typed = ($("delName") || {}).value || "";
+  if (typed.trim() !== p.name) { deleteErr = "The name doesn't match. Type it exactly as shown."; Sound.play("warn"); return openSlots(); }
+  if (Cloud.user) {
+    const pw = ($("delPass") || {}).value || "";
+    if (!pw) { deleteErr = "Enter your account password."; Sound.play("warn"); return openSlots(); }
+    btn.disabled = true; btn.textContent = "Checking…";
+    try { await Cloud.signIn(Cloud.username, pw); }
+    catch (e) { deleteErr = "Wrong password. Nothing was deleted."; Sound.play("warn"); return openSlots(); }
+  }
+  deleteArm = null; slotMenu = null; deleteErr = "";
+  doDeleteSlot(n);
+}
+function doDeleteSlot(n) {
+  {
     try { localStorage.removeItem(slotKey(n)); } catch (e) {}
     Cloud.remove(n);
     notify("SAVE FILE", `Save File #0${n} deleted.`, "close");
     if (n === currentSlot) { player = null; resetWorld(); $("evoOverlay").classList.remove("show"); create.targetSlot = n; return openCreation(); }
     openSlots();
   }
-});
+}
 
 
 /* =========================================================
@@ -5114,15 +5288,21 @@ function statBreakdown(k) {
   add(`Race evolutions (${formOf("race")})`, pathBonus("race")[k] || 0);
   add(`Class advancements (${formOf("class")})`, pathBonus("class")[k] || 0);
   const gm = fx("gearMult") || 1;
-  Object.values(player.equipped).forEach(id => { if (id && R[id].bonus[k]) add(`Gear: ${R[id].name}`, Math.round(R[id].bonus[k] * gm)); });
+  Object.values(player.equipped).forEach(id => { if (id && R[id].bonus[k]) add(`Gear: ${R[id].name}${qualityMult(id) > 1 ? " (Fine)" : ""}`, Math.round(R[id].bonus[k] * gm * qualityMult(id))); });
   if (player.buff) add(`Meal: ${player.buff.name}`, player.buff.stats[k] || 0);
   add(`Ability grade ${GRADES[player.grade]}`, (GRADE_BONUS[k] || 0) * player.grade);
   add(`Body refinement (${LAYERS[player.layer]})`, (LAYER_BONUS[k] || 0) * player.layer);
   add(summonType() ? `${SUMMON[summonType()].group} perks` : "Army perks", armyStat(k));
+  add("Heroes", heroStat(k));
+  // Ascension stars: +2% per star, applied to everything above
+  const pre = rows.reduce((s, [, v]) => s + v, 0) - player.stats[k];
+  add(`Ascension stars (★${stars("race") + stars("class")}, +${Math.round((stars("race") + stars("class")) * ASCEND_PCT * 100)}%)`, ascendBonus(k, pre));
   return rows;
 }
 
 const pct = v => `${Math.round(v * 1000) / 10}%`;
+const pct2 = v => `${Math.round(v * 10000) / 100}%`;
+const softNote = (val, knee) => val > knee ? ` <span class="small muted">(past soft cap: grows slower)</span>` : "";
 // What the stat is doing right now, and what +1 point would add
 function statEffects(k) {
   const v = eff(k), out = [];
@@ -5133,16 +5313,16 @@ function statEffects(k) {
     next = "+1 Strength = slightly harder physical hits";
   }
   if (k === "AGI") {
-    out.push(`Dodge chance: <b>+${pct(agiDodge())}</b>${agiDodge() >= 0.2 ? " (maxed)" : ""}`);
+    out.push(`Dodge chance: <b>+${pct(agiDodge())}</b>${softNote(agiDodge(), 0.2)}`);
     out.push(`You attack first against monsters with speed ${v} or lower`);
     out.push("Higher Agility than a monster's speed improves your odds of running away");
-    next = agiDodge() >= 0.2 ? "+1 Agility = faster turns and better escapes (dodge is maxed)" : "+1 Agility = +0.25% dodge, faster turns, better escapes";
+    next = `+1 Agility = +${pct2(soft((v + 1) / 400, 0.2) - soft(v / 400, 0.2))} dodge, faster turns, better escapes`;
   }
   if (k === "SEN") {
-    out.push(`Bonus EXP from battles: <b>+${pct(senExp())}</b>${senExp() >= 0.5 ? " (maxed)" : ""}`);
-    out.push(`Extra critical chance on super-effective hits: <b>+${pct(senCrit())}</b>${senCrit() >= 0.25 ? " (maxed)" : ""}`);
+    out.push(`Bonus EXP from battles: <b>+${pct(senExp())}</b>${softNote(senExp(), 0.5)}`);
+    out.push(`Extra critical chance on super-effective hits: <b>+${pct(senCrit())}</b>${softNote(senCrit(), 0.25)}`);
     if (summonType() === "beast") out.push(`Taming chance: <b>${pct(0.25 + v / 200)}</b> · Pack size: <b>${armyCap()}</b>`);
-    next = "+1 Sense = +0.33% EXP, +0.3% weak-point crit";
+    next = `+1 Sense = +${pct2(soft((v + 1) / 300, 0.5) - soft(v / 300, 0.5))} EXP, +${pct2(soft((v + 1) * 0.003, 0.25) - soft(v * 0.003, 0.25))} weak-point crit`;
   }
   if (k === "VIT") {
     const ab = alignBonus(player.alignment);
@@ -5159,17 +5339,24 @@ function statEffects(k) {
     next = `+1 Intelligence = +${Math.floor(2 * (1 + fx("mpPct") + alignBonus(player.alignment).mp))} max MP and stronger magic`;
   }
   if (k === "RES") {
-    const er = Math.min(0.35, v / 400);
-    out.push(`Elemental damage reduced by <b>${pct(er)}</b>${er >= 0.35 ? " (maxed)" : ""}`);
+    const er = RES_ELEM();
+    out.push(`Elemental damage reduced by <b>${pct(er)}</b>${softNote(er, 0.35)}`);
     out.push("Two-thirds of your defense against magic attacks");
-    next = er >= 0.35 ? "+1 Resistance = more magic defense (elemental reduction is maxed)" : "+1 Resistance = +0.25% elemental reduction, more magic defense";
+    next = `+1 Resistance = +${pct2(soft((v + 1) / 400, 0.35) - soft(v / 400, 0.35))} elemental reduction, more magic defense`;
   }
   if (k === "LUK") {
-    const odds = rarityOdds();
-    out.push(`Critical hit chance: <b>${pct(0.06 + v * 0.002 + fx("critPlus"))}</b>`);
-    out.push(`Chance of an extra material per drop: <b>${pct(Math.min(1, v / 100))}</b> · Bonus gold: <b>+${v}%</b>`);
+    const odds = rarityOdds(), f = luckHere(), need = luckNeed(f), L = luckAt(f), sL = summonLuck();
+    out.push(`<b>Floor ${f}</b> needs <b class="${v >= need ? "good" : "warn-txt"}">${need} Luck</b>. Your effective Luck there: <b>${L}</b>${v >= need ? " (full bonus)" : ` <span class="warn-txt">(below the need, so your lucky chances shrink)</span>`}`);
+    out.push(`Critical hit chance: <b>${pct(0.06 + luckCrit(L) + fx("critPlus"))}</b>`);
+    const em = luckMats(L);
+    out.push(`Extra materials per drop: <b>${Math.floor(em)}</b> guaranteed + <b>${pct(em % 1)}</b> chance of one more · Bonus gold: <b>+${L}%</b>`);
+    out.push(`Rare monster chance: <b>${pct2(luckRare(L))}</b> (x2 EXP, x3 gold, double loot)`);
+    out.push(`Lucky event after a win: <b>${pct2(luckEvent(L))}</b> (double EXP, treasure goblin or a free rest)`);
+    out.push(`Survive a killing blow with 1 HP: <b>${pct2(luckSurvive(L))}</b> (once per fight)`);
+    out.push(`Lucky craft (Fine gear, +25% stats): <b>${pct2(luckCraft(v))}</b>`);
+    out.push(`Summon: <b>+${pct2(luckSummon(sL))}</b> 5★ rate (uses your highest floor, F${Math.max(1, player.towerBest || 1)}: needs ${luckNeed(Math.max(1, player.towerBest || 1))} Luck)`);
     out.push(`Skill rarity odds: ${RARITIES.map(r => `<span style="color:${RARITY_COLOR[r]}">${RARITY_NAME[r]} ${Math.round(odds[r] * 100)}%</span>`).join(" · ")}`);
-    next = "+1 Luck = +0.2% crit, +1% gold, better drops and rarer skills";
+    next = "+1 Luck = more crit, gold, drops, rare finds and lucky events. Every effect is soft-capped, so Luck never maxes out";
   }
   return { out, next };
 }
@@ -5863,7 +6050,7 @@ function guideItems(key) {
       `<b>Floors:</b> pick a floor and tap Enter. You can enter floors up to 5 levels above your own, so floors 1 to <b>${maxFloor()}</b> are open for you.`,
       `<b>Turns:</b> each turn, pick a move, use an item, guard or run. Whoever is faster goes first: your Agility (<b>${eff("AGI")}</b>) against the monster's speed. Moves marked "First" always go first.`,
       `<b>Elements:</b> hitting the element yours beats does 1.5x damage. Hitting one that resists you does 0.67x. Light and Dark only beat each other. ${ELEM_CHART}`,
-      `<b>Critical hits:</b> your crit chance is <b>${Math.round((0.06 + eff("LUK") * 0.002 + fx("critPlus")) * 100)}%</b> (6% plus Luck). Sense adds <b>${Math.round(senCrit() * 100)}%</b> more on super effective hits.`,
+      `<b>Critical hits:</b> your crit chance is <b>${Math.round((0.06 + luckCrit(curLuck()) + fx("critPlus")) * 100)}%</b> (6% plus Luck). Sense adds <b>${Math.round(senCrit() * 100)}%</b> more on super effective hits.`,
       `<b>Dodging:</b> Agility gives you a <b>${Math.round(agiDodge() * 100)}%</b> chance to dodge attacks.`,
       `<b>Bosses (👑):</b> every 10th floor. 2.2x HP, triple EXP and gold, better rare drops, and only a 30% chance to run.`,
       `<b>Winning:</b> EXP, gold, Ability Points and materials. Fighting above your level gives +15% EXP per level above.`,
