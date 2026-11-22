@@ -67,6 +67,10 @@
 /* ===================== LAYOUT ===================== */
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
+/* Stop double-tap zoom when tapping buttons quickly (pinch zoom still works) */
+html, body, button, a, input, select, label, [data-open] { touch-action: manipulation; }
+/* iPhones zoom into text boxes under 16px; keep them at 16px on phones */
+@media (max-width: 560px) { input, textarea, select { font-size: 16px !important; } }
 body {
   background: var(--bg); color: var(--text);
   font-family: var(--font-body); font-size: var(--body-size);
