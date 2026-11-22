@@ -1005,6 +1005,24 @@ body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 .tut-tip .tt-head { font-weight: 800; letter-spacing: .12em; color: #5fe0ff; font-size: 12px; margin-bottom: 4px; }
 .tut-tip .tt-btns { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .tut-block { position: fixed; inset: 0; pointer-events: auto; background: transparent; }
+
+/* ===== Endgame (ideas #1 to #5) ===== */
+.tier-badge { display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 6px; font-size: 11px; font-weight: 900; text-align: center; color: #0a0f1c; background: var(--c); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent); vertical-align: middle; }
+.st-tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; color: var(--c); border: 1px solid var(--c); vertical-align: middle; }
+.claim-banner { margin: 8px 0 0; padding: 10px; border-radius: 12px; border: 1px dashed var(--panel-border); font-size: 13px; text-align: center; }
+.claim-banner.ready { border: 2px solid #ffe066; box-shadow: 0 0 16px rgba(255,224,102,.45); }
+.claim-banner .btn { margin-left: 6px; }
+.claim-rise { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 18px; margin: 10px 0; }
+.claim-rise .st-tag { font-size: 16px; padding: 4px 12px; }
+.claim-q { font-size: 18px; font-weight: 700; text-align: center; margin: 10px 0 12px; }
+.claim-opts { display: grid; gap: 8px; }
+.claim-opts .btn { padding: 12px; font-size: 15px; }
+.claim-own { margin-top: 12px; display: grid; gap: 6px; padding: 10px; border: 1px dashed var(--panel-border); border-radius: 10px; }
+.claim-own input { width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,.3); color: inherit; font: inherit; font-size: 16px; }
+.title-card .ec-name { font-size: 18px; }
+.status-box { margin-top: 8px; }
+.fblocks { grid-template-columns: repeat(4, 1fr); margin-bottom: 8px; }
+.fblocks button { font-size: 11px; padding: 6px 2px; }
 </style>
 </head>
 <body data-theme="holo">
@@ -1761,7 +1779,7 @@ const subOf = () => player.subclass ? [...SUBCLASSES[player.classId], ...(HIDDEN
 // Numbers add up, multipliers multiply, and true/false or lists take the first one found.
 const MULT_KEYS = ["spellMult", "gearMult"];
 function fx(k) {
-  const srcs = [subOf(), RACE_PASSIVES[player.raceId], CLASS_PASSIVES[player.classId], branchFx()].filter(s => s && s.fx && s.fx[k] !== undefined).map(s => s.fx[k]);
+  const srcs = [subOf(), RACE_PASSIVES[player.raceId], CLASS_PASSIVES[player.classId], branchFx(), titleFx()].filter(s => s && s.fx && s.fx[k] !== undefined).map(s => s.fx[k]);
   if (!srcs.length) return 0;
   if (MULT_KEYS.includes(k)) return srcs.reduce((a, b) => a * b, 1);
   if (srcs.every(v => typeof v === "number")) return srcs.reduce((a, b) => a + b, 0);
@@ -1778,6 +1796,7 @@ function bonusOf(k) {
   b += (pathBonus("race")[k] || 0) + (pathBonus("class")[k] || 0);
   b += armyStat(k) + heroStat(k);
   b += ascendBonus(k, b);
+  b += statusBonus(k, b);
   return b;
 }
 const eff = k => Math.max(1, player.stats[k] + bonusOf(k));
@@ -1835,7 +1854,7 @@ function damageMult() {
 function gainXp(amount) {
   player.xp += amount;
   let leveled = false;
-  while (player.xp >= xpToNext(player.level)) {
+  while (player.xp >= xpToNext(player.level) && player.level < levelCap()) {
     leveled = true;
     player.xp -= xpToNext(player.level);
     const before = rankOf(player.level);
@@ -1867,6 +1886,11 @@ function gainXp(amount) {
     if (player.level === 5) { player.title = "Awakened One"; notify("TITLE", "New title earned: Awakened One", "unlock", true); }
   }
   if (leveled && player.pendingEvo.length) setTimeout(openEvolution, 1400);
+  // Level cap: EXP is banked (up to 3 levels' worth) until you Claim
+  if (player.level >= levelCap()) {
+    player.xp = Math.min(player.xp, xpToNext(player.level) * 3);
+    if (player.capNoticed !== levelCap() && player.xp >= xpToNext(player.level)) { player.capNoticed = levelCap(); notify("LEVEL CAP", claimHint() || `Lv. ${levelCap()} is the ${statusName()} Status limit.`, "warn"); }
+  }
 }
 
 function fight() {
@@ -2353,7 +2377,7 @@ function render() {
   $("buffLine").innerHTML = active.join("<br>");
 
   $("equipList").innerHTML = Object.entries(player.equipped).map(([slot, id]) =>
-    `<li><span class="muted">${slot}</span><span>${id ? `${R[id].icon} ${R[id].name} <span class="good small">${fmtBonus(R[id].bonus)}</span>` : `<span class="muted">Empty</span>`}</span></li>`).join("");
+    `<li><span class="muted">${slot}</span><span>${id ? `${R[id].icon} ${R[id].name}${qualityMult(id) > 1 ? " (Fine)" : ""} ${tierBadge(gearGrade(id))} <span class="good small">${fmtBonus(R[id].bonus)}</span>` : `<span class="muted">Empty</span>`}</span></li>`).join("");
 
   $("skillList").innerHTML = loadoutStatusHTML();
   decorateStatus();
@@ -2605,7 +2629,7 @@ $("btnRest").onclick = rest;
    TOWER: 100 floors. Floor number = monster level.
    You can enter any floor up to your level + 5.
    ========================================================= */
-const TOWER_FLOORS = 100;
+const TOWER_FLOORS = 800;   // floors past your Status cap open with each Claim
 const LEVEL_GAP = 5;
 const ELEM_ICON = { Fire: "🔥", Water: "💧", Earth: "🪨", Wind: "🌪️", Light: "✨", Dark: "🌑", Normal: "⚪" };
 // Each element beats one other. Light and Dark beat each other.
@@ -2665,9 +2689,9 @@ const BRACKETS = [
     types: ["beast", "demon", "dragon", "giant", "humanoid", "insect", "snowfolk", "undead", "spectre"], elems: ["Light", "Dark", "Fire", "Water", "Wind", "Earth"],
     boss: ["Tower Sovereign", "dragon", "Light", 1.3, 1.0, "Elder Dragon"] },
 ];
-const bracketOf = f => Math.min(BRACKETS.length - 1, Math.floor((f - 1) / 10));
+const bracketOf = f => Math.floor(((f - 1) % 100) / 10);   // areas repeat every 100 floors, harder each time
 const isBossFloor = f => f % 10 === 0;
-const maxFloor = () => Math.min(TOWER_FLOORS, player.level + LEVEL_GAP);
+const maxFloor = () => Math.min(TOWER_FLOORS, levelCap(), player.level + LEVEL_GAP);
 
 /* Basic skills: 2 per class. Always ready: no cooldown, no MP, no daily limit.
    Weaker than class skills, but each class gets two elements to play with. */
@@ -2802,13 +2826,14 @@ function startBattle(floor) {
   if (player.hp <= 0) return notify("SYSTEM", "You have fallen. Rest before entering the tower.", "warn");
   if (player.fatigue >= 100) return notify("SYSTEM", "Too exhausted to fight. Rest first.", "warn");
   addFatigue(6);
-  player.location = `${BRACKETS[bracketOf(floor)].name} · Floor ${floor}`;
+  player.location = `${areaName(floor)} · Floor ${floor}`;
   const mon = makeMonster(floor);
   if (!mon.boss && Math.random() < luckRare(luckAt(floor))) {
     mon.rare = true; mon.name = "✦ Rare " + mon.name;
     mon.maxHp = mon.hp = Math.floor(mon.maxHp * 1.3); mon.atk = Math.floor(mon.atk * 1.1);
   }
   B = { floor, mon, cd: {}, atkStage: 0, defStage: 0, evade: false, guard: false, busy: true, over: false };
+  B.queue = extraMonsters(floor); B.waveTotal = 1 + B.queue.length; B.acc = { xp: 0, gold: 0, ap: 0, loot: {}, rare: 0, lucky: [] };
   const br = BRACKETS[bracketOf(floor)];
   B.sel = null;
   $("battleBody").innerHTML = battleLayout(mon, br, floor);
@@ -2817,6 +2842,7 @@ function startBattle(floor) {
   Sound.play("encounter");
   (async () => {
     $("bMon").classList.add("enter");
+    if (B.waveTotal > 1) await say(`⚠️ <b>${B.waveTotal} monsters</b> are waiting on this floor. Beat them one after another!`, 1100);
     await say(mon.boss ? `👑 The floor guardian <b>${mon.name}</b> blocks your way!` : (mon.rare ? `🍀 A rare <b>${mon.name.replace("✦ Rare ", "")}</b> appeared! (double loot, x2 EXP, x3 gold)` : `A wild <b>${mon.name}</b> appeared!`), 1100);
     B.busy = false; menuMain();
   })();
@@ -3065,18 +3091,32 @@ async function victory() {
   if (m.rare) xp *= 2;
   const lucky = rollLuckyEvent();
   if (lucky && lucky.id === "xp") xp *= 2;
+  xp *= m.diff || 1;
   xp = Math.floor(xp);
   let ap = rnd(8, 15) + Math.floor(m.level / 2) + fx("fightAp") + (summonType() && player.armyMode === "attack" ? Math.round(armyPower()) : 0);
   if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
   let gold = Math.floor(rnd(5, 10) * m.level * (1 + curLuck() / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
   gold = Math.floor(gold * (1 + heroPct("gold")));
+  gold = Math.floor(gold * (m.diff || 1));
   if (m.rare) gold *= 3;
   if (lucky && lucky.id === "goblin") gold *= 5;
   if (lucky && lucky.id === "rest") { player.hp = player.maxHp; player.mp = player.maxMp; player.fatigue = Math.max(0, player.fatigue - 15); }
   const loot = rollLoot(m);
   Object.entries(loot).forEach(([id, n]) => addMat(id, n));
   player.gold += gold; player.ap += ap;
+  // Waves: more monsters waiting on this floor. Bank the rewards and bring out the next one.
+  if (B.queue && B.queue.length) {
+    B.acc.xp += xp; B.acc.gold += gold; B.acc.ap += ap; if (m.rare) B.acc.rare++; if (lucky) B.acc.lucky.push(lucky);
+    Object.entries(loot).forEach(([id, n]) => B.acc.loot[id] = (B.acc.loot[id] || 0) + n);
+    gainXp(xp); questEvent("kill");
+    await nextWave();
+    return;
+  }
+  if (B.acc && B.waveTotal > 1) {   // final wave: show the whole floor's rewards
+    xp += B.acc.xp; gold += B.acc.gold; ap += B.acc.ap;
+    Object.entries(B.acc.loot).forEach(([id, n]) => loot[id] = (loot[id] || 0) + n);
+  }
   if (fx("healAfter")) player.hp = Math.min(player.maxHp, player.hp + fx("healAfter"));
   if (fx("mpPerFight")) player.mp = Math.min(player.maxMp, player.mp + fx("mpPerFight"));
   const armyGain = armyAfterWin().concat(heroAfterWin());
@@ -3122,8 +3162,18 @@ async function victory() {
     <button class="cmd" data-b="again">🔁 Fight again (F${B.floor})</button>
     <button class="cmd fight" data-b="next" ${B.floor >= maxFloor() || player.fatigue >= 100 ? "disabled" : ""}>⬆️ Next floor (F${next})</button>
     <button class="cmd" data-b="leave" style="grid-column:1 / -1">🏠 Return to tower lobby</button></div>`;
-  gainXp(xp);
+  gainXp(xp - ((B.acc && B.waveTotal > 1) ? B.acc.xp : 0));
   render();
+}
+async function nextWave() {
+  const next = B.queue.shift();
+  B.mon = next; B.cd = B.cd || {}; B.over = false; B.busy = true; B.monTurns = 0;
+  const br = BRACKETS[bracketOf(B.floor)];
+  $("battleBody").innerHTML = battleLayout(next, br, B.floor);
+  bars();
+  $("bMon").classList.add("enter");
+  await say(`Wave ${B.waveTotal - B.queue.length}/${B.waveTotal}: <b>${next.name}</b> steps forward!`, 1000);
+  B.busy = false; menuMain();
 }
 async function defeat() {
   B.over = true;
@@ -3214,18 +3264,19 @@ function renderTower() {
     el.innerHTML = `
       <div class="tower-stats"><span>Highest floor: <b>${player.towerBest}</b></span><span>Open floors: <b>1 to ${mf}</b></span></div>
       <div class="floor-card">
-        <div class="fc-top"><div><div class="r-name">Floor ${selFloor}${boss ? " 👑" : ""}</div><div class="small muted">${br.name} · Monster Lv. ${selFloor}</div></div><div class="small" style="text-align:right">${diffTxt}<br>${luckNeedTag(selFloor)}</div></div>
+        <div class="fc-top"><div><div class="r-name">Floor ${selFloor}${boss ? " 👑" : ""}</div><div class="small muted">${areaName(selFloor)} · Monster Lv. ${selFloor}${diffMult(selFloor) > 1 ? ` · <b class="warn-txt">x${diffMult(selFloor)} difficulty</b>` : ""}</div><div class="small">${tierBadge(monsterGrade(selFloor, boss))} ${waveText(selFloor)}</div></div><div class="small" style="text-align:right">${diffTxt}<br>${luckNeedTag(selFloor)}</div></div>
         <div class="fc-mons">${species.map(sp => `<div class="fc-mon">${monsterSVG(sp, bracketOf(selFloor), boss)}<span class="small">${sp[0]}<br>${MON_TYPES[sp[1]].icon} ${MON_TYPES[sp[1]].label} · ${ELEM_ICON[sp[2]]} ${sp[2]}</span></div>`).join("")}</div>
         <div class="small muted" style="text-align:center;margin-top:6px">${ELEM_CHART}<br>Your element: ${ELEM_ICON[player.elem]} ${player.elem}</div>
         <button class="btn wide" data-enter="${selFloor}" ${player.fatigue >= 100 || player.hp <= 0 ? "disabled" : ""}>⚔️ Enter Floor ${selFloor}</button>
         ${player.fatigue >= 100 || player.hp <= 0 ? `<div class="small warn-txt" style="text-align:center;margin-top:6px">Rest before entering.</div>` : ""}
       </div>
       <div class="section-title"><span>FLOORS</span><span class="small muted">👑 = boss floor</span></div>
-      <div class="floor-grid">${Array.from({ length: TOWER_FLOORS }, (_, i) => {
-        const f = i + 1, locked = f > mf;
+      ${floorBlocks()}
+      <div class="floor-grid">${Array.from({ length: 100 }, (_, i) => {
+        const f = floorBlockStart() + i, locked = f > mf;
         return `<button class="fl ${locked ? "locked" : ""} ${isBossFloor(f) ? "boss" : ""} ${f <= player.towerBest ? "cleared" : ""} ${f === selFloor ? "sel" : ""}" data-floor="${f}" ${locked ? "disabled" : ""}>${f}</button>`;
       }).join("")}</div>
-      <div class="small muted" style="text-align:center;margin-top:8px">You can enter floors up to ${LEVEL_GAP} levels above your own. Higher floors need more Luck: below the Luck needed, your lucky chances shrink.</div>`;
+      <div class="small muted" style="text-align:center;margin-top:8px">You can enter floors up to ${LEVEL_GAP} levels above your own, up to your Status cap (Floor ${levelCap()}). Higher floors need more Luck: below the Luck needed, your lucky chances shrink.</div>`;
   } else {
     const buyRows = Object.entries(SHOP_STOCK).map(([group, ids]) => `
       <div class="section-title"><span>${group.toUpperCase()}</span></div>
@@ -3273,13 +3324,14 @@ function renderExtras() {
     anim("goldHud", "bump");
   }
   lastGold = player.gold;
-  $("hudFloor").textContent = `🗼 Floor ${player.towerBest || 0} / ${TOWER_FLOORS}`;
+  $("hudFloor").textContent = `🗼 Floor ${player.towerBest || 0} / ${levelCap()}`;
   if ($("gemHud")) $("gemHud").textContent = `💎 ${(player.gems || 0).toLocaleString()}`;
 }
 $("panel").addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || !player) return;
   if (t.dataset.view) { towerView = t.dataset.view; Sound.play("click"); render(); }
   if (t.dataset.floor) { selFloor = +t.dataset.floor; Sound.play("click"); render(); }
+  if (t.dataset.fblock) { selFloor = Math.min(maxFloor(), +t.dataset.fblock); Sound.play("click"); render(); }
   if (t.dataset.enter) startBattle(+t.dataset.enter);
   if (t.dataset.shop) { shopMode = t.dataset.shop; Sound.play("click"); render(); }
   if (t.dataset.buy) buy(t.dataset.buy);
@@ -3332,9 +3384,9 @@ function rollSpecies(floor, rand = Math.random) {
   const tier = bracketOf(floor), br = BRACKETS[tier];
   const type = br.types[Math.floor(rand() * br.types.length)], T = MON_TYPES[type];
   const elem = br.elems[Math.floor(rand() * br.elems.length)];
-  const top = Math.min(T.species.length - 1, Math.floor((tier + 1) * T.species.length / 10));
+  const top = floor > 100 ? T.species.length - 1 : Math.min(T.species.length - 1, Math.floor((tier + 1) * T.species.length / 10));
   const sIdx = Math.max(0, Math.min(T.species.length - 1, top - Math.floor(rand() * 2)));
-  const pIdx = Math.max(0, Math.min(4, Math.floor(tier / 2) - (rand() < 0.3 ? 1 : 0)));
+  const pIdx = floor > 100 ? 4 : Math.max(0, Math.min(4, Math.floor(tier / 2) - (rand() < 0.3 ? 1 : 0)));
   const [spName, pm, sm] = T.species[sIdx];
   return [`${ELEM_PREFIX[elem][pIdx]} ${spName}`, type, elem, pm, sm, spName];
 }
@@ -3351,10 +3403,11 @@ function makeMonster(floor) {
   const m = boss ? mult * 1.2 : mult;
   const moves = T.moves.map(([n, p, e, fxx]) => ({ name: n, power: p, elem: e === "elem" ? elem : e, fx: fxx }));
   if (boss) moves.push({ name: T.boss, power: 90, elem, boss: true });
-  const maxHp = Math.floor((36 + L * 14) * m * (boss ? 2.2 : 1));
+  const D = diffMult(floor);   // x2 past Floor 100, x3 past 200, and so on
+  const maxHp = Math.floor((36 + L * 14) * m * (boss ? 2.2 : 1) * D);
   return {
     sp, name, body: type, elem, boss, level: L, tier: bracketOf(floor),
-    hp: maxHp, maxHp, atk: Math.floor(10 + 0.7 * L * m), def: Math.floor(8 + 0.58 * L * m), spd: Math.floor(8 + 0.6 * L * spdM),
+    hp: maxHp, maxHp, atk: Math.floor((10 + 0.7 * L * m) * D), def: Math.floor((8 + 0.58 * L * m) * D), diff: D, spd: Math.floor(8 + 0.6 * L * spdM),
     moves, atkStage: 0, defStage: 0,
   };
 }
@@ -3573,9 +3626,9 @@ function battleLayout(mon, br, floor) {
   <div class="arena e7 clean" style="background:${br.bg}">
     <div class="b-turns" id="bTurns"></div>
     <div class="b-top">
-      <div class="b-top-row"><b>${mon.boss ? "👑 " : ""}${mon.name}</b><span class="b-lv">${ELEM_ICON[mon.elem]} Lv. ${mon.level}</span></div>
+      <div class="b-top-row"><b>${mon.boss ? "👑 " : ""}${mon.name} ${tierBadge(monsterGrade(mon.level, mon.boss))}</b><span class="b-lv">${ELEM_ICON[mon.elem]} Lv. ${mon.level}</span></div>
       <div class="pp-bar"><span class="pp-tag">HP</span><div class="b-hpbar"><div class="hp" id="bMonHp"></div></div><span class="pp-num" id="bMonHpTxt"></span></div>
-      <div class="b-sub"><span>🗼 F${floor} · ${br.name}</span><span class="b-icons" id="bMonIcons"></span></div>
+      <div class="b-sub"><span>🗼 F${floor} · ${areaName(floor)}${B && B.queue && B.waveTotal > 1 ? ` · Wave ${B.waveTotal - B.queue.length}/${B.waveTotal}` : ""}</span><span class="b-icons" id="bMonIcons"></span></div>
     </div>
     <div class="b-foe">
       <div class="b-pad"></div>
@@ -4357,7 +4410,7 @@ function renderSummon() {
     : owned.length ? `${bulkSellBar()}<div class="hero-list">${owned.map(h0 => { const h = { ...h0, aw: player.heroes[h0.id].aw }, on = player.squad.includes(h.id);
         return `<div class="hero-card s${h.stars} ${on ? "on" : ""}" style="--sc:${STAR_COLOR[h.stars]}">
           <div class="hc-fig">${charSVG({ race: h.race, cls: h.cls, sub: h.sub, elem: h.elem, equipped: {} })}</div>
-          <div class="hc-info"><div class="sum-stars">${starsTxt(h.stars)} ${h.aw ? `<span class="aw">+${h.aw}</span>` : ""}</div>
+          <div class="hc-info"><div class="sum-stars">${starsTxt(h.stars)} ${h.aw ? `<span class="aw">+${h.aw}</span>` : ""} ${tierBadge(heroGrade(h))}</div>
             <div class="r-name">${h.name}</div><div class="small muted">${h.title}</div>
             <div class="small">${RACES[h.race].name} ${CLASSES[h.cls].name} · ${ELEM_ICON[h.elem]} ${h.elem}</div>
             <div class="small good">Perk: ${perkText(h)}</div><div class="small">🌟 ${h.special.name}: ${specialText(h)}</div>
@@ -4646,6 +4699,253 @@ function luckNeedTag(floor) {
   const n = luckNeed(floor), ok = eff("LUK") >= n;
   return `<span class="${ok ? "good" : "warn-txt"}">🍀 Luck needed: ${n}</span>`;
 }
+
+/* =========================================================
+   ENDGAME (ideas #1 to #5)
+   #1 Status tiers: Common → God. Each tier: +5% all stats and +100 level cap.
+   #2 Claims every 100 levels, after beating that Floor (100, 200, ...).
+   #3 Tower to Floor 800: x2 difficulty past 100, x3 past 200, up to 3 monsters.
+   #4 One F to God tier list for players, heroes, gear, monsters and skills.
+   #5 System test (10 questions) → pick 1 of 3 titles with real advantages.
+   ========================================================= */
+const STATUS_TIERS = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Demigod", "God"];
+const STATUS_COLOR = ["#b8c4d6", "#5fe08a", "#4aa8ff", "#b77bff", "#ffb547", "#ff5c7a", "#ffe066", "#ffffff"];
+const STATUS_PCT = 0.05;
+const statusTier = () => (player && player.statusTier) || 0;
+function levelCap() { return 100 * (statusTier() + 1); }
+const statusName = (t = statusTier()) => STATUS_TIERS[t];
+function statusBonus(k, base) { const t = statusTier(); return t ? Math.floor((player.stats[k] + base) * STATUS_PCT * t) : 0; }
+const statusTag = (t = statusTier()) => `<span class="st-tag" style="--c:${STATUS_COLOR[t]}">${STATUS_TIERS[t]}</span>`;
+
+/* ---------- Tower past 100 ---------- */
+const ROMAN = ["", "", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+const diffMult = f => 1 + Math.floor((Math.max(1, f) - 1) / 100);
+const areaName = f => BRACKETS[bracketOf(f)].name + (f > 100 ? " " + ROMAN[diffMult(f)] : "");
+// Extra monsters: none up to Floor 100, then more often the higher you go. Never on boss floors.
+function waveOdds(f) {
+  if (f <= 100 || isBossFloor(f)) return [1, 0, 0];
+  const two = Math.min(0.55, 0.2 + (f - 100) / 1000), three = f > 300 ? Math.min(0.35, (f - 300) / 1000 + 0.1) : 0;
+  return [1 - two - three, two, three];
+}
+function extraMonsters(f) {
+  const [, two, three] = waveOdds(f), r = Math.random();
+  const n = r < three ? 2 : r < three + two ? 1 : 0;
+  return Array.from({ length: n }, () => {
+    const m = makeMonster(f);
+    if (Math.random() < luckRare(luckAt(f))) { m.rare = true; m.name = "✦ Rare " + m.name; m.maxHp = m.hp = Math.floor(m.maxHp * 1.3); }
+    return m;
+  });
+}
+function waveText(f) {
+  const [, two, three] = waveOdds(f);
+  if (!two && !three) return "";
+  return `<span class="small muted">· 2 monsters ${Math.round(two * 100)}%${three ? `, 3 monsters ${Math.round(three * 100)}%` : ""}</span>`;
+}
+const floorBlockStart = () => Math.floor((Math.max(1, selFloor) - 1) / 100) * 100 + 1;
+function floorBlocks() {
+  const cap = levelCap(); if (cap <= 100) return "";
+  return `<div class="et-tabs fblocks">${Array.from({ length: cap / 100 }, (_, i) => {
+    const s = i * 100 + 1; return `<button class="${floorBlockStart() === s ? "active" : ""}" data-fblock="${s + 99}">${s}-${s + 99}</button>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- #4 One tier list: F to God ---------- */
+const TIER_LIST = ["F", "D", "C", "B", "A", "S", "SS", "SSS", "God"];
+const TIER_COLOR = { F: "#7d8796", D: "#9aa6b8", C: "#5fe08a", B: "#4aa8ff", A: "#b77bff", S: "#ffb547", SS: "#ff7a45", SSS: "#ff5c7a", God: "#ffe066" };
+const TIER_DESC = {
+  God: "Unrivaled. Game-breaking or story-defining peak.",
+  SSS: "Overpowered. Top of the meta, transcendent.",
+  SS: "Elite. Far stronger than normal top picks.",
+  S: "Top tier. Consistently strong and reliable.",
+  A: "Very good, slightly behind the S ranks.",
+  B: "Average or situational.",
+  C: "Below average.", D: "Weak.", F: "Unusable, the bottom of the list.",
+};
+const CUTS = [5, 12, 22, 35, 50, 65, 78, 90];   // score 0-100 → F ... God
+const gradeOf = s => { let i = 0; while (i < CUTS.length && s >= CUTS[i]) i++; return TIER_LIST[i]; };
+const tierBadge = g => `<span class="tier-badge" style="--c:${TIER_COLOR[g]}" title="${g}-Tier: ${TIER_DESC[g]}">${g === "God" ? "God" : g}</span>`;
+function powerScore() { return STAT_KEYS.reduce((s, k) => s + eff(k), 0) + player.level * 5; }
+function playerScore() {
+  const st = statusTier() / 7 * 40, tw = Math.min(1, (player.towerBest || 0) / 800) * 30;
+  const pw = Math.min(1, powerScore() / 12000) * 30;
+  return st + tw + pw;
+}
+const playerGrade = () => gradeOf(playerScore());
+const monsterGrade = (f, boss) => gradeOf(Math.min(100, f / 800 * 92 + (boss ? 6 : 0) + 4));
+const heroGrade = h => gradeOf({ 3: 20, 4: 42, 5: 62 }[h.stars] + (h.aw || 0) * 4);
+const SKILL_GRADE = { common: 20, rare: 36, epic: 52, legendary: 66 };
+const skillGrade = s => gradeOf((SKILL_GRADE[s.rarity] || 20) + (s.up || 0) * 5 + (s.fused ? 10 : 0));
+function gearGrade(id) {
+  const r = R[id]; if (!r || !r.bonus) return "C";
+  const sum = Object.values(r.bonus).reduce((a, b) => a + Math.max(0, b), 0) * qualityMult(id);
+  return gradeOf(Math.min(95, 10 + sum * 2.2));
+}
+
+/* ---------- #5 Titles ---------- */
+const THEMES = {
+  might:   { word: "Worldbreaker", icon: "💥", fx: s => ({ dmgMult: 0.12 * s }), text: s => `+${Math.round(12 * s)}% damage` },
+  guard:   { word: "Unbreakable", icon: "🛡️", fx: s => ({ dmgReduce: 0.08 * s }), text: s => `-${Math.round(8 * s)}% damage taken` },
+  swift:   { word: "Stormstep", icon: "🌪️", fx: s => ({ dodge: 0.05 * s, critPlus: 0.03 * s }), text: s => `+${Math.round(5 * s)}% dodge, +${Math.round(3 * s)}% crit` },
+  arcane:  { word: "Starweaver", icon: "🔮", fx: s => ({ spellMult: 1 + 0.12 * s, mpPct: 0.1 * s }), text: s => `+${Math.round(12 * s)}% magic damage, +${Math.round(10 * s)}% max MP` },
+  fortune: { word: "Fortune-Kissed", icon: "🍀", fx: s => ({ goldPct: 0.25 * s, extraDrops: 0.15 * s }), text: s => `+${Math.round(25 * s)}% gold, +${Math.round(15 * s)}% chance of extra drops` },
+  shadow:  { word: "Nightfang", icon: "🌑", fx: s => ({ critPlus: 0.07 * s }), text: s => `+${Math.round(7 * s)}% critical hit chance` },
+  light:   { word: "Dawnbearer", icon: "✨", fx: s => ({ regen: 0.03 * s, elemResist: 0.05 * s }), text: s => `heal ${Math.round(3 * s)}% HP each turn, -${Math.round(5 * s)}% elemental damage` },
+  life:    { word: "Lifewarden", icon: "🌿", fx: s => ({ healAfter: Math.round(40 * s), xpMult: 0.1 * s }), text: s => `heal ${Math.round(40 * s)} HP after each win, +${Math.round(10 * s)}% EXP` },
+};
+const titleStrength = tier => 1 + tier * 0.5;   // later Claims give stronger titles
+function titleFx() {
+  const out = { fx: {} };
+  (player.titles || []).forEach(t => Object.entries(THEMES[t.theme].fx(titleStrength(t.tier))).forEach(([k, v]) => {
+    out.fx[k] = MULT_KEYS.includes(k) ? (out.fx[k] || 1) * v : (out.fx[k] || 0) + v;
+  }));
+  return Object.keys(out.fx).length ? out : null;
+}
+const titleText = t => `${THEMES[t.theme].icon} <b>${t.name}</b>: ${THEMES[t.theme].text(titleStrength(t.tier))}`;
+
+/* ---------- The System test ---------- */
+const TEST_QS = [
+  { q: "A monster blocks the only bridge. What do you do?", a: [["Smash straight through it", "might"], ["Hold the bridge so others can cross", "guard"], ["Dash past before it moves", "swift"], ["Burn the bridge with a spell", "arcane"]] },
+  { q: "You find a locked chest in the dark.", a: [["Pry it open by force", "might"], ["Check it for traps first", "shadow"], ["Trust your luck and open it", "fortune"], ["Leave it for someone who needs it more", "life"]] },
+  { q: "What do you fear most?", a: [["Being weak", "might"], ["Losing my friends", "life"], ["Being forgotten in the dark", "light"], ["Being too slow", "swift"]] },
+  { q: "Pick a weapon you would never give up.", a: [["A massive greatsword", "might"], ["A tower shield", "guard"], ["Twin hidden daggers", "shadow"], ["An ancient staff", "arcane"]] },
+  { q: "Your party is losing. Your move?", a: [["Take every hit for them", "guard"], ["Heal everyone, whatever it costs", "life"], ["Strike the enemy leader from the shadows", "shadow"], ["Pray for a miracle", "fortune"]] },
+  { q: "What should the System reward?", a: [["Raw power", "might"], ["Wisdom", "arcane"], ["Kindness", "light"], ["Luck", "fortune"]] },
+  { q: "Choose a sky to fight under.", a: [["A storm", "swift"], ["A moonless night", "shadow"], ["A blazing sunrise", "light"], ["A sky full of falling stars", "arcane"]] },
+  { q: "A stranger asks for half your gold.", a: [["Say no and walk away", "guard"], ["Give it all, they need it more", "life"], ["Bet it on a coin flip", "fortune"], ["Ask why first", "light"]] },
+  { q: "What kind of legend do you want to be?", a: [["The one who never fell", "guard"], ["The fastest who ever lived", "swift"], ["The one who saved everyone", "life"], ["The one nobody saw coming", "shadow"]] },
+  { q: "Last question. What is power to you?", a: [["Strength to crush anything", "might"], ["Freedom to go anywhere", "swift"], ["Knowledge of everything", "arcane"], ["A light others can follow", "light"]] },
+];
+const KEYWORDS = {
+  might: ["strength", "strong", "power", "smash", "crush", "fire", "rage", "destroy", "break", "fight", "sword", "attack", "kill"],
+  guard: ["shield", "defend", "protect", "wall", "armor", "endure", "tank", "guard", "block", "survive", "hold"],
+  swift: ["speed", "fast", "quick", "wind", "run", "dodge", "agile", "storm", "dash", "free", "freedom"],
+  arcane: ["magic", "spell", "mana", "arcane", "wisdom", "knowledge", "star", "stars", "learn", "mind", "smart"],
+  fortune: ["luck", "lucky", "gold", "treasure", "fortune", "rich", "chance", "money", "gamble", "coin"],
+  shadow: ["shadow", "dark", "stealth", "night", "assassin", "secret", "hidden", "sneak", "death", "silent"],
+  light: ["light", "holy", "sun", "justice", "hope", "faith", "truth", "dawn", "honor", "pure"],
+  life: ["heal", "life", "help", "friends", "friend", "team", "nature", "care", "save", "family", "love", "kind"],
+};
+const MAX_WORDS = 10;
+const wordCount = s => (s.trim().match(/\S+/g) || []).length;
+function keywordThemes(text) {
+  const words = (text.toLowerCase().match(/[a-z]+/g) || []);
+  const hits = {};
+  words.forEach(w => Object.entries(KEYWORDS).forEach(([t, list]) => { if (list.includes(w)) hits[t] = (hits[t] || 0) + 1; }));
+  return hits;
+}
+// Class and skills nudge the titles toward what you already do well
+function classLean() {
+  const lean = {};
+  const add = (t, n) => lean[t] = (lean[t] || 0) + n;
+  const cls = player.classId;
+  ({ warrior: ["might", "guard"], tank: ["guard", "might"], rogue: ["shadow", "swift"], mage: ["arcane", "shadow"], ranger: ["swift", "fortune"], cleric: ["light", "life"], tamer: ["life", "fortune"] }[cls] || ["might", "arcane"]).forEach((t, i) => add(t, 2 - i));
+  const top = STAT_KEYS.slice().sort((a, b) => eff(b) - eff(a))[0];
+  add({ STR: "might", VIT: "guard", AGI: "swift", INT: "arcane", LUK: "fortune", SEN: "shadow", RES: "light" }[top], 1.5);
+  (player.learned || []).forEach(s => add({ Offense: "might", Defense: "guard", Support: "life" }[branchOf(s)] || "might", 0.3));
+  return lean;
+}
+function claimReady() { return player && statusTier() < 7 && player.level >= levelCap() && (player.towerBest || 0) >= levelCap(); }
+function claimHint() {
+  if (statusTier() >= 7) return "";
+  if (player.level < levelCap()) return "";
+  return (player.towerBest || 0) >= levelCap() ? "Claim ready!" : `Level cap reached. Beat Floor ${levelCap()} to unlock your Claim.`;
+}
+let claim = null;
+function openClaim() {
+  if (!claimReady()) return notify("CLAIM", claimHint() || `Reach Lv. ${levelCap()} and beat Floor ${levelCap()} to Claim.`, "warn");
+  claim = { step: "intro", qi: 0, scores: {}, typed: [] };
+  renderClaim(); $("evoOverlay").classList.add("show"); Sound.play("evolve");
+}
+function renderClaim() {
+  const t = statusTier(), next = t + 1, el = $("evoBody");
+  if (claim.step === "intro") {
+    el.innerHTML = `<div class="header">[ CLAIM ]</div>
+      <div class="sys-intro">You reached the limit of <b>${statusName(t)}</b> Status.<br>The System will test you before you rise.</div>
+      <div class="claim-rise">${statusTag(t)} <span>➜</span> ${statusTag(next)}</div>
+      <ul class="sd-effects"><li>All stats <b>+${Math.round(STATUS_PCT * 100)}%</b> more (total +${Math.round(STATUS_PCT * 100 * next)}%)</li>
+        <li>Level cap <b>${levelCap()} ➜ ${levelCap() + 100}</b>, and Floors up to <b>${levelCap() + 100}</b> open</li>
+        <li>Answer <b>10 questions</b>, then pick <b>1 of 3 titles</b> made for you</li></ul>
+      <button class="btn wide glow-btn" data-claim="start">Begin the System test</button>
+      <button class="dev-link" data-claim="later">Later</button>`;
+    return;
+  }
+  if (claim.step === "q") {
+    const Q = TEST_QS[claim.qi];
+    el.innerHTML = `<div class="header">[ SYSTEM TEST ${claim.qi + 1}/${TEST_QS.length} ]</div>
+      <div class="claim-q">${Q.q}</div>
+      <div class="claim-opts">${Q.a.map(([txt], i) => `<button class="btn" data-cans="${i}">${txt}</button>`).join("")}</div>
+      <div class="claim-own"><label class="small">Or type your own answer (${MAX_WORDS} words max)
+        <input id="claimText" maxlength="90" autocomplete="off" placeholder="Your answer..."></label>
+        <div class="small muted" id="claimCount">0 / ${MAX_WORDS} words</div>
+        <button class="btn" data-cown>Submit my answer</button></div>`;
+    return;
+  }
+  if (claim.step === "titles") {
+    el.innerHTML = `<div class="header">[ CHOOSE YOUR TITLE ]</div>
+      <div class="sys-intro">The System read your answers. Pick one. Titles stay active forever.</div>
+      ${claim.offer.map((o, i) => `<div class="evo-card title-card"><div class="ec-name">${THEMES[o.theme].icon} ${o.name}</div>
+        <div class="small good">${THEMES[o.theme].text(titleStrength(o.tier))}</div>
+        <div class="small muted">${o.why}</div>
+        <button class="btn glow-btn" data-ctitle="${i}">Take this title</button></div>`).join("")}
+      <div class="perm-warn small">⚠ Your title choice is permanent.</div>`;
+  }
+}
+function claimAnswer(themes) {
+  Object.entries(themes).forEach(([t, n]) => claim.scores[t] = (claim.scores[t] || 0) + n);
+  claim.qi++; Sound.play("click");
+  if (claim.qi >= TEST_QS.length) buildTitleOffer();
+  renderClaim();
+}
+function buildTitleOffer() {
+  const lean = classLean(), total = {};
+  Object.keys(THEMES).forEach(t => total[t] = (claim.scores[t] || 0) * 2 + (lean[t] || 0));
+  const top = Object.keys(THEMES).sort((a, b) => total[b] - total[a]).slice(0, 3);
+  const owned = new Set((player.titles || []).map(t => t.name));
+  const form = formOf("class");
+  claim.offer = top.map((theme, i) => {
+    let name = `${THEMES[theme].word} ${form}`;
+    if (owned.has(name)) name = `${THEMES[theme].word} ${statusName(statusTier() + 1)}`;
+    const why = i === 0 ? "Your strongest answer theme." : (lean[theme] || 0) >= 1.5 ? `Fits your ${CLASSES[player.classId].name} style and stats.` : "Also showed up in your answers.";
+    return { theme, name, tier: statusTier(), why };
+  });
+  claim.step = "titles";
+}
+function finishClaim(i) {
+  const o = claim.offer[i];
+  player.titles = player.titles || [];
+  player.titles.push({ theme: o.theme, name: o.name, tier: o.tier });
+  player.statusTier = statusTier() + 1;
+  claim = null;
+  recalc(); player.hp = player.maxHp; player.mp = player.maxMp;
+  $("evoOverlay").classList.remove("show");
+  Sound.play("levelup");
+  notify("CLAIM", `Status raised to ${STATUS_TIERS[player.statusTier]}! Title earned: ${o.name}. Level cap is now ${levelCap()}.`, "levelUp");
+  gainXp(0);   // any EXP you banked at the cap now counts
+  render();
+}
+$("evoBody").addEventListener("click", e => {
+  if (!claim) return;
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.claim === "start") { claim.step = "q"; Sound.play("open"); return renderClaim(); }
+  if (b.dataset.claim === "later") { claim = null; $("evoOverlay").classList.remove("show"); Sound.play("close"); return; }
+  if (b.dataset.cans !== undefined) return claimAnswer({ [TEST_QS[claim.qi].a[+b.dataset.cans][1]]: 1 });
+  if (b.hasAttribute("data-cown")) {
+    const v = ($("claimText") || {}).value || "";
+    const n = wordCount(v);
+    if (!n) return notify("SYSTEM", "Type an answer first, or tap one of the choices.", "warn");
+    if (n > MAX_WORDS) return notify("SYSTEM", `Keep it to ${MAX_WORDS} words or fewer.`, "warn");
+    const hits = keywordThemes(v);
+    claim.typed.push(v);
+    if (!Object.keys(hits).length) notify("SYSTEM", "The System heard you, but found no clear theme. Your class and stats will guide this one.", "notify", true);
+    return claimAnswer(Object.keys(hits).length ? hits : classLean());
+  }
+  if (b.dataset.ctitle !== undefined) finishClaim(+b.dataset.ctitle);
+});
+$("evoBody").addEventListener("input", e => {
+  if (e.target.id !== "claimText") return;
+  const n = wordCount(e.target.value), c = $("claimCount");
+  if (c) { c.textContent = `${n} / ${MAX_WORDS} words`; c.classList.toggle("warn-txt", n > MAX_WORDS); }
+});
 
 
 /* =========================================================
@@ -5045,7 +5345,7 @@ function skillTreeHTML() {
     return `<div class="st-col" style="--bc:${B0.color}">
       <div class="st-h">${B0.icon} <b>${b}</b><small>Rank ${rank} · ${B0.desc}</small></div>
       <div class="st-skills">${skills.length ? skills.map(s => `<div class="st-skill" style="--rc:${RARITY_COLOR[s.rarity]}">
-        <b>${s.fused ? "⚗️ " : ""}${s.name}${s.up ? ` +${s.up}` : ""}</b><small>${skillDesc(s)}</small></div>`).join("") : `<div class="small muted">No ${b} skills yet</div>`}</div>
+        <b>${s.fused ? "⚗️ " : ""}${s.name}${s.up ? ` +${s.up}` : ""} ${tierBadge(skillGrade(s))}</b><small>${skillDesc(s)}</small></div>`).join("") : `<div class="small muted">No ${b} skills yet</div>`}</div>
       <div class="st-steps">${steps.join("")}</div></div>`;
   }).join("");
   return `<div class="et-head"><span>🌿 <b>Skill Tree</b></span><span class="small muted">${player.treePicks} picks</span></div>
@@ -5402,6 +5702,8 @@ function statBreakdown(k) {
   // Ascension stars: +2% per star, applied to everything above
   const pre = rows.reduce((s, [, v]) => s + v, 0) - player.stats[k];
   add(`Ascension stars (★${stars("race") + stars("class")}, +${Math.round((stars("race") + stars("class")) * ASCEND_PCT * 100)}%)`, ascendBonus(k, pre));
+  const pre2 = rows.reduce((s, [, v]) => s + v, 0) - player.stats[k];
+  add(`Status: ${statusName()} (+${Math.round(statusTier() * STATUS_PCT * 100)}%)`, statusBonus(k, pre2));
   return rows;
 }
 
@@ -5859,8 +6161,14 @@ function renderHub() {
     <div class="st-art-info"><div class="st-art-name">${player.name}</div>
       <div class="small">${formLabel("race")} · ${formLabel("class")}${sub ? ` · <b>${sub.name}</b>` : ""}</div>
       <div class="small">${els.map(x => `${ELEM_ICON[x]} ${x}`).join(" ")}</div>
-      <div class="small muted">Lv. ${player.level} · ${rk.text}</div>
+      <div class="small muted">Lv. ${player.level} / ${levelCap()} · ${rk.text}</div>
+      <div class="small">${statusTag()} Status · ${tierBadge(playerGrade())} Tier</div>
       <button class="btn small-btn" data-open-sheet>🧙 Character sheet</button></div>`;
+  if ($("statusArt")) {
+    let sb = $("statusBox");
+    if (!sb) { sb = document.createElement("div"); sb.id = "statusBox"; $("statusArt").after(sb); }
+    sb.innerHTML = claimBox();
+  }
   ensureMail();
   const unread = player.mail.filter(m => !m.claimed).length;
   $("homeStage").innerHTML = `
@@ -5872,7 +6180,7 @@ function renderHub() {
       <button class="hero-fig" data-open-sheet aria-label="Open character sheet">${charSVG()}</button>
       <div class="hero-name">${player.name}</div>
       <div class="hero-sub">Lv. ${player.level} · ${formLabel("race")} · ${cls.icon} ${formLabel("class")}${sub ? ` · ${sub.name}` : ""}</div>
-      <div class="hero-rank">${els.map(x => ELEM_ICON[x]).join("")} ${rk.text}</div>
+      <div class="hero-rank">${els.map(x => ELEM_ICON[x]).join("")} ${rk.text} · ${statusTag()} ${tierBadge(playerGrade())}</div>
     </div>
     <div class="side-col">
       <button class="side-ic" data-homerest id="sideRest"><span class="si">🛏️</span>Rest<span class="mini-fat"><i style="width:${player.fatigue}%"></i></span></button>
@@ -5886,6 +6194,10 @@ function renderHub() {
     </div>`;
   const nextF = Math.min(maxFloor(), (player.towerBest || 0) + 1);
   $("battleBtn").innerHTML = `⚔️ BATTLE<small>Enter the Tower · next floor ${nextF}</small>`;
+  const ch = claimHint();
+  let cb = $("claimBanner");
+  if (!cb) { cb = document.createElement("div"); cb.id = "claimBanner"; $("battleBtn").before(cb); }
+  cb.innerHTML = ch ? `<div class="claim-banner ${claimReady() ? "ready" : ""}">${claimReady() ? `⚡ <b>CLAIM READY</b>: rise to ${statusTag(statusTier() + 1)} <button class="btn glow-btn" data-claimopen>Claim</button>` : `🔒 ${ch}`}</div>` : "";
   renderTabs();
   renderMail();
 }
@@ -6039,6 +6351,22 @@ $("panel").addEventListener("click", e => {
   if (e.target.closest("[data-pok]")) return confirmParam();
   if (e.target.closest("[data-preset]")) { statPlan = {}; Sound.play("click"); render(); }
 }, true);
+
+/* ---------- Status window: Status tier, tier list and titles ---------- */
+function claimBox() {
+  const t = statusTier(), titles = player.titles || [];
+  return `<details class="guide-box status-box" open><summary>👑 STATUS ${statusTag()} · ${tierBadge(playerGrade())} TIER</summary>
+    <ul class="sd-effects">
+      <li>Status <b>${statusName()}</b> (${t + 1} of 8): all stats <b>+${Math.round(t * STATUS_PCT * 100)}%</b>, level cap <b>${levelCap()}</b>.</li>
+      <li>${t >= 7 ? "You reached God Status, the very top." : claimReady() ? `<b class="good">Claim ready!</b> <button class="btn" data-claimopen>Claim ${STATUS_TIERS[t + 1]} Status</button>` : `Next Claim: reach <b>Lv. ${levelCap()}</b> and beat <b>Floor ${levelCap()}</b> (you: Lv. ${player.level}, best Floor ${player.towerBest || 0}).`}</li>
+      <li>Your tier is <b>${playerGrade()}</b> (${TIER_DESC[playerGrade()]}) It mixes your power, your Status and how high you climbed.</li>
+      ${titles.length ? titles.map(x => `<li>${titleText(x)}</li>`).join("") : `<li class="muted">No Claim titles yet. Each Claim gives you one.</li>`}
+    </ul>
+    <details><summary class="small">📋 The tier list (same for players, heroes, gear, monsters and skills)</summary>
+      <ul class="sd-effects">${TIER_LIST.slice().reverse().map(g => `<li>${tierBadge(g)} ${TIER_DESC[g]}</li>`).join("")}</ul></details>
+  </details>`;
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-claimopen]")) { if (currentWin) closeWindow(); openClaim(); } });
 
 /* =========================================================
    GUIDED TUTORIAL (idea #14): the System lights up one thing
