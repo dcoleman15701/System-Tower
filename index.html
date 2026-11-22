@@ -1035,6 +1035,9 @@ body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 .et-choice { display: grid; gap: 3px; padding: 10px; border-radius: 12px; border: 2px dashed #ffd84a; }
 .et-choice b { font-size: 15px; }
 .et-choice.power { border-color: #ff6a5c; } .et-choice.survivor { border-color: #4da3ff; } .et-choice.fortune { border-color: #3ddc84; }
+
+.side-ic.dim-ic { opacity: .5; }
+.side-ic .rest-n { font-size: 10px; color: var(--muted); }
 </style>
 </head>
 <body data-theme="holo">
@@ -1994,6 +1997,7 @@ function work() {
   let gold = Math.floor((rnd(...job.pay) + player.level * 2) * (1 + jobRank() * 0.25));
   if (Math.random() < eff("LUK") / 100) gold = Math.floor(gold * 1.5);
   const lucky = gold > Math.floor((job.pay[1] + player.level * 2) * (1 + jobRank() * 0.25));
+  gold = exhaustGold(gold);
   player.gold += gold;
   const f0 = player.fatigue;
   addFatigue(10);
@@ -2572,7 +2576,7 @@ function tickTimer() {
   const s = Math.floor((mid - now) / 1000);
   $("questTimer").textContent = [Math.floor(s / 3600), Math.floor(s % 3600 / 60), s % 60].map(n => String(n).padStart(2, "0")).join(":");
 }
-setInterval(tickTimer, 1000); tickTimer();
+setInterval(() => tickTimer(), 1000); tickTimer();
 
 /* ============ TABS ============ */
 let currentTab = "status";
@@ -2875,6 +2879,10 @@ async function playerAction(action) {
   // Running, items and guarding always happen first. Attacks go by speed.
   let playerFirst = true;
   if (action.type === "move") playerFirst = action.move.priority || !!player.scrolls.haste || playerSpeed() >= m.spd;
+  if (action.type === "item" && usesLeft(action.id) <= 0) {
+    await say(`You've hit today's limit for ${R[action.id].name} (${itemLimit(action.id)} a day). It resets at midnight.`, 900);
+    B.busy = false; return menuMain();
+  }
   if (action.type === "move" && !action.move.basic && action.move.fx !== "purify" && hasSe("pl", "silence")) {
     await say("🔇 You're silenced! Only basic attacks (and Purify skills) work right now.", 800);
     B.busy = false; return menuMain();
@@ -2931,7 +2939,7 @@ async function doPlayer(action) {
   }
   if (action.type === "item") {
     const r = R[action.id];
-    player.items[action.id]--;
+    player.items[action.id]--; countItemUse(action.id);
     if (r.use === "hp") { const h = Math.min(r.amount, player.maxHp - player.hp); player.hp += h; floater("pl", "+" + h, "heal"); }
     if (r.use === "mp") player.mp = Math.min(player.maxMp, player.mp + r.amount);
     if (r.use === "fat") player.fatigue = Math.max(0, player.fatigue - r.amount);
@@ -3133,7 +3141,7 @@ async function victory() {
   if (player.scrolls.apx) { ap *= 2; player.scrolls.apx = false; }
   let gold = Math.floor(rnd(5, 10) * m.level * (1 + curLuck() / 100 + fx("goldPct")) * (m.boss ? 3 : 1) * (m.body === "humanoid" ? 1.4 : 1));   // humanoids carry coin
   if (fx("goldPerFight")) gold += rnd(...fx("goldPerFight"));
-  gold = Math.floor(gold * (1 + heroPct("gold")));
+  gold = exhaustGold(Math.floor(gold * (1 + heroPct("gold"))));
   gold = Math.floor(gold * (m.diff || 1));
   if (m.rare) gold *= 3;
   if (lucky && lucky.id === "goblin") gold *= 5;
@@ -3715,7 +3723,8 @@ function renderBStatus() {
   if (player.scrolls.loot) pl.push(chip("🍀", "Double materials this fight", 0, "buff"));
   if (player.buff) pl.push(chip("🍲", `${player.buff.name}: ${fmtBonus(player.buff.stats)}`, 0, "buff"));
   if (B.rage) pl.push(chip("🩸", `Rage: +${B.rage * fx("rage")} damage on your next hit`, 0, "buff"));
-  if (player.fatigue >= 80) pl.push(chip("😩", "Exhausted: you deal 20% less damage", 0, "debuff"));
+  if (player.fatigue >= 80) pl.push(chip("😩", "Worn out (Fatigue 80+): you deal 20% less damage", 0, "debuff"));
+  if (player.exhausted) pl.push(chip("🥱", "Exhausted (missed quest): -10% EXP and gold, Fatigue +50% faster", 0, "debuff"));
   const mo = [];
   if (m.atkStage) mo.push(chip("💪", `Attack up (x${stageMult(m.atkStage).toFixed(1)})`, m.atkStage, "buff"));
   if (m.defStage) mo.push(chip("🛡️", `Defense up (x${stageMult(m.defStage).toFixed(1)})`, m.defStage, "buff"));
@@ -3825,7 +3834,7 @@ function menuItems() {
   const usable = RECIPES.filter(r => player.items[r.id] && (r.use || r.scroll));
   $("bMsg").innerHTML = `<b>🎒 Bag</b><br><span class="small">Using an item takes your turn.</span>`;
   $("bMenu").innerHTML = (usable.length ? `<div class="move-grid">${usable.map(r =>
-      `<button class="move" data-item="${r.id}"><b>${r.icon} ${r.name}</b><span class="small">${effectText(r)}</span><span class="small">x${player.items[r.id]}</span></button>`).join("")}</div>`
+      `<button class="move" data-item="${r.id}" ${usesLeft(r.id) <= 0 ? "disabled" : ""}><b>${r.icon} ${r.name}</b><span class="small">${effectText(r)}</span><span class="small">x${player.items[r.id]} · ${limitTag(r.id) || "no limit"}</span></button>`).join("")}</div>`
       : `<div class="small muted" style="text-align:center;padding:10px">No usable items. Buy potions at the Tower Shop or craft them.</div>`)
     + `<button class="btn back-btn" data-b="back">◀ Back</button>`;
 }
@@ -6520,7 +6529,7 @@ function renderHub() {
       <div class="hero-rank">${els.map(x => ELEM_ICON[x]).join("")} ${rk.text} · ${statusTag()} ${tierBadge(playerGrade())}</div>
     </div>
     <div class="side-col">
-      <button class="side-ic" data-homerest id="sideRest"><span class="si">🛏️</span>Rest<span class="mini-fat"><i style="width:${player.fatigue}%"></i></span></button>
+      <button class="side-ic" data-homerest id="sideRest"><span class="si">🛏️</span>Rest <span class="rest-n"></span><span class="mini-fat"><i style="width:${player.fatigue}%"></i></span></button>
       <button class="side-ic ${unread ? "has-dot" : ""}" data-open="mail" id="sideMail"><span class="si">📬</span>Mail${unread ? ` (${unread})` : ""}</button>
     </div>`;
   $("hubCard").innerHTML = `<div class="hc-bars">
@@ -6535,8 +6544,10 @@ function renderHub() {
   let cb = $("claimBanner");
   if (!cb) { cb = document.createElement("div"); cb.id = "claimBanner"; $("battleBtn").before(cb); }
   cb.innerHTML = ch ? `<div class="claim-banner ${claimReady() ? "ready" : ""}">${claimReady() ? `⚡ <b>CLAIM READY</b>: rise to ${statusTag(statusTier() + 1)} <button class="btn glow-btn" data-claimopen>Claim</button>` : `🔒 ${ch}`}</div>` : "";
+  if (player.exhausted) $("hubCard").insertAdjacentHTML("beforeend", `<div class="small warn-txt" style="margin-top:6px">🥱 Exhausted: -10% EXP and gold, Fatigue +50% faster. Finish your quest to recover.</div>`);
   renderTabs();
   renderMail();
+  renderDaily();
 }
 function renderTabs() {
   document.querySelectorAll("#tabBar [data-tab]").forEach(b => b.classList.toggle("active", b.dataset.tab === homeTab));
@@ -6704,6 +6715,130 @@ function claimBox() {
   </details>`;
 }
 document.addEventListener("click", e => { if (e.target.closest("[data-claimopen]")) { if (currentWin) closeWindow(); openClaim(); } });
+
+/* =========================================================
+   DAILY SYSTEMS (ideas #6 and #7)
+   #6 Rest: 3 rests, refilled every 12 hours (noon and midnight), no wait between them.
+      Items: a daily use limit per item type, reset at midnight.
+   #7 Quests change every 12 hours (same time as rests) and scale to your power.
+      Missed quest → Exhaustion: -10% EXP and gold, Fatigue builds 50% faster.
+      It clears as soon as you finish all objectives of your next quest.
+   ========================================================= */
+const RESTS_PER_PERIOD = 3;
+const ITEM_LIMIT = { Potion: 5, Scroll: 3, Meal: 3 };
+const periodKey = (d = new Date()) => `${d.toDateString()} ${d.getHours() < 12 ? "AM" : "PM"}`;
+function nextPeriodAt(d = new Date()) { const n = new Date(d); n.setMinutes(0, 0, 0); n.setHours(d.getHours() < 12 ? 12 : 24); return n; }
+function nextMidnight(d = new Date()) { const n = new Date(d); n.setHours(24, 0, 0, 0); return n; }
+const fmtLeft = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return [Math.floor(s / 3600), Math.floor(s % 3600 / 60), s % 60].map(n => String(n).padStart(2, "0")).join(":"); };
+
+/* ---------- Rests ---------- */
+function restState() {
+  const k = periodKey();
+  if (!player.rests || player.rests.period !== k) player.rests = { period: k, left: RESTS_PER_PERIOD };
+  return player.rests;
+}
+const _rest = rest;
+rest = function () {
+  const r = restState();
+  if (r.left <= 0) {
+    Sound.play("warn");
+    return notify("REST", `No rests left. They refill in ${fmtLeft(nextPeriodAt() - new Date())} (at ${nextPeriodAt().getHours() === 12 ? "noon" : "midnight"}).`, "warn");
+  }
+  r.left--;
+  _rest();
+  const foot = document.querySelector("#resultWin .res-body > .small.muted");
+  if (foot) foot.innerHTML = `Fully recovered. Rests left: <b>${r.left}/${RESTS_PER_PERIOD}</b>${r.left ? "" : ` · refills in ${fmtLeft(nextPeriodAt() - new Date())}`}`;
+};
+
+/* ---------- Item limits ---------- */
+function itemLimit(id) { const r = R[id]; return r ? ITEM_LIMIT[r.cat] || 0 : 0; }
+function itemUses() {
+  const d = new Date().toDateString();
+  if (!player.itemUse || player.itemUse.date !== d) player.itemUse = { date: d, n: {} };
+  return player.itemUse.n;
+}
+const usesLeft = id => itemLimit(id) ? itemLimit(id) - (itemUses()[id] || 0) : Infinity;
+function countItemUse(id) { if (itemLimit(id)) { const u = itemUses(); u[id] = (u[id] || 0) + 1; } }
+const limitTag = id => itemLimit(id) ? `<span class="small ${usesLeft(id) > 0 ? "muted" : "warn-txt"}">${usesLeft(id)}/${itemLimit(id)} left today</span>` : "";
+const _useItem = useItem;
+useItem = function (id) {
+  const r = R[id]; if (!r || !player.items[id]) return;
+  if (usesLeft(id) <= 0) return notify("DAILY LIMIT", `You've used ${r.name} ${itemLimit(id)} times today. The limit resets at midnight (${fmtLeft(nextMidnight() - new Date())}).`, "warn");
+  const before = player.items[id];
+  _useItem(id);
+  if (player.items[id] < before) countItemUse(id);
+};
+
+/* ---------- Quests every 12 hours, scaled to power ---------- */
+const questScale = () => (player && player.questScale) || 1;
+const scaleFor = lv => 1 + Math.floor(lv / 20);   // bigger goals every 20 levels
+function goalFor(q) {
+  const m = questScale();
+  return { kill: 5 * m, gather: 3 * m, work: 1 + Math.floor((m - 1) / 2), craft: 1 + Math.floor((m - 1) / 2), sell: 1 + Math.floor((m - 1) / 2) }[q.event] || q.goal;
+}
+const questRewards = () => { const m = questScale(); return { points: 3, xp: 100 * m * m, ap: 100 * m, gold: 50 * m * m, gems: 50 }; };
+function applyQuestGoals() { quests.forEach(q => q.goal = goalFor(q)); }
+checkDailyReset = function () {
+  if (!player) return;
+  const k = periodKey();
+  if (!player.questPeriod) { player.questPeriod = k; if (!player.questScale) player.questScale = scaleFor(player.level); applyQuestGoals(); return; }
+  if (player.questPeriod === k) { applyQuestGoals(); return; }
+  const missed = !allQuestsDone();
+  player.questPeriod = k; player.questDate = new Date().toDateString();
+  player.questScale = scaleFor(player.level);
+  quests = QUEST_DEFS.map(q => ({ ...q, progress: 0 })); questClaimed = false;
+  applyQuestGoals();
+  if (missed) {
+    player.exhausted = true;
+    notify("EXHAUSTED", "You missed your last quest. Exhaustion: -10% EXP and gold, Fatigue builds 50% faster. Finish this quest to clear it.", "warn");
+  } else notify("NEW QUEST", "A new quest is ready. Goals and rewards grow with your power.", "unlock");
+  save();
+};
+// Exhaustion clears the moment every objective of the current quest is done
+function checkExhaustion() {
+  if (player && player.exhausted && allQuestsDone()) {
+    player.exhausted = false;
+    notify("RECOVERED", "Quest complete. Exhaustion is gone!", "levelUp");
+  }
+}
+const _questEvent = questEvent;
+questEvent = function (evt) { _questEvent(evt); checkExhaustion(); };
+claimReward = function () {
+  if (!allQuestsDone() || questClaimed) return;
+  const r = questRewards();
+  questClaimed = true; player.points += r.points; player.ap += r.ap; player.gold += r.gold; gainXp(r.xp); gainGems(r.gems, "quest");
+  player.hp = player.maxHp; player.mp = player.maxMp; player.fatigue = 0;
+  notify("REWARD", `Quest reward claimed. +${r.points} points, +${r.xp} EXP, +${r.ap} AP, +${r.gold} Gold, full recovery`, "levelUp");
+  render();
+};
+const _addFatigue = addFatigue;
+addFatigue = function (n) { _addFatigue(player && player.exhausted ? Math.ceil(n * 1.5) : n); };
+const _gainXp = gainXp;
+gainXp = function (amount) { _gainXp(player && player.exhausted ? Math.floor(amount * 0.9) : amount); };
+const exhaustGold = g => player && player.exhausted ? Math.floor(g * 0.9) : g;
+
+/* ---------- Timers and labels ---------- */
+tickTimer = function () {
+  if ($("questTimer")) $("questTimer").textContent = fmtLeft(nextPeriodAt() - new Date());
+  const rt = $("restTimer"); if (rt && player) rt.textContent = fmtLeft(nextPeriodAt() - new Date());
+};
+function renderDaily() {
+  if (!player) return;
+  const r = restState(), rw = questRewards();
+  const sr = $("sideRest");
+  if (sr) { sr.classList.toggle("dim-ic", r.left <= 0); const lab = sr.querySelector(".rest-n"); if (lab) lab.textContent = `${r.left}/${RESTS_PER_PERIOD}`; }
+  const tile = $("btnRest"); if (tile) tile.innerHTML = `<span class="ti">🛏️</span>Rest ${r.left}/${RESTS_PER_PERIOD}`;
+  const box = document.querySelector('[data-page="quest"] .reward-box');
+  if (box) box.innerHTML = `<b>Rewards:</b> Full recovery, +${rw.points} stat points, +${rw.xp} EXP, +${rw.ap} Ability Points, +${rw.gold} Gold, 💎 +${rw.gems}`;
+  const pen = document.querySelector('[data-page="quest"] .penalty');
+  if (pen) pen.innerHTML = player.exhausted
+    ? `😩 <b>You're Exhausted</b>: -10% EXP and gold, Fatigue builds 50% faster. Finish every goal of this quest to clear it.`
+    : `⚠ Penalty: if the goals aren't done before the next reset (noon or midnight), you become <b>Exhausted</b> (-10% EXP and gold, Fatigue +50% faster) until you finish the next quest.`;
+  const intro = document.querySelector('[data-page="quest"] .quest-intro');
+  if (intro) intro.innerHTML = `A new quest every 12 hours, sized to your power (level ${player.level}, tier x${questScale()}). Rests left: <b>${r.left}/${RESTS_PER_PERIOD}</b> (they refill at the same reset).`;
+}
+
+$("btnRest").onclick = () => rest();
 
 /* =========================================================
    GUIDED TUTORIAL (idea #14): the System lights up one thing
@@ -7123,7 +7258,7 @@ function guideItems(key) {
     case "quest": return [
       `<b>Daily quest:</b> 5 goals that fill up as you play: defeat enemies, gather, work, craft and sell.`,
       `<b>Reward:</b> when all 5 are done, claim full HP and MP, +3 stat points, +100 EXP, +100 Ability Points and +50 Gold.`,
-      `<b>Reset:</b> a new daily quest starts at midnight. If you didn't finish all 5 goals, you start the new day with +30 Fatigue as a penalty.`,
+      `<b>Reset:</b> a new quest starts every 12 hours (noon and midnight), sized to your level. Miss one and you become <b>Exhausted</b> (-10% EXP and gold, Fatigue +50% faster) until you finish the next quest.`,
     ];
     case "skills": return [
       `<b>Ability Points (AP):</b> you have <b>${player.ap}</b>. Earn them from fights, gathering, rank ups, the daily quest and the story. Spend them on this page.`,
