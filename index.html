@@ -885,6 +885,46 @@ body {
   .arena.clean .pl-plate { width: 47%; }
   .arena.clean .b-foe { top: 84px; right: 4%; width: 44%; }
 }
+
+/* ===== Evolution Tree ===== */
+.evo-step { text-align: center; font-size: 12px; color: var(--accent); margin: -4px 0 8px; letter-spacing: 1px; }
+.perm-warn { text-align: center; color: #ffb36a; font-weight: 700; margin: 8px 0 4px; }
+.evo-card.ascend { border-color: #ffd84a; box-shadow: 0 0 14px rgba(255,216,74,.35); }
+.evo-card.fuse { background: linear-gradient(135deg, rgba(176,107,255,.12), transparent); }
+.br-tag { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--bc); color: var(--bc); }
+.reroll-btn { width: 100%; margin-top: 4px; white-space: normal; }
+.et-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+.et-tabs button { font: inherit; font-size: 13px; font-weight: 700; padding: 8px 4px; border-radius: 10px; cursor: pointer; color: var(--muted); background: rgba(8,30,70,.45); border: 1px solid var(--panel-border); }
+.et-tabs button.active { color: #04150e; background: #5fe0a8; border-color: #5fe0a8; box-shadow: 0 0 12px rgba(95,224,168,.5); }
+.et-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 8px 0 4px; font-size: 16px; }
+.et-tree { display: grid; justify-items: center; padding: 6px 0; }
+.et-row { display: flex; gap: 8px; justify-content: center; width: 100%; flex-wrap: wrap; }
+.et-node { position: relative; min-width: 120px; max-width: 46%; flex: 1; text-align: center; padding: 7px 8px; border-radius: 10px; border: 2px solid var(--panel-border); background: var(--card); display: grid; gap: 2px; }
+.et-node b { font-size: 13px; } .et-node small { font-size: 10.5px; color: var(--muted); }
+.et-node.root { max-width: 60%; }
+.et-node.on { border-color: #5fe0a8; box-shadow: 0 0 12px rgba(95,224,168,.45); background: color-mix(in srgb, #5fe0a8 14%, var(--card)); }
+.et-node.on small { color: #5fe0a8; }
+.et-node.off { opacity: .4; border-style: dashed; }
+.et-node.next { border-color: #ffd84a; border-style: dashed; }
+.et-node.lock { opacity: .45; max-width: 40%; }
+.et-final { position: absolute; top: -8px; right: -6px; font-style: normal; font-size: 9px; font-weight: 900; background: #ffd84a; color: #222; border-radius: 6px; padding: 1px 5px; }
+.et-link { width: 3px; height: 14px; background: #5fe0a8; margin: 2px 0; } .et-link.next { background: #ffd84a; } .et-link.dim { background: var(--panel-border); opacity: .5; }
+.et-when { text-align: center; margin: 6px 0; font-size: 12px; color: var(--muted); }
+.et-ascend { width: 100%; text-align: center; padding: 8px; border-radius: 12px; border: 2px dashed var(--panel-border); opacity: .6; display: grid; gap: 3px; }
+.et-ascend.on { opacity: 1; border: 2px solid #ffd84a; box-shadow: 0 0 14px rgba(255,216,74,.3); }
+.et-stars { color: #ffd84a; letter-spacing: 1px; }
+.st-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.st-col { border: 2px solid var(--bc); border-radius: 12px; padding: 8px; background: color-mix(in srgb, var(--bc) 8%, var(--card)); min-width: 0; }
+.st-h { display: grid; text-align: center; margin-bottom: 6px; } .st-h b { color: var(--bc); } .st-h small { font-size: 10px; color: var(--muted); }
+.st-skills { display: grid; gap: 5px; margin-bottom: 8px; }
+.st-skill { border-left: 3px solid var(--rc); padding: 3px 6px; border-radius: 4px; background: rgba(0,0,0,.18); display: grid; }
+.st-skill b { font-size: 12px; color: var(--rc); } .st-skill small { font-size: 10px; color: var(--muted); }
+.st-steps { display: grid; gap: 3px; }
+.st-step { display: flex; align-items: center; gap: 6px; font-size: 10.5px; opacity: .55; } .st-step.on { opacity: 1; }
+.st-dot { flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; font-weight: 900; border: 2px solid var(--bc); }
+.st-step.on .st-dot { background: var(--bc); color: #111; }
+.st-perk { color: var(--muted); } .st-perk.got { color: var(--bc); font-weight: 700; }
+@media (max-width: 560px) { .st-grid { grid-template-columns: 1fr; } .et-node { min-width: 0; } }
 </style>
 </head>
 <body data-theme="holo">
@@ -905,6 +945,7 @@ body {
     <button class="tile sys" data-open="status"><span class="ti">📊</span>Status</button>
     <button class="tile" data-open="sheet" style="--tc:#c08bff"><span class="ti">🧙</span>Character</button>
     <button class="tile" data-open="summon" style="--tc:#ff5fd2"><span class="ti">🔮</span>Summon</button>
+    <button class="tile" data-open="evo" style="--tc:#5fe0a8"><span class="ti">🌳</span>Evolution</button>
     <button class="tile" data-open="tower" style="--tc:#ff7a45"><span class="ti">🗼</span>Tower</button>
     <button class="tile" data-open="shop" style="--tc:#3ddc84"><span class="ti">🏪</span>Shop</button>
     <button class="tile" data-open="quest" style="--tc:#ffc94d"><span class="ti">📜</span>Quest</button>
@@ -1024,6 +1065,9 @@ body {
       </section>
   
       <!-- ================= PARTY ================= -->
+      <section class="page" data-page="evo">
+        <div id="evoTreeBody"></div>
+      </section>
       <section class="page" data-page="summon">
         <div id="summonBody"></div>
       </section>
@@ -1600,7 +1644,7 @@ const subOf = () => player.subclass ? [...SUBCLASSES[player.classId], ...(HIDDEN
 // Numbers add up, multipliers multiply, and true/false or lists take the first one found.
 const MULT_KEYS = ["spellMult", "gearMult"];
 function fx(k) {
-  const srcs = [subOf(), RACE_PASSIVES[player.raceId], CLASS_PASSIVES[player.classId]].filter(s => s && s.fx && s.fx[k] !== undefined).map(s => s.fx[k]);
+  const srcs = [subOf(), RACE_PASSIVES[player.raceId], CLASS_PASSIVES[player.classId], branchFx()].filter(s => s && s.fx && s.fx[k] !== undefined).map(s => s.fx[k]);
   if (!srcs.length) return 0;
   if (MULT_KEYS.includes(k)) return srcs.reduce((a, b) => a * b, 1);
   if (srcs.every(v => typeof v === "number")) return srcs.reduce((a, b) => a + b, 0);
@@ -1616,6 +1660,7 @@ function bonusOf(k) {
   b += (RACES[player.raceId].stats[k] || 0) + (CLASSES[player.classId].stats[k] || 0);
   b += (pathBonus("race")[k] || 0) + (pathBonus("class")[k] || 0);
   b += armyStat(k) + heroStat(k);
+  b += ascendBonus(k, b);
   return b;
 }
 const eff = k => Math.max(1, player.stats[k] + bonusOf(k));
@@ -2135,7 +2180,7 @@ $("createBody").addEventListener("click", e => {
 let craftCat = "Gear";
 function render() {
   if (!player) return;
-  checkDailyReset(); heroState();
+  checkDailyReset(); heroState(); evoState();
   const race = RACES[player.raceId], cls = CLASSES[player.classId], job = JOBS[player.jobId], sub = subOf();
 
   // ---- Status ----
@@ -2145,8 +2190,8 @@ function render() {
   const rk = rankOf(player.level), gL = GRADES[player.grade];
   $("infoList").innerHTML = [
     ["Name", player.name],
-    ["Race", `${race.icon} ${formOf("race")}${player.racePath.length ? ` <span class="muted small">(${race.name} line)</span>` : ""}`],
-    ["Class", `${cls.icon} ${formOf("class")}${player.classPath.length ? ` <span class="muted small">(${cls.name} line)</span>` : ""}`],
+    ["Race", `${race.icon} ${formLabel("race")}${player.racePath.length ? ` <span class="muted small">(${race.name} line)</span>` : ""}`],
+    ["Class", `${cls.icon} ${formLabel("class")}${player.classPath.length ? ` <span class="muted small">(${cls.name} line)</span>` : ""}`],
     ["Element", (player.elems || [player.elem]).map((e, i) => `${ELEM_ICON[e]} ${e}${i === 0 ? ` <span class="muted small">(${AFFINITY[e].rarity}, main)</span>` : ""}`).join(", ")],
     ["Subclass", sub ? sub.name : `<span class="muted">Unlocks at Lv. ${SUBCLASS_LEVEL}</span>`],
     ["Job", `${job.icon} ${JOB_RANKS[jobRank()]} ${job.name}`],
@@ -2300,7 +2345,7 @@ function render() {
     </div>`).join("");
 
   setDot("status", player.points > 0 || player.pendingEvo.length > 0);
-  checkStory(); renderStory(); renderGuides(); renderSheet(); renderSummon(); renderSquadBox();
+  checkStory(); renderStory(); renderGuides(); renderSheet(); renderSummon(); renderSquadBox(); renderEvoTree();
   setDot("quest", (allQuestsDone() && !questClaimed) || storyAlert());
   setDot("skills",
     (!maxG && player.ap >= GRADE_COST[g]) ||
@@ -2737,7 +2782,7 @@ async function doPlayer(action) {
     if (mv.effect === "atk") { B.atkStage = Math.min(2, B.atkStage + 1); return say(`${player.name} used <b>${mv.name}</b>! Attack rose!`); }
     if (mv.effect === "evade") { B.evade = true; return say(`${player.name} used <b>${mv.name}</b>! You'll dodge the next attack.`); }
     if (mv.effect === "heal") { const h = Math.min(Math.ceil(player.maxHp * 0.35), player.maxHp - player.hp); player.hp += h; bars(); floater("pl", "+" + h, "heal"); return say(`${player.name} used <b>${mv.name}</b>! Recovered ${h} HP.`); }
-    if (mv.effect === "mana") { const g = Math.ceil(player.maxMp * 0.3); player.mp = Math.min(player.maxMp, player.mp + g); bars(); return say(`${player.name} used <b>${mv.name}</b>! Recovered ${g} MP.`); }
+    if (mv.effect === "mana") { const g = Math.ceil(player.maxMp * (mv.manaPct || 0.3)); player.mp = Math.min(player.maxMp, player.mp + g); bars(); return say(`${player.name} used <b>${mv.name}</b>! Recovered ${g} MP.`); }
   }
   await say(`${player.name} used <b>${mv.name}</b>!`, 450);
   anim("bPl", "lunge-up");
@@ -2772,6 +2817,8 @@ async function doPlayer(action) {
   if (fx("drainPct") && player.hp < player.maxHp) { const h = Math.min(Math.ceil(dmg * fx("drainPct")), player.maxHp - player.hp); player.hp += h; bars(); floater("pl", "+" + h, "heal"); }
   if (mv.fx === "drain") { const h = Math.min(Math.floor(dmg * 0.4), player.maxHp - player.hp); player.hp += h; bars(); floater("pl", "+" + h, "heal"); await say(`You drained ${h} HP!`, 650); }
   if (mv.fx === "rally") { B.atkStage = Math.min(2, B.atkStage + 1); anim("bPl", "pulse-buff"); Sound.play("buff"); await say("Your attack rose!", 650); }
+  if (mv.fx === "bulwark") { B.defStage = Math.min(2, B.defStage + 1); anim("bPl", "pulse-buff"); Sound.play("buff"); await say("Your defense rose!", 650); }
+  if (mv.stunCh && m.hp > 0 && !B.stun && Math.random() < mv.stunCh) { B.stun = true; Sound.play("crit"); await say(`💫 ${m.name} is stunned!`, 650); }
 }
 
 async function monsterTurn() {
@@ -3948,7 +3995,7 @@ function renderSheet() {
   el.style.setProperty("--ec", ec);
   el.innerHTML = `
     <div class="cs-title"><span>${title.toUpperCase()}</span></div>
-    <div class="cs-sub">${formOf("race")} · ${formOf("class")}${sub && formOf("class") !== cls.name ? ` (${cls.name})` : ""}</div>
+    <div class="cs-sub">${formLabel("race")} · ${formLabel("class")}${sub && formOf("class") !== cls.name ? ` (${cls.name})` : ""}</div>
     <div class="cs-stage">
       <div class="cs-art">${charSVG()}</div>
       <div class="cs-tag">${ELEM_ICON[main]} ${els.join(" / ")}</div>
@@ -4200,6 +4247,157 @@ document.addEventListener("click", e => { if (e.target.closest("[data-open-summo
 
 
 /* =========================================================
+   EVOLUTION: choices are permanent (no Revert). Race and
+   class lines have 7 forms. After the final form, each new
+   evolution grants an Ascension star (+2% to all stats).
+   ========================================================= */
+const EVO_MAX = 7, ASCEND_PCT = 0.02;
+function evoState() {
+  if (!player) return;
+  if (!player.ascend) player.ascend = { race: 0, class: 0 };
+  ["race", "class"].forEach(k => {
+    const p = pathOf(k);
+    if (p.length > EVO_MAX) { player.ascend[k] += p.length - EVO_MAX; p.length = EVO_MAX; }   // old saves that looped past the final form
+  });
+}
+const atMax = kind => pathOf(kind).length >= EVO_MAX;
+const stars = kind => (player.ascend && player.ascend[kind]) || 0;
+const formLabel = kind => formOf(kind) + (stars(kind) ? ` ★${stars(kind)}` : "");
+function ascendBonus(k, base) {
+  const n = stars("race") + stars("class");
+  return n ? Math.floor((player.stats[k] + base) * ASCEND_PCT * n) : 0;
+}
+function evoOptions(kind) {
+  if (kind === "subclass") return SUBCLASSES[player.classId].map((s, i) => ({ type: "subclass", i, sub: s }));
+  evoState();
+  if (atMax(kind)) return [{ type: "ascend" }];
+  const path = pathOf(kind), { node, core } = walk(treeOf(kind), path);
+  return kidsOf(node, path.length + 1, core).map((n, i) => ({ type: "evolve", i, node: n, core: path.length + 1 <= 2 ? n.name : core }));
+}
+function openEvolution() {
+  if (!player || !player.pendingEvo.length) return;
+  const kind = player.pendingEvo[0];
+  if (kind === "skill") return openSkillChoice();
+  if (kind === "hidden") return openHiddenChoice();
+  evoState();
+  const opts = evoOptions(kind);
+  let head, title, intro;
+  if (kind === "subclass") {
+    head = "SUBCLASS AWAKENING"; title = CLASSES[player.classId].name;
+    intro = "Your power is ready to specialize. Choose one path.";
+  } else {
+    head = kind === "race" ? "RACE EVOLUTION" : "CLASS ADVANCEMENT"; title = formLabel(kind);
+    intro = atMax(kind) ? "You have reached your final form. Your power can only ascend from here."
+      : kind === "race" ? "Your body has reached its limit. Choose the form you will become." : "You have mastered your class. Choose how you will advance.";
+  }
+  const path = kind === "subclass" ? [] : pathOf(kind), depth = path.length + 1;
+  $("evoBody").innerHTML = `
+    <div class="header">[ ${head} ]</div>
+    <div class="sys-intro"><span class="big">${title}</span>${intro}</div>
+    ${kind !== "subclass" && !atMax(kind) ? `<div class="evo-step">Form ${depth} of ${EVO_MAX}${depth === EVO_MAX ? " · <b>Final form</b>" : ""}</div>` : ""}
+    ${opts.map((o, idx) => {
+      if (o.type === "subclass") return `<div class="evo-card">
+        <div class="ec-name">${o.sub.name}</div>
+        <div class="small" style="margin-top:4px">${o.sub.desc}</div>
+        <div class="good small" style="margin-top:4px">★ ${o.sub.perk}</div>
+        ${o.sub.fx && o.sub.fx.summon ? `<details class="guide-box"><summary>How it works</summary>${summonGuideHTML(o.sub.fx.summon)}</details>` : ""}
+        <button class="btn" data-evo="${idx}">Become a ${o.sub.name}</button></div>`;
+      if (o.type === "ascend") return `<div class="evo-card ascend">
+        <div class="ec-name">✦ Ascension ★${stars(kind) + 1}</div>
+        <div class="good small" style="margin-top:4px">+2% to all stats (stacks with every star). Your total from all stars becomes +${(stars("race") + stars("class") + 1) * 2}%.</div>
+        <button class="btn glow-btn" data-evo="${idx}">Ascend</button></div>`;
+      const next = depth >= EVO_MAX ? "This is a final form. Later evolutions give Ascension stars." : `Can later become: ${kidsOf(o.node, depth + 1, o.core).map(n => n.name).join(" or ")}`;
+      return `<div class="evo-card">
+        <div class="ec-name">${o.node.name}</div>
+        <div class="good small" style="margin-top:4px">${focusText(o.node)}</div>
+        <div class="muted small" style="margin-top:4px">${next}</div>
+        <button class="btn" data-evo="${idx}">Become ${o.node.name}</button></div>`;
+    }).join("")}
+    <div class="perm-warn">⚠ This choice is permanent.</div>
+    <button class="dev-link" data-evolater>Decide later</button>`;
+  $("evoOverlay").classList.add("show");
+  Sound.play("evolve");
+}
+function chooseEvolution(idx) {
+  const kind = player.pendingEvo[0];
+  const o = evoOptions(kind)[idx];
+  if (o.type === "subclass") {
+    player.subclass = o.sub.id;
+    notify("SUBCLASS", `You are now a ${o.sub.name}! ${o.sub.perk}`, "levelUp");
+  } else if (o.type === "ascend") {
+    player.ascend[kind]++;
+    notify("ASCENSION", `${formLabel(kind)}! +2% to all stats.`, "levelUp");
+  } else {
+    const before = formOf(kind);
+    pathOf(kind).push(o.i);
+    notify(kind === "race" ? "EVOLUTION" : "CLASS ADVANCED", `${before} became ${formOf(kind)}! ${focusText(o.node)}`, "levelUp");
+  }
+  player.pendingEvo.shift();
+  recalc(); render(); save();
+  $("evoOverlay").classList.remove("show");
+  if (player.pendingEvo.length) setTimeout(openEvolution, 900);
+}
+
+/* =========================================================
+   EVOLUTION TREE WINDOW: Race, Class and Skills tabs
+   ========================================================= */
+let evoTab = "race";
+function nextEvoLevel(kind) {
+  if (kind === "race") { const st = rankOf(player.level).stage; return st * 3 + 1; }
+  return (Math.floor(player.level / CLASS_EVO_EVERY) + 1) * CLASS_EVO_EVERY;
+}
+function lineTree(kind) {
+  evoState();
+  const root = treeOf(kind), path = pathOf(kind), pending = player.pendingEvo.includes(kind);
+  const rows = [];
+  let node = root, core = root.name;
+  rows.push(`<div class="et-row"><div class="et-node root on"><b>${root.name}</b><small>Base ${kind}</small></div></div>`);
+  for (let d = 1; d <= EVO_MAX; d++) {
+    const kids = kidsOf(node, d, core);
+    const chosen = path[d - 1];
+    if (chosen !== undefined) {
+      rows.push(`<div class="et-link"></div><div class="et-row">${kids.map((k, i) => `<div class="et-node ${i === chosen ? "on" : "off"}">
+        <b>${k.name}</b><small>${i === chosen ? focusText(k) : "Path not taken"}</small>${d === EVO_MAX && i === chosen ? `<i class="et-final">FINAL</i>` : ""}</div>`).join("")}</div>`);
+      node = kids[chosen]; if (d <= 2) core = node.name;
+    } else if (d === path.length + 1) {
+      rows.push(`<div class="et-link next"></div><div class="et-row">${kids.map(k => `<div class="et-node next"><b>${k.name}</b><small>${focusText(k)}</small></div>`).join("")}</div>
+        <div class="et-when">${pending ? `<button class="btn glow-btn" data-openevo>✨ Evolve now</button>` : `Next choice at Lv. ${nextEvoLevel(kind)}`}</div>`);
+    } else {
+      rows.push(`<div class="et-link dim"></div><div class="et-row"><div class="et-node lock"><b>?</b><small>Form ${d}${d === EVO_MAX ? " · Final" : ""}</small></div></div>`);
+    }
+  }
+  const n = stars(kind);
+  rows.push(`<div class="et-link ${atMax(kind) ? "" : "dim"}"></div><div class="et-ascend ${atMax(kind) ? "on" : ""}">
+    <div><b>✦ Ascension</b> <span class="et-stars">${n ? "★".repeat(Math.min(n, 12)) + (n > 12 ? ` x${n}` : "") : "No stars yet"}</span></div>
+    <small>${atMax(kind) ? `Each new evolution gives a star: +2% to all stats. ${pending ? `<button class="btn small-btn" data-openevo>Ascend now</button>` : `Next star at Lv. ${nextEvoLevel(kind)}`}` : `Unlocks after your final form.`}</small></div>`);
+  const pb = pathBonus(kind);
+  return `<div class="et-head"><span>${kind === "race" ? RACES[player.raceId].icon : CLASSES[player.classId].icon} <b>${formLabel(kind)}</b></span>
+      <span class="small muted">Form ${Math.min(path.length + 1, EVO_MAX)}/${EVO_MAX}${n ? ` · ★${n}` : ""}</span></div>
+    <div class="small good" style="margin-bottom:8px">Line bonus so far: ${fmtBonus(pb) || "none yet"}${n ? ` · plus ${n * 2}% all stats from stars` : ""}</div>
+    <div class="et-tree">${rows.join("")}</div>
+    <div class="perm-warn small">⚠ Evolution choices are permanent.</div>`;
+}
+function renderEvoTree() {
+  const el = $("evoTreeBody"); if (!el || !player) return;
+  el.innerHTML = `<div class="et-tabs">${[["race", "🧬 Race"], ["class", "⚔️ Class"], ["skills", "🌿 Skills"]].map(([k, l]) =>
+    `<button class="${evoTab === k ? "active" : ""}" data-etab="${k}">${l}${player.pendingEvo.includes(k === "skills" ? "skill" : k) ? " ●" : ""}</button>`).join("")}</div>
+    ${evoTab === "skills" ? skillTreeHTML() : lineTree(evoTab)}`;
+}
+$("evoTreeBody").addEventListener("click", e => {
+  const t = e.target.closest("[data-etab]"); if (t) { evoTab = t.dataset.etab; renderEvoTree(); return; }
+  if (e.target.closest("[data-openevo]")) {
+    e.stopPropagation();
+    // Open the matching pending choice first
+    const want = evoTab === "skills" ? "skill" : evoTab, i = player.pendingEvo.indexOf(want);
+    if (i > 0) { player.pendingEvo.splice(i, 1); player.pendingEvo.unshift(want); }
+    openEvolution();
+  }
+});
+
+document.addEventListener("click", e => { const b = e.target.closest("[data-open-evotree]"); if (b) { evoTab = b.dataset.openEvotree || "race"; openWindow("evo"); } });
+
+
+/* =========================================================
    ARMY PERKS: every shadow soldier or tamed beast keeps a
    power from the monster it used to be. These stack on top
    of the Attack / Guard / Forage command bonuses.
@@ -4305,7 +4503,7 @@ const rarityName = r => r.rarity ? `<span style="color:${RARITY_COLOR[r.rarity]}
    - From the 2nd awakening on, 1 choice is a skill you passed on before.
    - Sometimes 1 choice is a new element instead of a skill.
    ========================================================= */
-const TREE_EVERY = 10;
+const TREE_EVERY = 5;   // a Skill Awakening every 5 levels
 const RARITIES = ["common", "rare", "epic", "legendary"];
 const RARITY_NAME = { common: "Common", rare: "Rare", epic: "Epic", legendary: "Legendary" };
 const SK_RARITY = {
@@ -4316,7 +4514,7 @@ const SK_RARITY = {
 };
 function rarityOdds() {
   const luck = eff("LUK");
-  const w = { common: Math.max(15, 60 - luck * 0.5), rare: 28 + luck * 0.3, epic: 10 + luck * 0.15, legendary: 2 + luck * 0.05 };
+  const w = { common: Math.max(15, 60 - luck * 0.5), rare: 28 + luck * 0.3, epic: 10 + luck * 0.15, legendary: 2 + luck * 0.14 };   // about 2x the old legendary odds at high Luck
   const total = Object.values(w).reduce((a, b) => a + b, 0);
   return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, v / total]));
 }
@@ -4327,42 +4525,105 @@ function rollRarity() {
   return "common";
 }
 // Skill types. Nouns go from Common to Legendary.
+// Each skill type belongs to one of 3 branches: Offense, Defense or Support
 const SK_TYPES = [
-  { fx: "nova",   nouns: ["Burst", "Blast", "Nova", "Cataclysm"],       desc: "A powerful attack", powM: 1 },
-  { fx: "drain",  nouns: ["Siphon", "Leech", "Devour", "Soul Feast"],   desc: "Heals you for 40% of the damage dealt", powM: 0.85 },
-  { fx: "combo",  nouns: ["Flurry", "Barrage", "Storm", "Thousand Cuts"], desc: "Hits 3 times", powM: 1.05 },
-  { fx: "rally",  nouns: ["Rally", "War Cry", "Ascension", "Apotheosis"], desc: "Attacks and raises your attack", powM: 0.75 },
-  { fx: "pierce", nouns: ["Lance", "Piercer", "Spear", "Worldpiercer"],  desc: "Ignores half the enemy's defense", powM: 0.9 },
-  { fx: "first",  nouns: ["Flash", "Dash", "Blink", "Instant"],         desc: "Always strikes first", powM: 0.8 },
-  { fx: "mend",   nouns: ["Mend", "Renewal", "Rebirth", "Miracle"],     desc: "Spiritual: heals your HP", heal: [0.3, 0.4, 0.55, 0.75] },
+  { fx: "nova",    branch: "Offense", nouns: ["Burst", "Blast", "Nova", "Cataclysm"],       desc: "A powerful attack", powM: 1 },
+  { fx: "combo",   branch: "Offense", nouns: ["Flurry", "Barrage", "Storm", "Thousand Cuts"], desc: "Hits 3 times", powM: 1.05 },
+  { fx: "pierce",  branch: "Offense", nouns: ["Lance", "Piercer", "Spear", "Worldpiercer"],  desc: "Ignores half the enemy's defense", powM: 0.9 },
+  { fx: "first",   branch: "Offense", nouns: ["Flash", "Dash", "Blink", "Instant"],         desc: "Always strikes first", powM: 0.8 },
+  { fx: "drain",   branch: "Defense", nouns: ["Siphon", "Leech", "Devour", "Soul Feast"],   desc: "Heals you for 40% of the damage dealt", powM: 0.85 },
+  { fx: "bulwark", branch: "Defense", nouns: ["Guard", "Bulwark", "Aegis", "Bastion"],      desc: "Attacks and raises your defense", powM: 0.7 },
+  { fx: "rally",   branch: "Support", nouns: ["Rally", "War Cry", "Ascension", "Apotheosis"], desc: "Attacks and raises your attack", powM: 0.75 },
+  { fx: "mend",    branch: "Support", nouns: ["Mend", "Renewal", "Rebirth", "Miracle"],     desc: "Spiritual: heals your HP", heal: [0.3, 0.4, 0.55, 0.75] },
+  { fx: "focus",   branch: "Support", nouns: ["Focus", "Meditation", "Clarity", "Enlightenment"], desc: "Restores your MP", mana: [0.3, 0.4, 0.5, 0.65] },
 ];
+const BRANCHES = {
+  Offense: { icon: "⚔️", color: "#ff6a5c", desc: "Hit harder and faster",
+    perks: [[3, { dmgMult: 0.05 }, "+5% damage"], [6, { critPlus: 0.05 }, "+5% critical hit chance"], [9, { dmgMult: 0.10 }, "+10% more damage"]] },
+  Defense: { icon: "🛡️", color: "#4da3ff", desc: "Take less damage and survive longer",
+    perks: [[3, { dmgReduce: 0.05 }, "-5% damage taken"], [6, { lowHpGuard: 0.15 }, "-15% damage taken while under 25% HP"], [9, { dmgReduce: 0.10 }, "-10% more damage taken"]] },
+  Support: { icon: "💚", color: "#3ddc84", desc: "Heal, recover MP and buff yourself",
+    perks: [[3, { mpPerFight: 5 }, "+5 MP after each fight"], [6, { regen: 0.03 }, "Heal 3% max HP every turn"], [9, { regen: 0.03, mpPerFight: 10 }, "Heal 3% more per turn, +10 MP after fights"]] },
+};
+const BRANCH_KEYS = Object.keys(BRANCHES);
+const typeOf = s => SK_TYPES.find(t => t.fx === s.fx) || SK_TYPES[0];
+const branchOf = s => s.branch || typeOf(s).branch;
+// Passive bonuses unlocked by how many picks you've made in each branch (fed into fx())
+function branchFx() {
+  const out = {};
+  if (!player || !player.branchPts) return { fx: out };
+  BRANCH_KEYS.forEach(b => BRANCHES[b].perks.forEach(([need, bonus]) => {
+    if ((player.branchPts[b] || 0) >= need) Object.entries(bonus).forEach(([k, v]) => out[k] = (out[k] || 0) + v);
+  }));
+  return { fx: out };
+}
 const myElems = () => player.elems || [player.elem];
 function skillKind() { return ["mage", "cleric"].includes(player.classId) ? "mag" : "phys"; }
+const isSupportOnly = s => s.fx === "mend" || s.fx === "focus";
 function skillDesc(s) {
-  const t = SK_TYPES.find(x => x.fx === s.fx);
-  if (s.fx === "mend") return `Heals ${Math.round(s.heal * 100)}% of your max HP`;
-  return `${ELEM_ICON[s.elem]} ${s.elem} · Pow ${s.power} · ${t.desc}`;
+  const t = typeOf(s);
+  const extra = `${s.stun ? ` · ${Math.round(s.stun * 100)}% stun` : ""}${s.fused ? " · ⚗️ Fused" : ""}`;
+  if (s.fx === "mend") return `Heals ${Math.round(s.heal * 100)}% of your max HP${extra}`;
+  if (s.fx === "focus") return `Restores ${Math.round(s.mana * 100)}% of your max MP${extra}`;
+  return `${ELEM_ICON[s.elem]} ${s.elem} · Pow ${s.power} · ${t.desc}${extra}`;
 }
-function genSkill(taken) {
+// Deeper in a branch = better odds: rank 4+ is at least Rare, rank 8+ at least Epic
+function branchFloor(b) { const r = (player.branchPts && player.branchPts[b]) || 0; return r >= 8 ? 2 : r >= 4 ? 1 : 0; }
+function genSkill(taken, branch) {
   for (let tries = 0; tries < 40; tries++) {
-    const rarity = rollRarity(), ri = RARITIES.indexOf(rarity), R0 = SK_RARITY[rarity];
-    const type = pick(SK_TYPES);
-    const elem = type.fx === "mend" ? "Normal" : (Math.random() < 0.25 ? "Normal" : pick(myElems()));
-    const word = elem === "Normal" ? (type.fx === "mend" ? "Spirit" : pick(["Iron", "Spirit"])) : AFFINITY[elem].word;
+    const types = branch ? SK_TYPES.filter(t => t.branch === branch) : SK_TYPES;
+    const type = pick(types);
+    const ri = Math.max(RARITIES.indexOf(rollRarity()), branchFloor(type.branch)), rarity = RARITIES[ri], R0 = SK_RARITY[rarity];
+    const support = type.fx === "mend" || type.fx === "focus";
+    const elem = support ? "Normal" : (Math.random() < 0.25 ? "Normal" : pick(myElems()));
+    const word = elem === "Normal" ? (support ? "Spirit" : pick(["Iron", "Spirit"])) : AFFINITY[elem].word;
     const name = `${word} ${type.nouns[ri]}`;
     if (taken.includes(name)) continue;
-    const s = { name, rarity, fx: type.fx, elem, kind: elem === "Normal" && type.fx !== "mend" ? skillKind() : skillKind(), mp: R0.mp, cd: R0.cd };
+    const s = { name, rarity, fx: type.fx, branch: type.branch, elem, kind: skillKind(), mp: R0.mp, cd: R0.cd, up: 0 };
     if (type.fx === "mend") s.heal = type.heal[ri];
+    else if (type.fx === "focus") { s.mana = type.mana[ri]; s.mp = 0; }
     else s.power = Math.round(R0.power * type.powM);
     return s;
   }
   return null;
+}
+/* Upgrades: improve a skill you already have */
+function upgradeFor(s) {
+  if (!isSupportOnly(s) && !s.stun && (s.up || 0) >= 1 && Math.random() < 0.5) return { kind: "stun", text: "Adds a 25% chance to stun" };
+  if (s.cd > 1 && Math.random() < 0.4) return { kind: "haste", text: `Cooldown ${s.cd} → ${s.cd - 1} turns` };
+  if (s.fx === "mend") return { kind: "power", text: `Heals ${Math.round(s.heal * 100)}% → ${Math.round((s.heal + 0.08) * 100)}% HP` };
+  if (s.fx === "focus") return { kind: "power", text: `Restores ${Math.round(s.mana * 100)}% → ${Math.round((s.mana + 0.08) * 100)}% MP` };
+  return { kind: "power", text: `Power ${s.power} → ${Math.round(s.power * 1.2)}` };
+}
+function applyUpgrade(s, kind) {
+  s.up = (s.up || 0) + 1;
+  if (kind === "stun") s.stun = 0.25;
+  else if (kind === "haste") s.cd = Math.max(1, s.cd - 1);
+  else if (s.fx === "mend") s.heal = +(s.heal + 0.08).toFixed(2);
+  else if (s.fx === "focus") s.mana = +(s.mana + 0.08).toFixed(2);
+  else s.power = Math.round(s.power * 1.2);
+}
+/* Fusion: two attack skills become one stronger skill */
+function fuseResult(a, b) {
+  const ri = Math.min(3, Math.max(RARITIES.indexOf(a.rarity), RARITIES.indexOf(b.rarity)) + 1), rarity = RARITIES[ri];
+  const main = (a.power || 0) >= (b.power || 0) ? a : b, other = main === a ? b : a;
+  const word = main.name.split(" ")[0], noun = typeOf(other).nouns[ri];
+  return { name: `${word} ${noun}`, rarity, fx: main.fx, branch: branchOf(main), elem: main.elem, kind: main.kind,
+    power: Math.round(((a.power || 0) + (b.power || 0)) * 0.75), mp: Math.round((a.mp + b.mp) * 0.7), cd: Math.max(a.cd, b.cd),
+    stun: Math.max(a.stun || 0, b.stun || 0) || undefined, up: 0, fused: [a.name, b.name] };
 }
 function ensureTree() {
   if (!player.elems) player.elems = [player.elem];
   if (!player.learned) player.learned = [];
   if (!player.skipped) player.skipped = [];
   if (player.treePicks === undefined) player.treePicks = 0;
+  // Stable ids so fusing skills never shifts your loadout (old saves keep their index as id)
+  player.learned.forEach((s, j) => { if (s.id === undefined) s.id = j; });
+  if (player.nextSkillId === undefined) player.nextSkillId = player.learned.reduce((m, s) => Math.max(m, s.id + 1), 0);
+  if (!player.branchPts) {   // older saves: count the skills already learned
+    player.branchPts = { Offense: 0, Defense: 0, Support: 0 };
+    player.learned.forEach(s => { s.branch = branchOf(s); player.branchPts[s.branch]++; });
+  }
   // Characters who were already past level 10 get the awakenings they missed
   const expected = Math.floor(player.level / TREE_EVERY);
   const have = player.treePicks + player.pendingEvo.filter(k => k === "skill").length;
@@ -4371,20 +4632,41 @@ function ensureTree() {
 function makeOffer() {
   const taken = [...player.learned, ...player.skipped].map(s => s.name);
   const opts = [];
-  if (player.skipped.length) opts.push({ type: "skill", returning: true, skill: pick(player.skipped) });
+  const attacks = player.learned.map((s, i) => ({ s, i })).filter(x => !isSupportOnly(x.s));
+  // Sometimes: upgrade a skill you have, fuse two skills, a new element, or a skill you passed on
+  if (player.learned.length && Math.random() < 0.45) {
+    const i = Math.floor(Math.random() * player.learned.length), s = player.learned[i];
+    opts.push({ type: "upgrade", idx: i, up: upgradeFor(s), branch: branchOf(s) });
+  }
+  if (attacks.length >= 2 && Math.random() < 0.3) {
+    const a = pick(attacks); let b = pick(attacks);
+    for (let t = 0; t < 10 && b === a; t++) b = pick(attacks);
+    if (a !== b) { const r = fuseResult(a.s, b.s); opts.push({ type: "fuse", a: a.i, b: b.i, result: r, branch: r.branch }); }
+  }
   const missing = Object.keys(AFFINITY).filter(e => !myElems().includes(e));
-  if (missing.length && Math.random() < 0.35 + eff("LUK") * 0.003) {
+  if (opts.length < 2 && missing.length && Math.random() < 0.25 + eff("LUK") * 0.002) {
     let e = rollAffinity();
     for (let i = 0; i < 20 && !missing.includes(e); i++) e = rollAffinity();
     if (!missing.includes(e)) e = pick(missing);
     opts.push({ type: "element", elem: e });
   }
-  while (opts.length < 3) {
-    const s = genSkill([...taken, ...opts.filter(o => o.skill).map(o => o.skill.name)]);
-    if (!s) break;
-    opts.push({ type: "skill", skill: s });
+  if (opts.length < 2 && player.skipped.length && Math.random() < 0.5) { const s = pick(player.skipped); opts.push({ type: "skill", returning: true, skill: s, branch: branchOf(s) }); }
+  // Fill the rest with new skills, one per branch you haven't been offered yet
+  const used = new Set(opts.map(o => o.branch).filter(Boolean));
+  for (const br of BRANCH_KEYS.slice().sort(() => Math.random() - 0.5)) {
+    if (opts.length >= 3) break;
+    if (used.has(br)) continue;
+    const s = genSkill([...taken, ...opts.filter(o => o.skill).map(o => o.skill.name)], br);
+    if (s) { opts.push({ type: "skill", skill: s, branch: br }); used.add(br); }
   }
-  return opts;
+  while (opts.length < 3) { const s = genSkill(taken); if (!s) break; opts.push({ type: "skill", skill: s, branch: s.branch }); }
+  return opts.slice(0, 3);
+}
+const REROLL_AP = 60;
+function branchTag(b) { const B0 = BRANCHES[b]; return b ? `<span class="br-tag" style="--bc:${B0.color}">${B0.icon} ${b} · rank ${(player.branchPts[b] || 0)} → ${(player.branchPts[b] || 0) + 1}</span>` : ""; }
+function nextPerkText(b) {
+  const r = (player.branchPts[b] || 0) + 1, p = BRANCHES[b].perks.find(([need]) => need === r);
+  return p ? `<div class="points small">Unlocks branch perk: ${p[2]}</div>` : "";
 }
 function openSkillChoice() {
   ensureTree();
@@ -4393,7 +4675,7 @@ function openSkillChoice() {
   const lvl = (player.treePicks + 1) * TREE_EVERY;
   $("evoBody").innerHTML = `
     <div class="header">[ SKILL AWAKENING ]</div>
-    <div class="sys-intro"><span class="big">Skill Tree · Lv. ${lvl}</span>Choose one. Skills you pass on may return in a later awakening.</div>
+    <div class="sys-intro"><span class="big">Skill Tree · Lv. ${lvl}</span>Choose one. Each pick grows its branch. Skills you pass on may return later.</div>
     <div class="small muted" style="text-align:center;margin-bottom:10px">Luck ${eff("LUK")}: ${RARITIES.map(r => `<span style="color:${RARITY_COLOR[r]}">${RARITY_NAME[r]} ${Math.round(odds[r] * 100)}%</span>`).join(" · ")}</div>
     ${player.skillOffer.map((o, i) => {
       if (o.type === "element") return `<div class="evo-card" style="border-color:${RARITY_COLOR[AFFINITY[o.elem].rarity === "Rare" ? "epic" : "rare"]}">
@@ -4401,14 +4683,28 @@ function openSkillChoice() {
         <div class="small" style="margin-top:4px">${AFF_DESC[o.elem]}</div>
         <div class="good small" style="margin-top:4px">Your skills can now roll ${o.elem}, and ${o.elem} moves get your +20% element bonus. Your main element (for defense) stays ${player.elem}.</div>
         <button class="btn" data-skillpick="${i}">Awaken ${o.elem}</button></div>`;
+      if (o.type === "upgrade") { const s = player.learned[o.idx];
+        return `<div class="evo-card" style="border-color:${RARITY_COLOR[s.rarity]}">
+        <div class="ec-name">⬆️ Upgrade: ${s.name}${s.up ? ` +${s.up}` : ""}</div>${branchTag(o.branch)}
+        <div class="good small" style="margin-top:4px">${o.up.text}</div>
+        <div class="muted small">Now: ${skillDesc(s)}</div>${nextPerkText(o.branch)}
+        <button class="btn" data-skillpick="${i}">Upgrade to +${(s.up || 0) + 1}</button></div>`; }
+      if (o.type === "fuse") { const A0 = player.learned[o.a], B1 = player.learned[o.b], r = o.result;
+        return `<div class="evo-card fuse" style="border-color:${RARITY_COLOR[r.rarity]}">
+        <div class="ec-name">⚗️ Fusion: ${r.name}</div>${branchTag(o.branch)}
+        <div class="small" style="margin-top:4px">${A0.name} + ${B1.name} → <b style="color:${RARITY_COLOR[r.rarity]}">${RARITY_NAME[r.rarity]}</b></div>
+        <div class="good small" style="margin-top:4px">${skillDesc(r)}</div>
+        <div class="muted small">${r.mp} MP · Cooldown ${r.cd} turns · Both old skills are used up</div>${nextPerkText(o.branch)}
+        <button class="btn" data-skillpick="${i}">Fuse into ${r.name}</button></div>`; }
       const s = o.skill;
       return `<div class="evo-card" style="border-color:${RARITY_COLOR[s.rarity]}">
-        <div class="ec-name">${s.name}</div>
+        <div class="ec-name">${s.name}</div>${branchTag(o.branch)}
         <div class="small" style="margin-top:2px"><b style="color:${RARITY_COLOR[s.rarity]}">${RARITY_NAME[s.rarity]}</b>${o.returning ? ` · <span class="points">↺ Returning skill</span>` : ""}</div>
         <div class="good small" style="margin-top:4px">${skillDesc(s)}</div>
-        <div class="muted small" style="margin-top:2px">${s.mp} MP · Cooldown ${s.cd} turns</div>
+        <div class="muted small" style="margin-top:2px">${s.mp ? s.mp + " MP" : "Free"} · Cooldown ${s.cd} turns</div>${nextPerkText(o.branch)}
         <button class="btn" data-skillpick="${i}">Learn ${s.name}</button></div>`;
     }).join("")}
+    <button class="btn reroll-btn" data-skillreroll ${player.ap < REROLL_AP ? "disabled" : ""}>🎲 Reroll for ${REROLL_AP} AP <small>(you have ${player.ap})</small></button>
     <button class="dev-link" data-evolater>Decide later</button>`;
   $("evoOverlay").classList.add("show");
   Sound.play("evolve");
@@ -4416,54 +4712,98 @@ function openSkillChoice() {
 function chooseSkill(i) {
   const o = player.skillOffer[i];
   const others = player.skillOffer.filter((x, j) => j !== i && x.type === "skill").map(x => x.skill);
-  treeHistory().push(o.type === "element" ? `${ELEM_ICON[o.elem]} Element: <b>${o.elem}</b>`
-    : `<b style="color:${RARITY_COLOR[o.skill.rarity]}">${o.skill.name}</b> <span class="small muted">${RARITY_NAME[o.skill.rarity]} · ${o.skill.fx === "mend" ? "Heal" : ELEM_ICON[o.skill.elem] + " " + o.skill.elem}</span>`);
+  const tag = s => `<b style="color:${RARITY_COLOR[s.rarity]}">${s.name}</b> <span class="small muted">${RARITY_NAME[s.rarity]}</span>`;
   if (o.type === "element") {
+    treeHistory().push(`${ELEM_ICON[o.elem]} Element: <b>${o.elem}</b>`);
     player.elems.push(o.elem);
     notify("ELEMENT AWAKENED", `${ELEM_ICON[o.elem]} You can now wield ${o.elem}!`, "levelUp");
+  } else if (o.type === "upgrade") {
+    const s = player.learned[o.idx];
+    applyUpgrade(s, o.up.kind);
+    player.branchPts[o.branch]++;
+    treeHistory().push(`⬆️ ${tag(s)} +${s.up}`);
+    notify("SKILL UPGRADED", `${s.name} +${s.up}: ${o.up.text}`, "levelUp");
+  } else if (o.type === "fuse") {
+    const A0 = player.learned[o.a], B1 = player.learned[o.b], keys = ["L" + A0.id, "L" + B1.id];
+    const keep = player.learned.filter((x, j) => j !== o.a && j !== o.b);
+    o.result.id = player.nextSkillId++;
+    player.learned = [...keep, o.result];
+    // If either old skill was equipped, the fused skill takes its slot
+    if (Array.isArray(player.loadout)) {
+      const had = player.loadout.some(k => keys.includes(k));
+      player.loadout = player.loadout.filter(k => !keys.includes(k));
+      if (had) player.loadout.push("L" + o.result.id);
+    }
+    player.branchPts[o.branch]++;
+    treeHistory().push(`⚗️ ${tag(o.result)}`);
+    notify("SKILLS FUSED", `${o.result.fused.join(" + ")} became ${o.result.name}!`, "levelUp");
   } else {
+    o.skill.branch = o.branch || branchOf(o.skill);
+    o.skill.id = player.nextSkillId++;
     player.learned.push(o.skill);
+    player.branchPts[o.skill.branch]++;
     player.skipped = player.skipped.filter(s => s.name !== o.skill.name);
+    treeHistory().push(tag(o.skill));
     notify("SKILL LEARNED", `<span style="color:${RARITY_COLOR[o.skill.rarity]}">${RARITY_NAME[o.skill.rarity]}</span> skill: ${o.skill.name}`, o.skill.rarity === "legendary" || o.skill.rarity === "epic" ? "levelUp" : "unlock");
   }
+  // Perk unlocks
+  if (o.branch) { const p = BRANCHES[o.branch].perks.find(([need]) => need === player.branchPts[o.branch]); if (p) setTimeout(() => notify("BRANCH PERK", `${BRANCHES[o.branch].icon} ${o.branch} rank ${p[0]}: ${p[2]}`, "unlock"), 700); }
   // Skills you didn't pick go to the "passed on" pool so they can return later
   others.forEach(s => { if (!player.skipped.some(x => x.name === s.name)) player.skipped.push(s); });
   player.skillOffer = null;
   player.treePicks++;
   player.pendingEvo.shift();
-  render();
+  recalc(); render(); save();
   $("evoOverlay").classList.remove("show");
   if (player.pendingEvo.length) setTimeout(openEvolution, 900);
 }
 $("evoBody").addEventListener("click", e => {
   const b = e.target.closest("[data-skillpick]");
   if (b) chooseSkill(+b.dataset.skillpick);
+  if (e.target.closest("[data-skillreroll]") && player.ap >= REROLL_AP) {
+    player.ap -= REROLL_AP; player.skillOffer = makeOffer(); Sound.play("click"); save(); openSkillChoice();
+  }
 });
 function learnedMoves() {
   return (player.learned || []).map((s, j) => ({
-    name: s.name, power: s.power || 0, kind: s.kind, elem: s.elem, mp: s.mp, cd: s.cd, fx: s.fx, heal: s.heal,
-    rarity: s.rarity, lkey: "L" + j, tier: 0, priority: s.fx === "first",
+    name: s.name + (s.up ? ` +${s.up}` : ""), power: s.power || 0, kind: s.kind, elem: s.elem, mp: s.mp, cd: s.cd, fx: s.fx, heal: s.heal,
+    effect: s.fx === "focus" ? "mana" : undefined, manaPct: s.mana, stunCh: s.stun,
+    rarity: s.rarity, lkey: "L" + (s.id ?? j), tier: 0, priority: s.fx === "first",
   }));
 }
 function renderTree() {
   ensureTree();
-  const nodes = [];
-  for (let i = 0; i < TOWER_FLOORS / TREE_EVERY; i++) {
-    const lv = (i + 1) * TREE_EVERY;
-    let content, cls = "";
-    if (i < player.treePicks) {
-      content = treeHistory()[i] || "Chosen";
-      cls = "done";
-    } else if (i < player.treePicks + player.pendingEvo.filter(k => k === "skill").length) {
-      content = `<button class="btn" data-openevo>✨ Choose now</button>`; cls = "ready";
-    } else content = `<span class="muted">Unlocks at Lv. ${lv}</span>`;
-    nodes.push(`<div class="tree-node ${cls}"><span class="tn-lv">Lv ${lv}</span><span class="tn-dot"></span><span class="tn-body">${content}</span></div>`);
-  }
+  const pend = player.pendingEvo.filter(k => k === "skill").length;
   $("treeBox").innerHTML = `
-    <div class="small muted" style="margin-bottom:8px">Every ${TREE_EVERY} levels: pick 1 of 3. Luck raises rarity. Passed-on skills can return.</div>
-    <div class="small" style="margin-bottom:8px">Your elements: ${myElems().map(e => `${ELEM_ICON[e]} ${e}`).join(", ")}</div>
-    <div class="tree">${nodes.join("")}</div>
-    ${player.skipped.length ? `<div class="small muted" style="margin-top:8px">Passed on (may return): ${player.skipped.map(s => `<span style="color:${RARITY_COLOR[s.rarity]}">${s.name}</span>`).join(", ")}</div>` : ""}`;
+    <div class="small" style="margin-bottom:6px">${BRANCH_KEYS.map(b => `${BRANCHES[b].icon} ${b} <b>${player.branchPts[b] || 0}</b>`).join(" · ")}</div>
+    <div class="small muted" style="margin-bottom:8px">A Skill Awakening every ${TREE_EVERY} levels. ${pend ? `<b class="good">${pend} ready!</b>` : `Next at Lv. ${(player.treePicks + 1) * TREE_EVERY}.`}</div>
+    <button class="btn" data-open-evotree="skills">🌳 Open the Evolution Tree</button>`;
+}
+/* The Skills tab of the Evolution Tree window: 3 branch columns */
+function skillTreeHTML() {
+  ensureTree();
+  const pend = player.pendingEvo.filter(k => k === "skill").length;
+  const cols = BRANCH_KEYS.map(b => {
+    const B0 = BRANCHES[b], rank = player.branchPts[b] || 0;
+    const skills = player.learned.filter(s => branchOf(s) === b);
+    const steps = [];
+    for (let r = 1; r <= Math.max(9, rank + 1); r++) {
+      const perk = B0.perks.find(([need]) => need === r);
+      steps.push(`<div class="st-step ${r <= rank ? "on" : ""}"><span class="st-dot">${r}</span>${perk ? `<span class="st-perk ${r <= rank ? "got" : ""}">${r <= rank ? "✔" : "🔒"} ${perk[2]}</span>` : ""}</div>`);
+    }
+    return `<div class="st-col" style="--bc:${B0.color}">
+      <div class="st-h">${B0.icon} <b>${b}</b><small>Rank ${rank} · ${B0.desc}</small></div>
+      <div class="st-skills">${skills.length ? skills.map(s => `<div class="st-skill" style="--rc:${RARITY_COLOR[s.rarity]}">
+        <b>${s.fused ? "⚗️ " : ""}${s.name}${s.up ? ` +${s.up}` : ""}</b><small>${skillDesc(s)}</small></div>`).join("") : `<div class="small muted">No ${b} skills yet</div>`}</div>
+      <div class="st-steps">${steps.join("")}</div></div>`;
+  }).join("");
+  return `<div class="et-head"><span>🌿 <b>Skill Tree</b></span><span class="small muted">${player.treePicks} picks</span></div>
+    <div class="small" style="margin-bottom:6px">Every ${TREE_EVERY} levels, pick 1 of 3: a new skill in a branch, an upgrade, a fusion of two skills, or a new element. Each pick adds 1 rank to its branch, and ranks 3, 6 and 9 unlock perks. Deeper branches roll better rarities.</div>
+    <div class="et-when">${pend ? `<button class="btn glow-btn" data-openevo>✨ ${pend} awakening${pend > 1 ? "s" : ""} ready</button>` : `Next awakening at Lv. ${(player.treePicks + 1) * TREE_EVERY}`}</div>
+    <div class="st-grid">${cols}</div>
+    <div class="small" style="margin-top:8px">Elements: ${myElems().map(e => `${ELEM_ICON[e]} ${e}`).join(", ")}</div>
+    ${player.skipped.length ? `<div class="small muted" style="margin-top:6px">Passed on (may return): ${player.skipped.map(s => `<span style="color:${RARITY_COLOR[s.rarity]}">${s.name}</span>`).join(", ")}</div>` : ""}
+    ${treeHistory().length ? `<details class="guide-box"><summary>History (${treeHistory().length})</summary><ol class="small">${treeHistory().map(h => `<li>${h}</li>`).join("")}</ol></details>` : ""}`;
 }
 // Rebuild a readable history: learned skills and extra elements, in the order they were taken
 function treeHistory() {
@@ -4616,7 +4956,7 @@ function availableActives() {
   CLASS_MOVES[player.classId].forEach((m, i) => {
     if (player.level >= SKILL_UNLOCK[i]) list.push({ key: "c" + i, name: cls.skills[i], move: resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i] }), tier: TIERS[player.skillTiers[i]] });
   });
-  (player.learned || []).forEach((s, j) => list.push({ key: "L" + j, name: s.name, move: s, rarity: s.rarity }));
+  (player.learned || []).forEach((s, j) => list.push({ key: "L" + (s.id ?? j), name: s.name, move: s, rarity: s.rarity }));
   return list;
 }
 function getLoadout() {
@@ -4881,18 +5221,18 @@ function infoDetail(key) {
       break;
     case "race": {
       const rp = RACE_PASSIVES[player.raceId], pb = pathBonus("race"), stageNext = rk.stage + 1;
-      Object.assign(D, { icon: race.icon, title: "Race", value: formOf("race"), blurb: race.desc,
+      Object.assign(D, { icon: race.icon, title: "Race", value: formLabel("race"), blurb: race.desc,
         rows: [["Race stat bonus", fmtBonus(race.stats) || "None"], ["Evolution bonus", fmtBonus(pb) || "None yet"], ["Racial trait", rp.name]],
         does: [rp.desc],
-        next: `Your race can evolve at every Stage breakthrough. Next: Stage ${stageNext} at Lv. ${(stageNext - 1) * 3 + 1}.` });
+        next: atMax("race") ? `Final form reached. Each Stage breakthrough now gives an Ascension star (+2% all stats). Next at Lv. ${(stageNext - 1) * 3 + 1}.` : `Your race evolves at every Stage breakthrough (form ${pathOf("race").length + 1} of ${EVO_MAX}). Next: Stage ${stageNext} at Lv. ${(stageNext - 1) * 3 + 1}.` });
       break;
     }
     case "class": {
       const cp = CLASS_PASSIVES[player.classId], pb = pathBonus("class"), nextAdv = (Math.floor(lv / CLASS_EVO_EVERY) + 1) * CLASS_EVO_EVERY;
-      Object.assign(D, { icon: cls.icon, title: "Class", value: formOf("class"), blurb: cls.desc,
+      Object.assign(D, { icon: cls.icon, title: "Class", value: formLabel("class"), blurb: cls.desc,
         rows: [["Class stat bonus", fmtBonus(cls.stats)], ["Advancement bonus", fmtBonus(pb) || "None yet"], ["Class trait", cp.name]],
         does: [cp.desc, `Signature ability: ${cls.ability}.`],
-        next: `Next class advancement at Lv. ${nextAdv} (${nextAdv - lv} levels to go).` });
+        next: atMax("class") ? `Final form reached. Each advancement now gives an Ascension star (+2% all stats). Next at Lv. ${nextAdv}.` : `Next class advancement at Lv. ${nextAdv} (${nextAdv - lv} levels to go).` });
       break;
     }
     case "element": {
@@ -5103,6 +5443,7 @@ const WIN = {
   craft:  { title: "Crafting",     icon: "⚒️", color: "#ff9a3d" },
   party:  { title: "Party",        icon: "👥", color: "#3dd6c6" },
   sheet:  { title: "Character",    icon: "🧙", color: "#c08bff" },
+  evo:    { title: "Evolution Tree", icon: "🌳", color: "#5fe0a8" },
   summon: { title: "Summon",       icon: "🔮", color: "#ff5fd2" },
 };
 const RESULT_COLOR = { gather: "#3ddc84", work: "#ffc94d", rest: "#9d8cff", story: "#ffc94d" };
@@ -5179,14 +5520,14 @@ function renderHub() {
   const els = player.elems || [player.elem], sub = subOf();
   if ($("statusArt")) $("statusArt").innerHTML = `<button class="st-art-fig" data-open-sheet aria-label="Open character sheet">${charSVG()}</button>
     <div class="st-art-info"><div class="st-art-name">${player.name}</div>
-      <div class="small">${formOf("race")} · ${formOf("class")}${sub ? ` · <b>${sub.name}</b>` : ""}</div>
+      <div class="small">${formLabel("race")} · ${formLabel("class")}${sub ? ` · <b>${sub.name}</b>` : ""}</div>
       <div class="small">${els.map(x => `${ELEM_ICON[x]} ${x}`).join(" ")}</div>
       <div class="small muted">Lv. ${player.level} · ${rk.text}</div>
       <button class="btn small-btn" data-open-sheet>🧙 Character sheet</button></div>`;
   $("hubCard").innerHTML = `
     <div class="hc-top"><button class="hc-art" data-open-sheet aria-label="Open character sheet">${charSVG()}</button>
       <div style="min-width:0"><div class="hc-name">${player.name}</div>
-      <div class="small muted">Lv. ${player.level} · ${formOf("race")} ${cls.icon} ${formOf("class")}</div></div>
+      <div class="small muted">Lv. ${player.level} · ${formLabel("race")} ${cls.icon} ${formLabel("class")}</div></div>
       <span class="hc-rank small">${rk.text}</span></div>
     <div class="hc-bars">
       <div><span class="small">HP ${player.hp}/${player.maxHp}</span>${bar("hp", player.hp, player.maxHp)}</div>
