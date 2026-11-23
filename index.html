@@ -1038,6 +1038,23 @@ body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 
 .side-ic.dim-ic { opacity: .5; }
 .side-ic .rest-n { font-size: 10px; color: var(--muted); }
+
+/* ===== Bind choice pop-up ===== */
+.bind-ov { z-index: 120; }
+.bind-win { max-width: 440px; }
+.bind-win.special { border-color: #ffd84a; box-shadow: 0 0 26px rgba(255,216,74,.55); }
+.bind-body { padding: 12px; display: grid; gap: 8px; max-height: 78vh; overflow: auto; }
+.bind-flag { text-align: center; font-weight: 900; letter-spacing: .1em; color: #ffd84a; }
+.bind-top { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; }
+.bind-art svg { width: 110px; height: 110px; }
+.bind-name { font-size: 18px; font-weight: 800; }
+.bind-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px; font-size: 13px; }
+.bind-perk { padding: 8px; border-radius: 10px; border: 1px solid #5fe0a8; color: #5fe0a8; font-weight: 700; }
+.bind-full { padding: 8px; border-radius: 10px; border: 1px dashed #ffb547; font-size: 13px; }
+.bind-swap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; margin-top: 6px; }
+.bind-arrow { font-size: 20px; }
+.bind-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bind-btns .btn { padding: 12px; font-size: 15px; }
 </style>
 </head>
 <body data-theme="holo">
@@ -3174,9 +3191,10 @@ async function victory() {
   const st = summonType();
   if (st) {
     player.army.forEach(u => { u.fights++; if (u.fights % 5 === 0 && u.lv < 10) u.lv++; });
-    if (player.army.length < armyCap() && Math.random() < 0.25 + eff(SUMMON[st].stat) / 200 - (m.boss ? 0.15 : 0)) {
-      bound = { name: m.name, icon: ELEM_ICON[m.elem], lv: 1, fights: 0, body: m.body, boss: !!m.boss };
-      player.army.push(bound);
+    // The monster can be bound: the player decides in a pop-up after the results
+    if (armyCap() > 0 && Math.random() < 0.25 + eff(SUMMON[st].stat) / 200 - (m.boss ? 0.15 : 0)) {
+      bound = { name: m.name.replace("✦ Rare ", ""), icon: ELEM_ICON[m.elem], lv: m.rare ? 2 : 1, fights: 0, body: m.body, boss: !!m.boss, rare: !!m.rare };
+      setTimeout(() => offerBind(bound, m), 700);
     }
     recalc();
   }
@@ -3197,8 +3215,7 @@ async function victory() {
     ${lucky ? `<div class="v-row good"><span>🍀 Lucky event</span><b>${lucky.icon} ${lucky.text}</b></div>` : ""}
     ${gems ? `<div class="v-row good"><span>Gems</span><b>💎 +${gems}</b></div>` : ""}
     ${firstClear ? `<div class="v-row good"><span>New highest floor</span><b>${B.floor}</b></div>` : ""}
-    ${bound ? `<div class="v-row good"><span>${SUMMON[st].head}</span><b>${m.name}</b></div>` : ""}
-    ${bound ? `<div class="v-row good small"><span>New perk</span><b>${unitPerkText(bound)}</b></div>` : ""}
+    ${bound ? `<div class="v-row good"><span>${SUMMON[st].icon} Can be bound</span><b>${bound.name}: your choice</b></div>` : ""}
     ${armyGain.length ? `<div class="v-row good"><span>Party perks</span><b>${armyGain.join(", ")}</b></div>` : ""}
     <ul class="list loot">${lootRows || `<li class="muted">No materials dropped.</li>`}</ul></div>`;
   const next = Math.min(B.floor + 1, maxFloor());
@@ -5174,6 +5191,64 @@ function armySummary() {
   player.army.forEach(u => { const p = UNIT_PERK[unitBody(u)]; if (p.kind === "heal") heal += unitValue(u); if (p.kind === "mp") mp += unitValue(u); });
   return [...stats, ...(heal ? [`heal ${heal}% max HP after each win`] : []), ...(mp ? [`restore ${mp} MP after each win`] : [])].join(", ");
 }
+
+/* =========================================================
+   BIND CHOICE: monsters no longer join the army on their own.
+   After a win, a pop-up shows the monster's stats, perk and
+   abilities, and the player chooses Bind or Let it go.
+   If the army is full, it offers to swap out the weakest unit.
+   ========================================================= */
+let bindOffer = null;
+function weakestUnit() {
+  let wi = -1, wv = Infinity;
+  player.army.forEach((u, i) => { const v = unitValue(u) + u.lv * 0.01; if (v < wv) { wv = v; wi = i; } });
+  return wi;
+}
+function offerBind(unit, m) {
+  if (!player || !summonType()) return;
+  bindOffer = { unit, m };
+  const st = SUMMON[summonType()], full = player.army.length >= armyCap(), wi = full ? weakestUnit() : -1, w = wi >= 0 ? player.army[wi] : null;
+  const special = m.boss || m.rare;
+  const moves = (m.moves || []).map(x => `<li><b>${x.name}</b>${x.boss ? " 👑" : ""}: ${x.power ? `${x.power} power, ${ELEM_ICON[x.elem] || ""} ${x.elem}` : { atkup: "raises its attack", defup: "raises its defense", drain: "drains HP" }[x.fx] || "support move"}${x.fx === "drain" && x.power ? ", heals itself" : ""}</li>`).join("");
+  let ov = $("bindOv");
+  if (!ov) { ov = document.createElement("div"); ov.id = "bindOv"; ov.className = "overlay bind-ov"; document.body.appendChild(ov); }
+  ov.innerHTML = `<div class="win sys-win bind-win ${special ? "special" : ""}">
+    <div class="win-head"><span>${st.icon}</span><span class="wt">${st.head}?</span></div>
+    <div class="bind-body">
+      ${special ? `<div class="bind-flag">${m.boss ? "👑 BOSS" : "🍀 RARE"} · starts ${m.boss ? "with x2 perk power" : "at unit Lv. 2"}</div>` : ""}
+      <div class="bind-top"><div class="bind-art">${monsterSVG(m.sp, m.tier, m.boss)}</div>
+        <div><div class="bind-name">${unit.name} ${tierBadge(monsterGrade(m.level, m.boss))}</div>
+          <div class="small">${MON_TYPES[m.body] ? `${MON_TYPES[m.body].icon} ${MON_TYPES[m.body].label}` : ""} · ${ELEM_ICON[m.elem]} ${m.elem} · Lv. ${m.level}</div>
+          <div class="bind-stats"><span>❤️ HP <b>${m.maxHp}</b></span><span>⚔️ ATK <b>${m.atk}</b></span><span>🛡️ DEF <b>${m.def}</b></span><span>💨 SPD <b>${m.spd}</b></span></div></div></div>
+      <div class="sd-title">AS YOUR ${st.unit.toUpperCase()}</div>
+      <div class="bind-perk">${unitPerkText(unit)}</div>
+      <div class="small muted">Unit Lv. ${unit.lv}. Grows 1 level every 5 fights (max 10), +10% perk power per level. It also adds to your ${st.group}'s command bonus.</div>
+      <div class="sd-title">ABILITIES IT HAD</div>
+      <ul class="sd-effects">${moves || "<li class='muted'>No special moves.</li>"}</ul>
+      ${full ? `<div class="bind-full">⚠ Your ${st.group} is full (${player.army.length}/${armyCap()}). Swap out your weakest unit?
+        <div class="bind-swap"><div><div class="small muted">OUT</div><b>${w.name}</b> <span class="small">Lv. ${w.lv}</span><div class="small">${unitPerkText(w)}</div></div>
+        <span class="bind-arrow">⇄</span>
+        <div><div class="small muted">IN</div><b>${unit.name}</b> <span class="small">Lv. ${unit.lv}</span><div class="small good">${unitPerkText(unit)}</div></div></div></div>` : `<div class="small muted">${st.group}: ${player.army.length}/${armyCap()} slots used.</div>`}
+      <div class="bind-btns"><button class="btn" data-bind="no">Let it go</button>
+        <button class="btn glow-btn" data-bind="${full ? "swap" : "yes"}" data-wi="${wi}">${full ? `Replace ${w.name}` : "Bind"}</button></div>
+    </div></div>`;
+  ov.classList.add("show");
+  Sound.play(special ? "unlock" : "open");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("#bindOv [data-bind]"); if (!b || !bindOffer) return;
+  const st = SUMMON[summonType()], { unit } = bindOffer;
+  if (b.dataset.bind === "yes" || b.dataset.bind === "swap") {
+    let out = null;
+    if (b.dataset.bind === "swap") { out = player.army.splice(+b.dataset.wi, 1)[0]; }
+    if (player.army.length < armyCap()) {
+      player.army.push(unit); recalc(); Sound.play("evolve");
+      notify(st.head, `${st.msg(unit.name)}${out ? ` ${out.name} was released.` : ""} ${unitPerkText(unit)}`, "evolve");
+    }
+  } else { Sound.play("close"); notify(st.group.toUpperCase(), `You let the ${unit.name} go.`, "close", true); }
+  bindOffer = null; $("bindOv").classList.remove("show");
+  save(); render();
+});
 
 
 /* =========================================================
