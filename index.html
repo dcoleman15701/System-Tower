@@ -1055,6 +1055,14 @@ body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 .bind-arrow { font-size: 20px; }
 .bind-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bind-btns .btn { padding: 12px; font-size: 15px; }
+
+/* ===== 4-slot loadout ===== */
+.lo-slots { display: grid; gap: 6px; }
+.lo-slot { display: grid; grid-template-columns: 22px 18px 1fr auto; gap: 6px; align-items: center; padding: 8px; border-radius: 10px; border: 1px solid var(--panel-border); background: rgba(0,0,0,.2); touch-action: none; user-select: none; -webkit-user-select: none; }
+.lo-slot.empty { grid-template-columns: 22px 1fr; border-style: dashed; opacity: .7; }
+.lo-slot.dragging { z-index: 5; position: relative; box-shadow: 0 0 16px var(--accent); }
+.lo-n { font-weight: 900; color: var(--accent); }
+.lo-grip { color: var(--muted); cursor: grab; }
 </style>
 </head>
 <body data-theme="holo">
@@ -2755,11 +2763,11 @@ function resolveMove(m) {
 const basicLine = m => `${ELEM_ICON[m.elem]} ${m.elem} · Pow ${m.power}${m.priority ? " · First" : ""}`;
 function basicsList() {
   return CLASS_BASICS[player.classId].map(resolveMove).map(m =>
-    `<li><span>${m.name} <span class="small muted">${basicLine(m)}</span></span><span class="rank">Basic <span class="small muted">· Always ready</span></span></li>`).join("");
+    `<li><span>${m.name} <span class="small muted">${basicLine(m)}</span></span><span class="rank">Basic <span class="small muted">· Free</span></span></li>`).join("");
 }
 function basicsCards() {
   return `<div class="recipe"><div class="r-name">Basic skills</div>
-    <div class="small muted" style="margin-bottom:4px">Always ready: no cooldown, no MP and no daily limit.</div>
+    <div class="small muted" style="margin-bottom:4px">Free: no cooldown, no MP and no daily limit. Equip them in your 4-skill loadout to use them in battle.</div>
     ${CLASS_BASICS[player.classId].map(resolveMove).map(m => `<div class="small" style="margin-top:4px"><b>${m.name}</b> · ${basicLine(m)}<br><span class="muted">${m.desc}</span></div>`).join("")}</div>`;
 }
 
@@ -2792,13 +2800,16 @@ function limitText(i, t) {
   return s;
 }
 const EFFECT_TEXT = { def: "Raises your defense", atk: "Raises your attack", evade: "Dodge the next attack", heal: "Heal 35% HP", mana: "Restore 30% MP" };
+// Battle moves = your equipped loadout (up to 4), in your chosen order
 function playerMoves() {
-  const cls = CLASSES[player.classId];
-  const list = CLASS_BASICS[player.classId].map(m => resolveMove({ ...m, mp: 0, tier: 0, basic: true }));
-  CLASS_MOVES[player.classId].forEach((m, i) => {
-    if (player.level >= SKILL_UNLOCK[i] && getLoadout().includes("c" + i)) list.push(resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i], idx: i, cd: cdFor(i, player.skillTiers[i]) }));
-  });
-  return list.concat(learnedMoves().filter(m => getLoadout().includes(m.lkey)));
+  const cls = CLASSES[player.classId], learned = learnedMoves();
+  return getLoadout().map(k => {
+    let m = null;
+    if (k[0] === "b") m = basicMove(+k.slice(1));
+    else if (k[0] === "c") { const i = +k.slice(1), base = CLASS_MOVES[player.classId][i]; if (base) m = resolveMove({ ...base, basic: false, name: cls.skills[i], tier: player.skillTiers[i], idx: i, cd: cdFor(i, player.skillTiers[i]) }); }
+    else m = learned.find(x => x.lkey === k);
+    return m ? Object.assign(m, { lokey: k }) : null;
+  }).filter(Boolean);
 }
 
 /* =========================================================
@@ -2901,7 +2912,7 @@ async function playerAction(action) {
     B.busy = false; return menuMain();
   }
   if (action.type === "move" && !action.move.basic && action.move.fx !== "purify" && hasSe("pl", "silence")) {
-    await say("🔇 You're silenced! Only basic attacks (and Purify skills) work right now.", 800);
+    await say("🔇 You're silenced! Only free basic skills (and Purify skills) work right now.", 800);
     B.busy = false; return menuMain();
   }
 
@@ -3782,7 +3793,7 @@ function moveInfo(m) {
   const em = !m.effect && m.fx !== "mend" ? elemMult(m.elem, B.mon.elem) : 1;
   const tag = em > 1 ? `<span class="good">Super effective</span>` : em < 1 ? `<span class="warn-txt">Not very effective</span>` : "";
   const same = !m.effect && m.fx !== "mend" && m.elem !== "Normal" && myElems().includes(m.elem) ? `<span class="points">+20% your element</span>` : "";
-  const kind = m.basic ? `<span class="good">Basic · always ready</span>` : m.lkey ? `<span style="color:${RARITY_COLOR[m.rarity]}">${RARITY_NAME[m.rarity]} · Cooldown ${m.cd}</span>` : `<span class="muted">${TIERS[m.tier]} · ${limitText(m.idx, m.tier)}</span>`;
+  const kind = m.basic ? `<span class="good">Basic · free</span>` : m.lkey ? `<span style="color:${RARITY_COLOR[m.rarity]}">${RARITY_NAME[m.rarity]} · Cooldown ${m.cd}</span>` : `<span class="muted">${TIERS[m.tier]} · ${limitText(m.idx, m.tier)}</span>`;
   const why = wait ? `<span class="warn-txt">⏳ Ready in ${wait} turn${wait > 1 ? "s" : ""}</span>` : ultOut ? `<span class="warn-txt">No uses left today</span>` : player.mp < m.mp ? `<span class="warn-txt">Not enough MP</span>` : "";
   return `<div class="d-skill-name">${moveIcon(m)} <b>${m.name}</b> <span class="d-cost">${m.mp ? m.mp + " MP" : "Free"}</span></div>
     <div class="small">${sub}</div><div class="small">${kind} ${tag} ${same}</div>${why ? `<div class="small">${why}</div>` : ""}`;
@@ -3863,11 +3874,9 @@ $("battleBody").addEventListener("click", e => {
 });
 
 /* ---------- Drag skills to set your own order (saved) ---------- */
-const moveKey = m => m.idx !== undefined ? "c" + m.idx : m.lkey || "b:" + m.name;
+const moveKey = m => m.lokey || (m.idx !== undefined ? "c" + m.idx : m.lkey);
 function dockOrder(moves) {
-  const order = player.skillOrder || [];
-  return moves.map((m, i) => ({ m, i, k: moveKey(m) }))
-    .sort((a, b) => { const x = order.indexOf(a.k), y = order.indexOf(b.k); return (x < 0 ? 999 + a.i : x) - (y < 0 ? 999 + b.i : y); });
+  return moves.map((m, i) => ({ m, i, k: moveKey(m) }));   // already in loadout order
 }
 let skDrag = null, skJustDragged = false, holdTimer = null;
 function showHold(el) {
@@ -3910,7 +3919,8 @@ function endSkDrag() {
     const row = skDrag.el.parentElement;
     skDrag.el.classList.remove("dragging"); skDrag.el.style.transform = ""; row.classList.remove("sorting");
     const moves = playerMoves();
-    player.skillOrder = [...row.querySelectorAll(".mvrow")].map(b => moveKey(moves[+b.dataset.sk]));
+    player.loadout = [...row.querySelectorAll(".mvrow")].map(b => moveKey(moves[+b.dataset.sk]));
+    player.loadoutManual = true;
     save(); Sound.play("notify");
     skJustDragged = true;
     setTimeout(() => menuSkills(), 60);   // refresh the 1-9 key numbers
@@ -5917,50 +5927,58 @@ const CLASS_PASSIVES = {
 };
 
 /* =========================================================
-   SKILL LOADOUT: basics are always ready. Up to 4 other
-   skills (class skills or skill-tree skills) go into battle.
+   SKILL LOADOUT: exactly what you bring into battle.
+   Up to 4 skills, basics included (they're free but take a slot).
+   Hold and drag to set the order, here or in battle.
    ========================================================= */
 const LOADOUT_SIZE = 4;
+const basicMove = i => { const m = CLASS_BASICS[player.classId][i]; return m ? resolveMove({ ...m, mp: 0, tier: 0, basic: true, bidx: i }) : null; };
 function availableActives() {
   const cls = CLASSES[player.classId], list = [];
   CLASS_MOVES[player.classId].forEach((m, i) => {
     if (player.level >= SKILL_UNLOCK[i]) list.push({ key: "c" + i, name: cls.skills[i], move: resolveMove({ ...m, basic: false, name: cls.skills[i], tier: player.skillTiers[i] }), tier: TIERS[player.skillTiers[i]] });
   });
   (player.learned || []).forEach((s, j) => list.push({ key: "L" + (s.id ?? j), name: s.name, move: s, rarity: s.rarity }));
+  CLASS_BASICS[player.classId].forEach((m, i) => { const b = basicMove(i); list.push({ key: "b" + i, name: b.name, move: b, tier: "Basic · free" }); });
   return list;
 }
 function getLoadout() {
   const avail = availableActives().map(a => a.key);
   if (!Array.isArray(player.loadout)) player.loadout = [];
-  player.loadout = player.loadout.filter(k => avail.includes(k));
-  // Fill empty slots automatically until you pick for yourself
-  if (!player.loadoutManual) avail.forEach(k => { if (player.loadout.length < LOADOUT_SIZE && !player.loadout.includes(k)) player.loadout.push(k); });
+  if (!player.loadoutV2) {   // older saves: keep their skills in their chosen order
+    const order = player.skillOrder || [];
+    player.loadout.sort((a, b) => { const x = order.indexOf(a), y = order.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
+    player.loadoutV2 = true;
+  }
+  player.loadout = player.loadout.filter((k, i, arr) => avail.includes(k) && arr.indexOf(k) === i).slice(0, LOADOUT_SIZE);
+  // Fill empty slots automatically until you pick for yourself (and never leave you with nothing)
+  if (!player.loadoutManual || !player.loadout.length) avail.forEach(k => { if (player.loadout.length < LOADOUT_SIZE && !player.loadout.includes(k)) player.loadout.push(k); });
   return player.loadout;
 }
 function toggleLoadout(key) {
   const lo = getLoadout();
-  player.loadoutManual = true;
-  if (lo.includes(key)) player.loadout = lo.filter(k => k !== key);
-  else if (lo.length >= LOADOUT_SIZE) return notify("LOADOUT", `Your loadout is full (${LOADOUT_SIZE} skills). Remove one first.`, "warn");
+  if (lo.includes(key)) {
+    if (lo.length <= 1) return notify("LOADOUT", "Keep at least 1 skill equipped.", "warn");
+    player.loadout = lo.filter(k => k !== key);
+  } else if (lo.length >= LOADOUT_SIZE) return notify("LOADOUT", `All ${LOADOUT_SIZE} slots are full. Remove a skill first.`, "warn");
   else player.loadout.push(key);
-  Sound.play("click"); render();
+  player.loadoutManual = true;
+  Sound.play("click"); save(); render();
 }
-const inLoadout = m => m.basic || getLoadout().includes(m.idx !== undefined ? "c" + m.idx : m.lkey);
+const inLoadout = m => getLoadout().includes(m.lokey || (m.idx !== undefined ? "c" + m.idx : m.lkey));
 function moveDesc(m) {
   if (m.effect) return EFFECT_TEXT[m.effect];
   if (m.fx === "mend") return `Heals ${Math.round(m.heal * 100)}% HP`;
+  if (typeof skillDesc === "function" && m.rarity) return skillDesc(m);
   return `${ELEM_ICON[m.elem]} ${m.elem} · Pow ${m.power}`;
 }
 function loadoutStatusHTML() {
   const avail = availableActives(), lo = getLoadout();
   const actives = lo.map(k => avail.find(a => a.key === k)).filter(Boolean);
-  const basics = CLASS_BASICS[player.classId].map(m => resolveMove({ ...m, basic: true }));
   const sub = subOf(), rp = RACE_PASSIVES[player.raceId], cp = CLASS_PASSIVES[player.classId];
   const row = (tag, name, desc, cls = "") => `<li><span><span class="lo-tag ${cls}">${tag}</span> ${name}</span><span class="small muted" style="text-align:right">${desc}</span></li>`;
   return [
-    ...basics.map(m => row("Basic", m.name, moveDesc(m))),
-    ...actives.map(a => row("Active", a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span>` : a.name, moveDesc(a.move), "act")),
-    ...(actives.length ? [] : [row("Active", `<span class="muted">Empty</span>`, "Unlock skills by leveling up")]),
+    ...actives.map((a, i) => row(`Slot ${i + 1}`, a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span>` : a.name, moveDesc(a.move), "act")),
     row("Passive", rp.name, rp.desc, "pas"),
     row("Passive", cp.name, cp.desc, "pas"),
     row("Unique", sub ? `${sub.name}${sub.hidden ? " (Hidden)" : ""}` : `<span class="muted">None yet</span>`, sub ? sub.perk : `Subclass unlocks at Lv. ${SUBCLASS_LEVEL}`, "uni"),
@@ -5968,18 +5986,54 @@ function loadoutStatusHTML() {
 }
 function renderLoadoutBox() {
   const avail = availableActives(), lo = getLoadout();
+  const eq = lo.map(k => avail.find(a => a.key === k)).filter(Boolean);
+  const label = a => a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span> <span class="small muted">${RARITY_NAME[a.rarity]}</span>` : `${a.name} <span class="small muted">${a.tier}</span>`;
   $("loadoutBox").innerHTML = `
-    <div class="small muted" style="margin-bottom:6px">Basic skills are always ready. Choose up to ${LOADOUT_SIZE} more to bring into battle (${lo.length}/${LOADOUT_SIZE} equipped).</div>
-    <ul class="list">${avail.length ? avail.map(a => {
-      const on = lo.includes(a.key);
-      const label = a.rarity ? `<span style="color:${RARITY_COLOR[a.rarity]}">${a.name}</span> <span class="small muted">${RARITY_NAME[a.rarity]}</span>` : `${a.name} <span class="small muted">${a.tier}</span>`;
-      return `<li><span>${on ? "✅ " : ""}${label}<br><span class="small muted">${moveDesc(a.move)}</span></span>
-        <button class="btn" data-loadout="${a.key}">${on ? "Remove" : "Equip"}</button></li>`;
-    }).join("") : `<li class="muted">No skills yet. Your first class skill unlocks at Lv. 1.</li>`}</ul>`;
+    <div class="small muted" style="margin-bottom:6px">You bring <b>${LOADOUT_SIZE} skills</b> into battle (${lo.length}/${LOADOUT_SIZE}). <b>Hold and drag</b> to change their order. The order here is the order in battle.</div>
+    <div class="lo-slots" id="loSlots">${Array.from({ length: LOADOUT_SIZE }, (_, i) => { const a = eq[i];
+      return a ? `<div class="lo-slot" data-lokey="${a.key}"><span class="lo-n">${i + 1}</span><span class="lo-grip">⠿</span><span class="lo-name">${label(a)}<br><span class="small muted">${moveDesc(a.move)}${a.move.mp ? ` · ${a.move.mp} MP` : ""}</span></span><button class="btn small-btn" data-loadout="${a.key}">Remove</button></div>`
+        : `<div class="lo-slot empty"><span class="lo-n">${i + 1}</span><span class="muted">Empty slot. Equip a skill below.</span></div>`; }).join("")}</div>
+    <div class="sd-title" style="margin-top:10px">ALL YOUR SKILLS</div>
+    <ul class="list">${avail.filter(a => !lo.includes(a.key)).map(a => `<li><span>${label(a)}<br><span class="small muted">${moveDesc(a.move)}</span></span>
+        <button class="btn" data-loadout="${a.key}" ${lo.length >= LOADOUT_SIZE ? "disabled" : ""}>Equip</button></li>`).join("") || `<li class="muted">Every skill you have is equipped.</li>`}</ul>`;
 }
 $("panel").addEventListener("click", e => {
-  const b = e.target.closest("[data-loadout]"); if (b && player) toggleLoadout(b.dataset.loadout);
+  const b = e.target.closest("[data-loadout]"); if (b && player && !loDrag.moved) toggleLoadout(b.dataset.loadout);
 });
+// Hold and drag equipped skills to reorder them
+const loDrag = { el: null, moved: false };
+$("panel").addEventListener("pointerdown", e => {
+  const el = e.target.closest(".lo-slot[data-lokey]"); if (!el || e.target.closest("button")) return;
+  loDrag.el = el; loDrag.moved = false; loDrag.y = e.clientY; loDrag.id = e.pointerId;
+});
+document.addEventListener("pointermove", e => {
+  if (!loDrag.el || e.pointerId !== loDrag.id) return;
+  const dy = e.clientY - loDrag.y;
+  if (!loDrag.moved && Math.abs(dy) < 8) return;
+  if (!loDrag.moved) { loDrag.moved = true; loDrag.el.classList.add("dragging"); Sound.play("click"); }
+  e.preventDefault();
+  loDrag.el.style.transform = `translateY(${dy}px) scale(1.03)`;
+  loDrag.el.style.visibility = "hidden";
+  const under = document.elementFromPoint(e.clientX, e.clientY)?.closest(".lo-slot[data-lokey]");
+  loDrag.el.style.visibility = "";
+  if (under && under !== loDrag.el) {
+    const r = under.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+    under.parentElement.insertBefore(loDrag.el, after ? under.nextSibling : under);
+    loDrag.el.style.transform = ""; const r2 = loDrag.el.getBoundingClientRect(); loDrag.y = r2.top + r2.height / 2;
+  }
+}, { passive: false });
+function endLoDrag() {
+  if (!loDrag.el) return;
+  if (loDrag.moved) {
+    loDrag.el.classList.remove("dragging"); loDrag.el.style.transform = "";
+    player.loadout = [...document.querySelectorAll("#loSlots .lo-slot[data-lokey]")].map(x => x.dataset.lokey);
+    player.loadoutManual = true; save(); Sound.play("notify"); setTimeout(render, 30);
+    setTimeout(() => loDrag.moved = false, 80);
+  }
+  loDrag.el = null;
+}
+document.addEventListener("pointerup", endLoDrag);
+document.addEventListener("pointercancel", endLoDrag);
 
 /* =========================================================
    SAVE FILES: 3 slots, each its own character.
@@ -7337,7 +7391,7 @@ function guideItems(key) {
     ];
     case "skills": return [
       `<b>Ability Points (AP):</b> you have <b>${player.ap}</b>. Earn them from fights, gathering, rank ups, the daily quest and the story. Spend them on this page.`,
-      `<b>Battle loadout:</b> basic moves are always ready: no cooldown and no MP. You can also bring up to 4 skills into each fight.`,
+      `<b>Battle loadout:</b> you bring exactly <b>4 skills</b> into each fight, set in the Skills window. Basic moves are free (no MP, no cooldown) but take a slot like any other skill. Hold and drag to set the order.`,
       `<b>Main ability:</b> your class's signature power. Each grade (F up to S) adds ${fmtBonus(GRADE_BONUS)}.`,
       `<b>Skill mastery:</b> your 4 class skills unlock at Lv. ${SKILL_UNLOCK.join(", ")}. Training a skill raises its tier (Beginner, Intermediate, Advanced, Master). Each tier gives +10% power and a better bonus. The cooldown gets shorter every 2 tiers, and your strongest skill gets 1 more use a day.`,
       `<b>Body refinement:</b> each layer adds ${fmtBonus(LAYER_BONUS)} and +20 max HP. Each new layer needs a higher Stage.`,
